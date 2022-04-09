@@ -1,0 +1,29 @@
+{
+  "schemaVersion": 1,
+  "id": "renderer",
+  "version": "${version}",
+  "name": "Renderer",
+  "description": "A library for aiding the rendering process",
+  "authors": [
+    "0x150"
+  ],
+  "contact": {},
+  "license": "BSD-3-Clause",
+  "icon": "assets/renderer/icon.png",
+  "environment": "client",
+  "entrypoints": {
+    "client": [
+      "me.x150.renderer.client.RendererClient"
+    ],
+    "main": [
+      "me.x150.renderer.RendererMain"
+    ]
+  },
+  "mixins": [
+    "renderer.mixins.json"
+  ],
+  "depends": {
+    "fabricloader": ">=0.13.3",
+    "minecraft": "1.18.2"
+  }
+}
