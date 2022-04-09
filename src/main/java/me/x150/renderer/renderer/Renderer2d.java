@@ -7,10 +7,7 @@ import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Matrix4f;
-import net.minecraft.util.math.Vec3d;
-import net.minecraft.util.math.Vector4f;
 import org.jetbrains.annotations.Range;
-import org.lwjgl.opengl.GL11;
 
 import java.awt.*;
 
@@ -27,8 +24,9 @@ public class Renderer2d {
      * Begins scissoring the selected area<br>
      * Only pixels in this area will be rendered, until {@link #endScissor()} is called<br>
      * <strong>Do not call directly unless you have a good reason to, use {@link ClipStack#addWindow(MatrixStack, Rectangle)} instead</strong>
-     * @param x The start X coordinate
-     * @param y The start Y coordinate
+     *
+     * @param x    The start X coordinate
+     * @param y    The start Y coordinate
      * @param endX The end X coordinate
      * @param endY The end Y coordinate
      * @deprecated for internal use only
@@ -48,6 +46,7 @@ public class Renderer2d {
      * Ends the scissor context<br>
      * Always call when you used {@link #beginScissor(double, double, double, double)} before, unless you want to break something<br>
      * <strong>Do not call directly unless you have a good reason to, use {@link ClipStack#popWindow()} instead</strong>
+     *
      * @deprecated for internal use only
      */
     @Deprecated
@@ -58,16 +57,17 @@ public class Renderer2d {
     /**
      * Renders a texture<br>
      * Make sure to link your texture using {@link RenderSystem#setShaderTexture(int, Identifier)} before using this
-     * @param matrices The context MatrixStack
-     * @param x0 The X coordinate
-     * @param y0 The Y coordinate
-     * @param width The width of the rendered area
-     * @param height The height of the rendered area
-     * @param u The U of the initial texture (0 for none)
-     * @param v The V of the initial texture (0 for none)
-     * @param regionWidth The UV Region width of the initial texture (can be width)
-     * @param regionHeight The UV Region width of the initial texture (can be height)
-     * @param textureWidth The texture width (can be width)
+     *
+     * @param matrices      The context MatrixStack
+     * @param x0            The X coordinate
+     * @param y0            The Y coordinate
+     * @param width         The width of the rendered area
+     * @param height        The height of the rendered area
+     * @param u             The U of the initial texture (0 for none)
+     * @param v             The V of the initial texture (0 for none)
+     * @param regionWidth   The UV Region width of the initial texture (can be width)
+     * @param regionHeight  The UV Region width of the initial texture (can be height)
+     * @param textureWidth  The texture width (can be width)
      * @param textureHeight The texture height (can be height)
      */
     public static void renderTexture(MatrixStack matrices, double x0, double y0, double width, double height, float u, float v, double regionWidth, double regionHeight, double textureWidth, double textureHeight) {
@@ -81,27 +81,29 @@ public class Renderer2d {
     /**
      * Renders a texture<br>
      * Make sure to link your texture using {@link RenderSystem#setShaderTexture(int, Identifier)} before using this
+     *
      * @param matrices The context MatrixStack
-     * @param x The X coordinate
-     * @param y The Y coordinate
-     * @param width The width of the texture
-     * @param height The height of the texture
+     * @param x        The X coordinate
+     * @param y        The Y coordinate
+     * @param width    The width of the texture
+     * @param height   The height of the texture
      */
     public static void renderTexture(MatrixStack matrices, double x, double y, double width, double height) {
-        renderTexture(matrices, x, y, width, height,0,0,width,height,width,height);
+        renderTexture(matrices, x, y, width, height, 0, 0, width, height, width, height);
     }
 
     /**
      * Renders a circle<br>
      * Best used inside of {@link MSAAFramebuffer#use(int, Runnable)}
-     * @param matrices The context MatrixStack
+     *
+     * @param matrices    The context MatrixStack
      * @param circleColor The color of the circle
-     * @param originX The <b>center</b> X coordinate
-     * @param originY The <b>center</b> Y coordinate
-     * @param rad The radius of the circle
-     * @param segments How many segments to use to render the circle (less = more performance, more = higher quality circle)
+     * @param originX     The <b>center</b> X coordinate
+     * @param originY     The <b>center</b> Y coordinate
+     * @param rad         The radius of the circle
+     * @param segments    How many segments to use to render the circle (less = more performance, more = higher quality circle)
      */
-    public static void renderCircle(MatrixStack matrices, Color circleColor, double originX, double originY, double rad, @Range(from=4, to=360) int segments) {
+    public static void renderCircle(MatrixStack matrices, Color circleColor, double originX, double originY, double rad, @Range(from = 4, to = 360) int segments) {
         segments = MathHelper.clamp(segments, 4, 360);
         int color = circleColor.getRGB();
 
@@ -126,12 +128,13 @@ public class Renderer2d {
 
     /**
      * Renders a regular colored quad
+     *
      * @param matrices The context MatrixStack
-     * @param c The color of the quad
-     * @param x1 The start X coordinate
-     * @param y1 The start Y coordinate
-     * @param x2 The end X coordinate
-     * @param y2 The end Y coordinate
+     * @param c        The color of the quad
+     * @param x1       The start X coordinate
+     * @param y1       The start Y coordinate
+     * @param x2       The end X coordinate
+     * @param y2       The end Y coordinate
      */
     public static void renderQuad(MatrixStack matrices, Color c, double x1, double y1, double x2, double y2) {
         int color = c.getRGB();
@@ -163,6 +166,7 @@ public class Renderer2d {
         bufferBuilder.end();
         BufferRenderer.draw(bufferBuilder);
     }
+
     private static void renderRoundedQuadInternal(Matrix4f matrix, float cr, float cg, float cb, float ca, double fromX, double fromY, double toX, double toY, double rad, double samples) {
         BufferBuilder bufferBuilder = Tessellator.getInstance().getBuffer();
         bufferBuilder.begin(VertexFormat.DrawMode.TRIANGLE_FAN, VertexFormats.POSITION_COLOR);
@@ -190,25 +194,27 @@ public class Renderer2d {
         bufferBuilder.end();
         BufferRenderer.draw(bufferBuilder);
     }
+
     /**
      * Renders a rounded rectangle<br>
      * Best used inside of {@link MSAAFramebuffer#use(int, Runnable)}
+     *
      * @param matrices The context MatrixStack
-     * @param c The color of the rounded rectangle
-     * @param fromX The start X coordinate
-     * @param fromY The start Y coordinate
-     * @param toX The end X coordinate
-     * @param toY The end Y coordinate
-     * @param rad The radius of the corners
-     * @param samples How many samples to use for the corners
+     * @param c        The color of the rounded rectangle
+     * @param fromX    The start X coordinate
+     * @param fromY    The start Y coordinate
+     * @param toX      The end X coordinate
+     * @param toY      The end Y coordinate
+     * @param rad      The radius of the corners
+     * @param samples  How many samples to use for the corners
      * @throws IllegalArgumentException If height or width are below 1 px
      */
     public static void renderRoundedQuad(MatrixStack matrices, Color c, double fromX, double fromY, double toX, double toY, double rad, double samples) {
-        double height = toY-fromY;
-        double width = toX-fromX;
-        if (height <= 0) throw new IllegalArgumentException("Height should be > 0, got "+height);
-        if (width <= 0) throw new IllegalArgumentException("Width should be > 0, got "+width);
-        double smallestC = Math.min(height, width)/2d;
+        double height = toY - fromY;
+        double width = toX - fromX;
+        if (height <= 0) throw new IllegalArgumentException("Height should be > 0, got " + height);
+        if (width <= 0) throw new IllegalArgumentException("Width should be > 0, got " + width);
+        double smallestC = Math.min(height, width) / 2d;
         rad = Math.min(rad, smallestC);
         int color = c.getRGB();
         Matrix4f matrix = matrices.peek().getPositionMatrix();
@@ -224,12 +230,13 @@ public class Renderer2d {
 
     /**
      * Renders a regular line between 2 points
+     *
      * @param stack The context MatrixStack
-     * @param c The color of the line
-     * @param x The start X coordinate
-     * @param y The start Y coordinate
-     * @param x1 The end X coordinate
-     * @param y1 The end Y coordinate
+     * @param c     The color of the line
+     * @param x     The start X coordinate
+     * @param y     The start Y coordinate
+     * @param x1    The end X coordinate
+     * @param y1    The end Y coordinate
      */
     public static void renderLine(MatrixStack stack, Color c, double x, double y, double x1, double y1) {
         float g = c.getRed() / 255f;

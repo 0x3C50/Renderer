@@ -48,6 +48,7 @@ public class MSAAFramebuffer extends Framebuffer {
 
     /**
      * Checks if any instance is currently being used
+     *
      * @return If any instance is currently being used
      */
     public static boolean framebufferInUse() {
@@ -56,6 +57,7 @@ public class MSAAFramebuffer extends Framebuffer {
 
     /**
      * Gets an instance with the sample count provided
+     *
      * @param samples The desired sample count
      * @return The framebuffer instance
      */
@@ -66,7 +68,8 @@ public class MSAAFramebuffer extends Framebuffer {
     /**
      * Uses the framebuffer with the rendering calls in the action specified<br>
      * Make sure to batch your rendering code you want to antialias as far as possible, switching from the default framebuffer to this one takes time.<br>
-     * @param samples The desired amount of samples to be used
+     *
+     * @param samples    The desired amount of samples to be used
      * @param drawAction The runnable that gets executed within the framebuffer. Render your things there.
      */
     public static void use(int samples, Runnable drawAction) {
@@ -76,7 +79,8 @@ public class MSAAFramebuffer extends Framebuffer {
     /**
      * Uses the framebuffer with the rendering calls in the action specified<br>
      * If you do not know what you're doing, use {@link #use(int, Runnable)} instead
-     * @param samples The desired amount of samples to be used
+     *
+     * @param samples    The desired amount of samples to be used
      * @param mainBuffer The main framebuffer to read and write to once the buffer finishes
      * @param drawAction The runnable that gets executed within the framebuffer. Render your things there.
      */

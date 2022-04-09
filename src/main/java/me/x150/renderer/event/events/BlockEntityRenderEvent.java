@@ -4,7 +4,6 @@
 
 package me.x150.renderer.event.events;
 
-import me.x150.renderer.event.Shift;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.client.util.math.MatrixStack;
 
@@ -18,17 +17,19 @@ public class BlockEntityRenderEvent extends RenderEvent {
 
     /**
      * Constructs a new event
-     * @param shift The shift
-     * @param stack The context matrixstack
+     *
+     * @param shift  The shift
+     * @param stack  The context matrixstack
      * @param entity The entity that was rendered
      */
     public BlockEntityRenderEvent(MatrixStack stack, BlockEntity entity) {
-        super( stack);
+        super(stack);
         this.entity = entity;
     }
 
     /**
      * Returns the entity that was rendered
+     *
      * @return The entity
      */
     public BlockEntity getBlockEntity() {

@@ -6,7 +6,7 @@ import me.x150.renderer.event.Shift;
 import me.x150.renderer.event.events.RenderEvent;
 
 public class EventHandler {
-    @EventListener(shift=Shift.POST, type= EventType.WORLD_RENDER)
+    @EventListener(shift = Shift.POST, type = EventType.WORLD_RENDER)
     void worldRendered(RenderEvent event) {
         Renderer3d.renderFadingBlocks(event.getStack());
     }

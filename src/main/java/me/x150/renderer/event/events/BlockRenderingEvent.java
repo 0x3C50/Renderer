@@ -4,7 +4,6 @@
 
 package me.x150.renderer.event.events;
 
-import me.x150.renderer.event.Shift;
 import net.minecraft.block.BlockState;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.util.math.BlockPos;

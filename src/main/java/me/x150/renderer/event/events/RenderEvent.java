@@ -4,7 +4,6 @@
 
 package me.x150.renderer.event.events;
 
-import me.x150.renderer.event.Shift;
 import me.x150.renderer.event.events.base.Event;
 import net.minecraft.client.util.math.MatrixStack;
 

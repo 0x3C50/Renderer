@@ -4,8 +4,6 @@
 
 package me.x150.renderer.event.events.base;
 
-import me.x150.renderer.event.Shift;
-
 /**
  * An event that cannot be cancelled
  */

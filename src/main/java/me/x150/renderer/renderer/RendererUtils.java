@@ -21,8 +21,9 @@ public class RendererUtils {
 
     /**
      * Linear interpolation between two ints
-     * @param from Range from
-     * @param to Range to
+     *
+     * @param from  Range from
+     * @param to    Range to
      * @param delta Range delta
      * @return The interpolated value between from and to
      */
@@ -32,8 +33,9 @@ public class RendererUtils {
 
     /**
      * Linear interpolation between two ints
-     * @param from Range from
-     * @param to Range to
+     *
+     * @param from  Range from
+     * @param to    Range to
      * @param delta Range delta
      * @return The interpolated value between from and to
      */
@@ -43,6 +45,7 @@ public class RendererUtils {
 
     /**
      * Linear interpolation between two colors
+     *
      * @param a Color range from
      * @param b Color range to
      * @param c Range delta
@@ -55,10 +58,11 @@ public class RendererUtils {
     /**
      * Modifies a color
      * Any of the components can be set to -1 to keep them from the original color
-     * @param original The original color
-     * @param redOverwrite The new red component
+     *
+     * @param original       The original color
+     * @param redOverwrite   The new red component
      * @param greenOverwrite The new green component
-     * @param blueOverwrite The new blue component
+     * @param blueOverwrite  The new blue component
      * @param alphaOverwrite The new alpha component
      * @return The new color
      */

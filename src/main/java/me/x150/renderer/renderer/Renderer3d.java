@@ -36,19 +36,8 @@ public class Renderer3d {
     private static final AtomicBoolean renderThroughWalls = new AtomicBoolean(false);
 
     /**
-     * A fading block
-     */
-    record FadingBlock(Color outline, Color fill, Vec3d start, Vec3d dimensions, long created, long lifeTime) {
-        long getLifeTimeLeft() {
-            return Math.max(0, (created - System.currentTimeMillis()) + lifeTime);
-        }
-
-        boolean isDead() {
-            return getLifeTimeLeft() == 0;
-        }
-    }
-    /**
      * Returns an empty matrix stack without having to reinitialize the object
+     *
      * @return The empty matrix stack
      */
     public static MatrixStack getEmptyMatrixStack() {
@@ -58,11 +47,12 @@ public class Renderer3d {
 
     /**
      * Renders a fading block that becomes transparent as time progresses
+     *
      * @param outlineColor Which color the outline of the block should have
-     * @param fillColor Which color the filling of the block should have
-     * @param start Where the block is placed
-     * @param dimensions The dimensions of the block
-     * @param lifeTimeMs How long the block should be visible for, in milliseconds
+     * @param fillColor    Which color the filling of the block should have
+     * @param start        Where the block is placed
+     * @param dimensions   The dimensions of the block
+     * @param lifeTimeMs   How long the block should be visible for, in milliseconds
      */
     public static void renderFadingBlock(Color outlineColor, Color fillColor, Vec3d start, Vec3d dimensions, long lifeTimeMs) {
         FadingBlock fb = new FadingBlock(outlineColor, fillColor, start, dimensions, System.currentTimeMillis(), lifeTimeMs);
@@ -86,10 +76,11 @@ public class Renderer3d {
 
     /**
      * Renders a block with edges being visible
-     * @param stack The context MatrixStack
-     * @param start The start coordinate of the block
+     *
+     * @param stack      The context MatrixStack
+     * @param start      The start coordinate of the block
      * @param dimensions The dimensions of the blockk
-     * @param colorFill The color the block should be filled with
+     * @param colorFill  The color the block should be filled with
      * @param colorEdges The color of the outline
      */
     public static void renderBlockWithEdges(MatrixStack stack, Vec3d start, Vec3d dimensions, Color colorFill, Color colorEdges) {
@@ -193,10 +184,11 @@ public class Renderer3d {
 
     /**
      * Renders a filled block
-     * @param stack The context MatrixStack
-     * @param start The start coordinate of the block
+     *
+     * @param stack      The context MatrixStack
+     * @param start      The start coordinate of the block
      * @param dimensions The dimensions of the block
-     * @param color The color of the filling
+     * @param color      The color of the filling
      */
     public static void renderFilled(MatrixStack stack, Vec3d start, Vec3d dimensions, Color color) {
         float red = color.getRed() / 255f;
@@ -258,10 +250,11 @@ public class Renderer3d {
 
     /**
      * Renders an outline of a block
-     * @param stack The context MatrixStack
-     * @param start The start coordinate of the block
+     *
+     * @param stack      The context MatrixStack
+     * @param start      The start coordinate of the block
      * @param dimensions The dimensions of the block
-     * @param color The color of the outline
+     * @param color      The color of the outline
      */
     public static void renderOutline(MatrixStack stack, Vec3d start, Vec3d dimensions, Color color) {
         float red = color.getRed() / 255f;
@@ -319,13 +312,13 @@ public class Renderer3d {
         GL11.glDepthFunc(GL11.GL_LEQUAL);
     }
 
-
     /**
      * Renders a straight line between two points
+     *
      * @param matrices The context MatrixStack
-     * @param start The start coordinate of the line
-     * @param end The end coordinate of the line
-     * @param color The color of the line
+     * @param start    The start coordinate of the line
+     * @param end      The end coordinate of the line
+     * @param color    The color of the line
      */
     public static void renderLine(MatrixStack matrices, Vec3d start, Vec3d end, Color color) {
         float r = color.getRed() / 255f;
@@ -361,6 +354,7 @@ public class Renderer3d {
 
     /**
      * Gets the world position the crosshair is in. Used for rendering a tracer line from the crosshair to a specific coordinate
+     *
      * @return The vec3d describing the crosshair's position
      */
     public static Vec3d getCrosshairVector() {
@@ -379,7 +373,7 @@ public class Renderer3d {
     }
 
     private static void setAppropiateGlMode() {
-        GL11.glDepthFunc(renderThroughWalls.get()?GL11.GL_ALWAYS:GL11.GL_LEQUAL);
+        GL11.glDepthFunc(renderThroughWalls.get() ? GL11.GL_ALWAYS : GL11.GL_LEQUAL);
     }
 
     /**
@@ -387,6 +381,7 @@ public class Renderer3d {
      * Use {@link #stopRenderingThroughWalls()} to revert<br>
      * Use {@link #rendersThroughWalls()} to query current state<br>
      * Rendering while this flag is set might result in Z-Fighting
+     *
      * @see #stopRenderingThroughWalls()
      */
     public static void startRenderingThroughWalls() {
@@ -397,6 +392,7 @@ public class Renderer3d {
      * Tells the renderer to stop rendering through walls or entities<br>
      * Use {@link #startRenderingThroughWalls()} to revert<br>
      * Use {@link #rendersThroughWalls()} to query current state<br>
+     *
      * @see #startRenderingThroughWalls()
      */
     public static void stopRenderingThroughWalls() {
@@ -405,11 +401,25 @@ public class Renderer3d {
 
     /**
      * Returns true if the renderer is currently set to render through walls
+     *
      * @return If the renderer is rendering through walls or not
      * @see #startRenderingThroughWalls()
      * @see #stopRenderingThroughWalls()
      */
     public static boolean rendersThroughWalls() {
         return renderThroughWalls.get();
+    }
+
+    /**
+     * A fading block
+     */
+    record FadingBlock(Color outline, Color fill, Vec3d start, Vec3d dimensions, long created, long lifeTime) {
+        long getLifeTimeLeft() {
+            return Math.max(0, (created - System.currentTimeMillis()) + lifeTime);
+        }
+
+        boolean isDead() {
+            return getLifeTimeLeft() == 0;
+        }
     }
 }

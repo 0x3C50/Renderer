@@ -14,12 +14,14 @@ import java.lang.annotation.RetentionPolicy;
 public @interface EventListener {
     /**
      * The type to subscribe to
+     *
      * @return The event type
      */
     EventType type();
 
     /**
      * The desired shift of the event
+     *
      * @return The shift
      */
     Shift shift();

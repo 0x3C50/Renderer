@@ -15,6 +15,7 @@ public class Rectangle {
 
     /**
      * Returns true if a coordinate is inside the rectangle
+     *
      * @param x The X coordinate
      * @param y The Y coordinate
      * @return Whether the coordinates specified are inside the rectangle

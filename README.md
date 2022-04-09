@@ -46,5 +46,8 @@ The api is pretty self explanatory, you just register an event for which you wan
 # The two renderers
 Renderer2d is for 2d rendering on screens or the hud, Renderer3d is to be used inside the WORLD_RENDER event, that's where it thrives.
 
+# Event shifts
+PRE is for when you want to monitor an event happening and maybe cancel it, POST is for when you want to additionally render stuff when it happens.
+
 # Suggestions
 You can leave suggestions in the issues section

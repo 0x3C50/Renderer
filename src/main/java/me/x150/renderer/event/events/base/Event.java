@@ -4,8 +4,6 @@
 
 package me.x150.renderer.event.events.base;
 
-import me.x150.renderer.event.Shift;
-
 /**
  * An event
  */
@@ -15,6 +13,7 @@ public class Event {
 
     /**
      * Returns if the event was cancelled by a handler
+     *
      * @return If the event was cancelled
      */
     public boolean isCancelled() {
@@ -23,6 +22,7 @@ public class Event {
 
     /**
      * Marks the event as cancelled or not
+     *
      * @param cancelled Whether the event is cancelled
      */
     public void setCancelled(boolean cancelled) {

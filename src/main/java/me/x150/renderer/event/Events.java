@@ -6,7 +6,6 @@ package me.x150.renderer.event;
 
 
 import me.x150.renderer.event.events.base.Event;
-import org.apache.logging.log4j.Level;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.InvocationTargetException;
@@ -21,14 +20,14 @@ import java.util.stream.Collectors;
  * Event management system
  */
 public class Events {
-    record ListenerEntry(int id, EventType type, Shift shift, Consumer<? extends Event> eventListener) {}
     static final List<ListenerEntry> entries = new CopyOnWriteArrayList<>();
 
     /**
      * Registers a new event handler
+     *
      * @param uniqueId The ID of this event. Used to check if it was previously registered and to un-register it.
-     * @param event The event type to subscribe to
-     * @param handler The event handler
+     * @param event    The event type to subscribe to
+     * @param handler  The event handler
      * @return The ListenerEntry for this event
      */
     public static ListenerEntry registerEventHandler(int uniqueId, EventType event, Shift shift, Consumer<? extends Event> handler) {
@@ -43,6 +42,7 @@ public class Events {
 
     /**
      * Removes a handler
+     *
      * @param id The handler ID
      */
     public static void unregister(int id) {
@@ -51,16 +51,18 @@ public class Events {
 
     /**
      * Registers a new event handler
-     * @param event The event to subscribe to
+     *
+     * @param event   The event to subscribe to
      * @param handler The event handler
      * @return The ListenerEntry for this event, with a randomly generated ID
      */
     public static ListenerEntry registerEventHandler(EventType event, Shift shift, Consumer<? extends Event> handler) {
-        return registerEventHandler((int) Math.floor(Math.random()*0xFFFFFF),event, shift,handler);
+        return registerEventHandler((int) Math.floor(Math.random() * 0xFFFFFF), event, shift, handler);
     }
 
     /**
      * Registers a new event handler class. All event handler methods must be annotated with {@link EventListener} and have exactly one argument, that argument being the {@link Event} to supply them to.
+     *
      * @param instance The instance of the handler class
      */
     public static void registerEventHandlerClass(Object instance) {
@@ -73,7 +75,7 @@ public class Events {
                         throw new IllegalArgumentException("Event handler " + declaredMethod.getName() + "(" + Arrays.stream(params).map(Class::getSimpleName).collect(Collectors.joining(", ")) + ") -> " + declaredMethod.getReturnType().getName() + " from " + instance.getClass().getName() + " is malformed");
                     } else {
                         declaredMethod.setAccessible(true);
-                        registerEventHandler((instance.getClass().getName()+declaredMethod.getName()).hashCode(), ev.type(), ev.shift(), event -> {
+                        registerEventHandler((instance.getClass().getName() + declaredMethod.getName()).hashCode(), ev.type(), ev.shift(), event -> {
                             try {
                                 declaredMethod.invoke(instance, event);
                             } catch (IllegalAccessException | InvocationTargetException e) {
@@ -88,7 +90,8 @@ public class Events {
 
     /**
      * Fires an event handler stack
-     * @param event The event to fire
+     *
+     * @param event    The event to fire
      * @param argument The argument supplied to the handlers
      * @return If the event has been marked as cancelled
      */
@@ -100,5 +103,8 @@ public class Events {
             }
         }
         return argument.isCancelled();
+    }
+
+    record ListenerEntry(int id, EventType type, Shift shift, Consumer<? extends Event> eventListener) {
     }
 }

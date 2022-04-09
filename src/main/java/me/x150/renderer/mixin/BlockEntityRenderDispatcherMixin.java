@@ -19,6 +19,7 @@ public class BlockEntityRenderDispatcherMixin {
     public <E extends BlockEntity> void renderer_postBlockEntityRender(E blockEntity, float tickDelta, MatrixStack matrix, VertexConsumerProvider vertexConsumerProvider, CallbackInfo ci) {
         Events.fireEvent(EventType.BLOCK_ENTITY_RENDER, Shift.POST, new BlockEntityRenderEvent(matrix, blockEntity));
     }
+
     @Inject(method = "render(Lnet/minecraft/block/entity/BlockEntity;FLnet/minecraft/client/util/math/MatrixStack;Lnet/minecraft/client/render/VertexConsumerProvider;)V", at = @At("HEAD"),
             cancellable = true)
     public <E extends BlockEntity> void renderer_preBlockEntityRender(E blockEntity, float tickDelta, MatrixStack matrix, VertexConsumerProvider vertexConsumerProvider, CallbackInfo ci) {

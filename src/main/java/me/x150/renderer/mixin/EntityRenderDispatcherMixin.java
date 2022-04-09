@@ -18,13 +18,13 @@ public class EntityRenderDispatcherMixin {
 
     @Inject(method = "render", at = @At("HEAD"), cancellable = true)
     public <E extends Entity> void renderer_preEntityRender(E entity, double x, double y, double z, float yaw, float tickDelta, MatrixStack matrices, VertexConsumerProvider vertexConsumers, int light, CallbackInfo ci) {
-        if (Events.fireEvent(EventType.ENTITY_RENDER,Shift.PRE,  new EntityRenderEvent(matrices, entity))) {
+        if (Events.fireEvent(EventType.ENTITY_RENDER, Shift.PRE, new EntityRenderEvent(matrices, entity))) {
             ci.cancel();
         }
     }
 
     @Inject(method = "render", at = @At("RETURN"))
     public <E extends Entity> void renderer_postEntityRender(E entity, double x, double y, double z, float yaw, float tickDelta, MatrixStack matrices, VertexConsumerProvider vertexConsumers, int light, CallbackInfo ci) {
-        Events.fireEvent(EventType.ENTITY_RENDER,Shift.POST, new EntityRenderEvent( matrices, entity));
+        Events.fireEvent(EventType.ENTITY_RENDER, Shift.POST, new EntityRenderEvent(matrices, entity));
     }
 }

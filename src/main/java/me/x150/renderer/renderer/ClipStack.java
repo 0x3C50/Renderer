@@ -5,7 +5,6 @@ import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Matrix4f;
 import net.minecraft.util.math.Vector4f;
 
-import java.util.Deque;
 import java.util.Stack;
 
 
@@ -22,8 +21,9 @@ public class ClipStack {
      * All new rendered elements will only be rendered if they conform to this rectangle and the others above it<br>
      * This function takes the old clip stack into account<br>
      * <strong>Always call {@link #popWindow()} after you're done rendering with this</strong>
+     *
      * @param stack The context MatrixStack
-     * @param r1 The new clipping rectangle to enlist
+     * @param r1    The new clipping rectangle to enlist
      */
     public void addWindow(MatrixStack stack, Rectangle r1) {
         Matrix4f matrix = stack.peek().getPositionMatrix();
@@ -71,6 +71,7 @@ public class ClipStack {
 
     /**
      * Renders something outside of the currently applied clipping rectangle stackk
+     *
      * @param e The runnable to run outside the clip stack
      */
     public void renderOutsideClipStack(Runnable e) {
