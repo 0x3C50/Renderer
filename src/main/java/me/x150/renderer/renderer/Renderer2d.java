@@ -124,6 +124,7 @@ public class Renderer2d {
         }
         bufferBuilder.end();
         BufferRenderer.draw(bufferBuilder);
+        RendererUtils.endRender();
     }
 
     /**
@@ -165,6 +166,7 @@ public class Renderer2d {
         bufferBuilder.vertex(matrix, (float) x1, (float) y1, 0.0F).color(g, h, k, f).next();
         bufferBuilder.end();
         BufferRenderer.draw(bufferBuilder);
+        RendererUtils.endRender();
     }
 
     private static void renderRoundedQuadInternal(Matrix4f matrix, float cr, float cg, float cb, float ca, double fromX, double fromY, double toX, double toY, double rad, double samples) {
@@ -226,6 +228,7 @@ public class Renderer2d {
         RenderSystem.setShader(GameRenderer::getPositionColorShader);
 
         renderRoundedQuadInternal(matrix, g, h, k, f, fromX, fromY, toX, toY, rad, samples);
+        RendererUtils.endRender();
     }
 
     /**
@@ -252,6 +255,7 @@ public class Renderer2d {
         bufferBuilder.vertex(m, (float) x1, (float) y1, 0f).color(g, h, k, f).next();
         bufferBuilder.end();
         BufferRenderer.draw(bufferBuilder);
+        RendererUtils.endRender();
     }
 
     private static void renderTexturedQuad(Matrix4f matrix, double x0, double x1, double y0, double y1, double z, float u0, float u1, float v0, float v1) {

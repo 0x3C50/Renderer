@@ -20,6 +20,14 @@ public class RendererUtils {
     }
 
     /**
+     * Reverts everything back to normal after rendering
+     */
+    public static void endRender() {
+        RenderSystem.disableBlend();
+        RenderSystem.enableCull();
+    }
+
+    /**
      * Linear interpolation between two ints
      *
      * @param from  Range from

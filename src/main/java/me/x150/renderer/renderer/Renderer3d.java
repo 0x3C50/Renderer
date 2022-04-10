@@ -180,6 +180,7 @@ public class Renderer3d {
 
         BufferRenderer.draw(buffer);
         GL11.glDepthFunc(GL11.GL_LEQUAL);
+        RendererUtils.endRender();
     }
 
     /**
@@ -246,6 +247,7 @@ public class Renderer3d {
 
         BufferRenderer.draw(buffer);
         GL11.glDepthFunc(GL11.GL_LEQUAL);
+        RendererUtils.endRender();
     }
 
     /**
@@ -310,6 +312,7 @@ public class Renderer3d {
         buffer.end();
         BufferRenderer.draw(buffer);
         GL11.glDepthFunc(GL11.GL_LEQUAL);
+        RendererUtils.endRender();
     }
 
     /**
@@ -350,6 +353,7 @@ public class Renderer3d {
 
         BufferRenderer.draw(buffer);
         GL11.glDepthFunc(GL11.GL_LEQUAL);
+        RendererUtils.endRender();
     }
 
     /**
@@ -380,7 +384,6 @@ public class Renderer3d {
      * Tells the renderer to render through any walls or entities<br>
      * Use {@link #stopRenderingThroughWalls()} to revert<br>
      * Use {@link #rendersThroughWalls()} to query current state<br>
-     * Rendering while this flag is set might result in Z-Fighting
      *
      * @see #stopRenderingThroughWalls()
      */
@@ -392,6 +395,7 @@ public class Renderer3d {
      * Tells the renderer to stop rendering through walls or entities<br>
      * Use {@link #startRenderingThroughWalls()} to revert<br>
      * Use {@link #rendersThroughWalls()} to query current state<br>
+     * Rendering while this flag is unset might result in Z-Fighting
      *
      * @see #startRenderingThroughWalls()
      */
