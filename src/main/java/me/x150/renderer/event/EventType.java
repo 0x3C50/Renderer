@@ -17,23 +17,23 @@ public enum EventType {
      */
     BLOCK_ENTITY_RENDER,
     /**
-     * A block has been rendered<br>
-     * Gets called once to cache the block, then only when the block is regenerated. Does <b>NOT</b> get called each frame
+     * <p>A block has been rendered</p>
+     * <p>Gets called once to cache the block, then only when the block is regenerated. Does <b>NOT</b> get called each frame</p>
      */
     BLOCK_RENDER,
     /**
-     * The in game hud has been rendered<br>
-     * Gets called only when in game, and only if the F1 "Hide hud" flag is not set
+     * <p>The in game hud has been rendered</p>
+     * <p>Gets called only when in game, and only if the F1 "Hide hud" flag is not set</p>
      */
     HUD_RENDER,
     /**
-     * The world has been rendered<br>
-     * Gets called only when in game
+     * <p>The world has been rendered</p>
+     * <p>Gets called only when in game</p>
      */
     WORLD_RENDER,
     /**
-     * A screen has been rendered<br>
-     * Gets called only when there is a screen present, and only if there is no overlay
+     * <p>A screen has been rendered</p>
+     * <p>Gets called only when there is a screen present, and only if there is no overlay</p>
      */
     SCREEN_RENDER
 }

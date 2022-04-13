@@ -66,8 +66,8 @@ public class MSAAFramebuffer extends Framebuffer {
     }
 
     /**
-     * Uses the framebuffer with the rendering calls in the action specified<br>
-     * Make sure to batch your rendering code you want to antialias as far as possible, switching from the default framebuffer to this one takes time.<br>
+     * <p>Uses the framebuffer with the rendering calls in the action specified</p>
+     * <p>Make sure to batch your rendering code you want to antialias as far as possible, switching from the default framebuffer to this one takes time.</p>
      *
      * @param samples    The desired amount of samples to be used
      * @param drawAction The runnable that gets executed within the framebuffer. Render your things there.
@@ -77,8 +77,8 @@ public class MSAAFramebuffer extends Framebuffer {
     }
 
     /**
-     * Uses the framebuffer with the rendering calls in the action specified<br>
-     * If you do not know what you're doing, use {@link #use(int, Runnable)} instead
+     * <p>Uses the framebuffer with the rendering calls in the action specified</p>
+     * <p>If you do not know what you're doing, use {@link #use(int, Runnable)} instead</p>
      *
      * @param samples    The desired amount of samples to be used
      * @param mainBuffer The main framebuffer to read and write to once the buffer finishes

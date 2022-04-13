@@ -21,8 +21,8 @@ public class Renderer2d {
     private static final MinecraftClient client = MinecraftClient.getInstance();
 
     /**
-     * Begins scissoring the selected area<br>
-     * Only pixels in this area will be rendered, until {@link #endScissor()} is called<br>
+     * <p>Begins scissoring the selected area</p>
+     * <p>Only pixels in this area will be rendered, until {@link #endScissor()} is called</p>
      * <strong>Do not call directly unless you have a good reason to, use {@link ClipStack#addWindow(MatrixStack, Rectangle)} instead</strong>
      *
      * @param x    The start X coordinate
@@ -43,8 +43,8 @@ public class Renderer2d {
     }
 
     /**
-     * Ends the scissor context<br>
-     * Always call when you used {@link #beginScissor(double, double, double, double)} before, unless you want to break something<br>
+     * <p>Ends the scissor context</p>
+     * <p>Always call when you used {@link #beginScissor(double, double, double, double)} before, unless you want to break something</p>
      * <strong>Do not call directly unless you have a good reason to, use {@link ClipStack#popWindow()} instead</strong>
      *
      * @deprecated for internal use only
@@ -55,8 +55,8 @@ public class Renderer2d {
     }
 
     /**
-     * Renders a texture<br>
-     * Make sure to link your texture using {@link RenderSystem#setShaderTexture(int, Identifier)} before using this
+     * <p>Renders a texture</p>
+     * <p>Make sure to link your texture using {@link RenderSystem#setShaderTexture(int, Identifier)} before using this</p>
      *
      * @param matrices      The context MatrixStack
      * @param x0            The X coordinate
@@ -78,9 +78,21 @@ public class Renderer2d {
                 .getPositionMatrix(), x0, x1, y0, y1, z, (u + 0.0F) / (float) textureWidth, (u + (float) regionWidth) / (float) textureWidth, (v + 0.0F) / (float) textureHeight, (v + (float) regionHeight) / (float) textureHeight);
     }
 
+    private static void renderTexturedQuad(Matrix4f matrix, double x0, double x1, double y0, double y1, double z, float u0, float u1, float v0, float v1) {
+        RenderSystem.setShader(GameRenderer::getPositionTexShader);
+        BufferBuilder bufferBuilder = Tessellator.getInstance().getBuffer();
+        bufferBuilder.begin(VertexFormat.DrawMode.QUADS, VertexFormats.POSITION_TEXTURE);
+        bufferBuilder.vertex(matrix, (float) x0, (float) y1, (float) z).texture(u0, v1).next();
+        bufferBuilder.vertex(matrix, (float) x1, (float) y1, (float) z).texture(u1, v1).next();
+        bufferBuilder.vertex(matrix, (float) x1, (float) y0, (float) z).texture(u1, v0).next();
+        bufferBuilder.vertex(matrix, (float) x0, (float) y0, (float) z).texture(u0, v0).next();
+        bufferBuilder.end();
+        BufferRenderer.draw(bufferBuilder);
+    }
+
     /**
-     * Renders a texture<br>
-     * Make sure to link your texture using {@link RenderSystem#setShaderTexture(int, Identifier)} before using this
+     * <p>Renders a texture</p>
+     * <p>Make sure to link your texture using {@link RenderSystem#setShaderTexture(int, Identifier)} before using this</p>
      *
      * @param matrices The context MatrixStack
      * @param x        The X coordinate
@@ -93,8 +105,24 @@ public class Renderer2d {
     }
 
     /**
-     * Renders a circle<br>
-     * Best used inside of {@link MSAAFramebuffer#use(int, Runnable)}
+     * <p>Renders a texture</p>
+     * <p>Does the binding for you, call this instead of {@link #renderTexture(MatrixStack, double, double, double, double)} or {@link #renderTexture(MatrixStack, double, double, double, double, float, float, double, double, double, double)} for ease of use</p>
+     *
+     * @param matrices The context MatrixStack
+     * @param texture  The texture to render
+     * @param x        The X coordinate
+     * @param y        The Y coordinate
+     * @param width    The width of the texture
+     * @param height   The height of the texture
+     */
+    public static void renderTexture(MatrixStack matrices, Identifier texture, double x, double y, double width, double height) {
+        RenderSystem.setShaderTexture(0, texture);
+        renderTexture(matrices, x, y, width, height);
+    }
+
+    /**
+     * <p>Renders a circle</p>
+     * <p>Best used inside of {@link MSAAFramebuffer#use(int, Runnable)}</p>
      *
      * @param matrices    The context MatrixStack
      * @param circleColor The color of the circle
@@ -198,8 +226,8 @@ public class Renderer2d {
     }
 
     /**
-     * Renders a rounded rectangle<br>
-     * Best used inside of {@link MSAAFramebuffer#use(int, Runnable)}
+     * <p>Renders a rounded rectangle</p>
+     * <p>Best used inside of {@link MSAAFramebuffer#use(int, Runnable)}</p>
      *
      * @param matrices The context MatrixStack
      * @param c        The color of the rounded rectangle
@@ -258,15 +286,5 @@ public class Renderer2d {
         RendererUtils.endRender();
     }
 
-    private static void renderTexturedQuad(Matrix4f matrix, double x0, double x1, double y0, double y1, double z, float u0, float u1, float v0, float v1) {
-        RenderSystem.setShader(GameRenderer::getPositionTexShader);
-        BufferBuilder bufferBuilder = Tessellator.getInstance().getBuffer();
-        bufferBuilder.begin(VertexFormat.DrawMode.QUADS, VertexFormats.POSITION_TEXTURE);
-        bufferBuilder.vertex(matrix, (float) x0, (float) y1, (float) z).texture(u0, v1).next();
-        bufferBuilder.vertex(matrix, (float) x1, (float) y1, (float) z).texture(u1, v1).next();
-        bufferBuilder.vertex(matrix, (float) x1, (float) y0, (float) z).texture(u1, v0).next();
-        bufferBuilder.vertex(matrix, (float) x0, (float) y0, (float) z).texture(u0, v0).next();
-        bufferBuilder.end();
-        BufferRenderer.draw(bufferBuilder);
-    }
+
 }

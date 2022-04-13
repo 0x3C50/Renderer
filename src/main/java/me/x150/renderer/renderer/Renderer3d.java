@@ -276,6 +276,7 @@ public class Renderer3d {
         float z2 = (float) end.z;
         BufferBuilder buffer = Tessellator.getInstance().getBuffer();
 
+        setAppropiateGlMode();
         RendererUtils.setupRender();
         RenderSystem.setShader(GameRenderer::getPositionColorShader);
         buffer.begin(VertexFormat.DrawMode.DEBUG_LINES, VertexFormats.POSITION_COLOR);

@@ -4,19 +4,29 @@
 
 package me.x150.renderer.event.events;
 
+import lombok.Getter;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.entity.Entity;
 
+/**
+ * An entity has been rendered
+ */
 public class EntityRenderEvent extends RenderEvent {
 
+    /**
+     * The rendered entity
+     */
+    @Getter
     final Entity target;
 
-    public EntityRenderEvent(MatrixStack stack, Entity e) {
+    /**
+     * Constructs a new event
+     *
+     * @param stack  The context MatrixStack
+     * @param entity The entity that has been rendered
+     */
+    public EntityRenderEvent(MatrixStack stack, Entity entity) {
         super(stack);
-        this.target = e;
-    }
-
-    public Entity getEntity() {
-        return target;
+        this.target = entity;
     }
 }

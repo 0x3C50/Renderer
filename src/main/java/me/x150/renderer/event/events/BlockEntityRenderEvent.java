@@ -4,6 +4,7 @@
 
 package me.x150.renderer.event.events;
 
+import lombok.Getter;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.client.util.math.MatrixStack;
 
@@ -13,26 +14,20 @@ import net.minecraft.client.util.math.MatrixStack;
 @SuppressWarnings("unused")
 public class BlockEntityRenderEvent extends RenderEvent {
 
+    /**
+     * The BlockEntity which has been rendered
+     */
+    @Getter
     final BlockEntity entity;
 
     /**
      * Constructs a new event
      *
-     * @param shift  The shift
-     * @param stack  The context matrixstack
-     * @param entity The entity that was rendered
+     * @param stack  The context MatrixStack
+     * @param entity The BlockEntity that was rendered
      */
     public BlockEntityRenderEvent(MatrixStack stack, BlockEntity entity) {
         super(stack);
         this.entity = entity;
-    }
-
-    /**
-     * Returns the entity that was rendered
-     *
-     * @return The entity
-     */
-    public BlockEntity getBlockEntity() {
-        return entity;
     }
 }

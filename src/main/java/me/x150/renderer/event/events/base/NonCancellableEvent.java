@@ -5,7 +5,7 @@
 package me.x150.renderer.event.events.base;
 
 /**
- * An event that cannot be cancelled
+ * <p>An event that cannot be cancelled</p>
  */
 public class NonCancellableEvent extends Event {
 

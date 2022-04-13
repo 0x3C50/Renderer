@@ -1,16 +1,20 @@
 package me.x150.renderer.renderer;
 
 import com.mojang.blaze3d.systems.RenderSystem;
+import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.util.math.MathHelper;
+import net.minecraft.util.math.Matrix4f;
+import net.minecraft.util.math.Vec3d;
+import net.minecraft.util.math.Vector4f;
 
 import java.awt.*;
 
 /**
- * Utils for rendering in minecraft
+ * <p>Utils for rendering in minecraft</p>
  */
 public class RendererUtils {
     /**
-     * Sets up rendering and resets everything that should be reset
+     * <p>Sets up rendering and resets everything that should be reset</p>
      */
     public static void setupRender() {
         RenderSystem.disableCull();
@@ -20,7 +24,7 @@ public class RendererUtils {
     }
 
     /**
-     * Reverts everything back to normal after rendering
+     * <p>Reverts everything back to normal after rendering</p>
      */
     public static void endRender() {
         RenderSystem.disableBlend();
@@ -28,7 +32,7 @@ public class RendererUtils {
     }
 
     /**
-     * Linear interpolation between two ints
+     * <p>Linear interpolation between two ints</p>
      *
      * @param from  Range from
      * @param to    Range to
@@ -40,7 +44,7 @@ public class RendererUtils {
     }
 
     /**
-     * Linear interpolation between two ints
+     * <p>Linear interpolation between two doubles</p>
      *
      * @param from  Range from
      * @param to    Range to
@@ -52,7 +56,7 @@ public class RendererUtils {
     }
 
     /**
-     * Linear interpolation between two colors
+     * <p>Linear interpolation between two colors</p>
      *
      * @param a Color range from
      * @param b Color range to
@@ -64,8 +68,8 @@ public class RendererUtils {
     }
 
     /**
-     * Modifies a color
-     * Any of the components can be set to -1 to keep them from the original color
+     * <p>Modifies a color</p>
+     * <p>Any of the components can be set to -1 to keep them from the original color</p>
      *
      * @param original       The original color
      * @param redOverwrite   The new red component
@@ -76,5 +80,19 @@ public class RendererUtils {
      */
     public static Color modify(Color original, int redOverwrite, int greenOverwrite, int blueOverwrite, int alphaOverwrite) {
         return new Color(redOverwrite == -1 ? original.getRed() : redOverwrite, greenOverwrite == -1 ? original.getGreen() : greenOverwrite, blueOverwrite == -1 ? original.getBlue() : blueOverwrite, alphaOverwrite == -1 ? original.getAlpha() : alphaOverwrite);
+    }
+
+    /**
+     * <p>Translates a Vec3d's position with a MatrixStack</p>
+     *
+     * @param stack The MatrixStack to translate with
+     * @param in    The Vec3d to translate
+     * @return The translated Vec3d
+     */
+    public static Vec3d translateVec3dWithMatrixStack(MatrixStack stack, Vec3d in) {
+        Matrix4f matrix = stack.peek().getPositionMatrix();
+        Vector4f parsedVecf = new Vector4f((float) in.x, (float) in.y, (float) in.z, 1);
+        parsedVecf.transform(matrix);
+        return new Vec3d(parsedVecf.getX(), parsedVecf.getY(), parsedVecf.getZ());
     }
 }

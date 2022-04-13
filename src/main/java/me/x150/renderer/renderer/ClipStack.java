@@ -14,12 +14,12 @@ import java.util.Stack;
 @SuppressWarnings("deprecation") // deprecated for internal use only
 public class ClipStack {
     public static final ClipStack globalInstance = new ClipStack();
-    final Stack<TransformationEntry> clipStack = new Stack<>();
+    final Stack<Rectangle> clipStack = new Stack<>();
 
     /**
-     * Adds a clipping window to the stack<br>
-     * All new rendered elements will only be rendered if they conform to this rectangle and the others above it<br>
-     * This function takes the old clip stack into account<br>
+     * <p>Adds a clipping window to the stack</p>
+     * <p>All new rendered elements will only be rendered if they conform to this rectangle and the others above it</p>
+     * <p>This method uses the {@link Renderer2d#beginScissor(double, double, double, double)} method to add a scissor window</p>
      * <strong>Always call {@link #popWindow()} after you're done rendering with this</strong>
      *
      * @param stack The context MatrixStack
@@ -37,10 +37,10 @@ public class ClipStack {
         double endY = end.getY();
         Rectangle r = new Rectangle(x, y, endX, endY);
         if (clipStack.empty()) {
-            clipStack.push(new TransformationEntry(r, stack.peek()));
+            clipStack.push(r);
             Renderer2d.beginScissor(r.getX(), r.getY(), r.getX1(), r.getY1());
         } else {
-            Rectangle lastClip = clipStack.peek().rect;
+            Rectangle lastClip = clipStack.peek();
             double lsx = lastClip.getX();
             double lsy = lastClip.getY();
             double lstx = lastClip.getX1();
@@ -49,28 +49,29 @@ public class ClipStack {
             double nsy = MathHelper.clamp(r.getY(), lsy, lsty);
             double nstx = MathHelper.clamp(r.getX1(), nsx, lstx);
             double nsty = MathHelper.clamp(r.getY1(), nsy, lsty); // totally intended varname
-            clipStack.push(new TransformationEntry(new Rectangle(nsx, nsy, nstx, nsty), stack.peek()));
+            clipStack.push(new Rectangle(nsx, nsy, nstx, nsty));
             Renderer2d.beginScissor(nsx, nsy, nstx, nsty);
         }
     }
 
     /**
-     * Pops the latest added window from the stack
+     * <p>Pops the latest added window from the stack</p>
+     * <p>This method may use {@link Renderer2d#endScissor()} if the stack has been cleared, to clear the scissor stack as well</p>
      */
     public void popWindow() {
         clipStack.pop();
         if (clipStack.empty()) {
             Renderer2d.endScissor();
         } else {
-            TransformationEntry r1 = clipStack.peek();
-            Rectangle r = r1.rect;
+            Rectangle r = clipStack.peek();
             Renderer2d.beginScissor(r.getX(), r.getY(), r.getX1(), r.getY1());
 
         }
     }
 
     /**
-     * Renders something outside of the currently applied clipping rectangle stackk
+     * <p>Renders something outside of the currently applied clipping rectangle stack</p>
+     * <p>This method may use the {@link Renderer2d#endScissor()} and {@link Renderer2d#beginScissor(double, double, double, double)} methods to temporarily disable the scissor stack</p>
      *
      * @param e The runnable to run outside the clip stack
      */
@@ -80,12 +81,10 @@ public class ClipStack {
         } else {
             Renderer2d.endScissor();
             e.run();
-            Rectangle r = clipStack.peek().rect;
+            Rectangle r = clipStack.peek();
             Renderer2d.beginScissor(r.getX(), r.getY(), r.getX1(), r.getY1());
         }
     }
 
-    record TransformationEntry(Rectangle rect, MatrixStack.Entry transformationEntry) {
-    }
 }
 

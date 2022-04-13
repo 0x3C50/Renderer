@@ -4,27 +4,37 @@
 
 package me.x150.renderer.event.events;
 
+import lombok.Getter;
 import net.minecraft.block.BlockState;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.util.math.BlockPos;
 
+/**
+ * A block has been rendered
+ */
 public class BlockRenderingEvent extends RenderEvent {
 
-    final BlockPos bp;
+    /**
+     * The BlockPos of the rendered block
+     */
+    @Getter
+    final BlockPos position;
+    /**
+     * The BlockState of the rendered block
+     */
+    @Getter
     final BlockState state;
 
+    /**
+     * Constructs a new event
+     *
+     * @param stack The context MatrixStack
+     * @param pos   The block's position
+     * @param state The block's BlockState
+     */
     public BlockRenderingEvent(MatrixStack stack, BlockPos pos, BlockState state) {
         super(stack);
-        this.bp = pos;
+        this.position = pos;
         this.state = state;
-    }
-
-    @SuppressWarnings("unused")
-    public BlockPos getPosition() {
-        return bp;
-    }
-
-    public BlockState getBlockState() {
-        return state;
     }
 }

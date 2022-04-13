@@ -4,28 +4,17 @@
 
 package me.x150.renderer.event.events.base;
 
+import lombok.Getter;
+import lombok.Setter;
+
 /**
- * An event
+ * <p>An event</p>
  */
 public class Event {
-
+    /**
+     * Whether the event has been cancelled
+     */
+    @Setter
+    @Getter
     boolean cancelled = false;
-
-    /**
-     * Returns if the event was cancelled by a handler
-     *
-     * @return If the event was cancelled
-     */
-    public boolean isCancelled() {
-        return cancelled;
-    }
-
-    /**
-     * Marks the event as cancelled or not
-     *
-     * @param cancelled Whether the event is cancelled
-     */
-    public void setCancelled(boolean cancelled) {
-        this.cancelled = cancelled;
-    }
 }

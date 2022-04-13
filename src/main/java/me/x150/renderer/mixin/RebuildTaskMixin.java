@@ -34,7 +34,8 @@ public class RebuildTaskMixin {
             shift = At.Shift.AFTER
     ), locals = LocalCapture.CAPTURE_FAILEXCEPTION)
     void renderer_preBlockRender(float cameraX, float cameraY, float cameraZ, ChunkBuilder.ChunkData data, BlockBufferBuilderStorage buffers, CallbackInfoReturnable<Set<BlockEntity>> cir, int i, BlockPos blockPos, BlockPos blockPos2, ChunkOcclusionDataBuilder chunkOcclusionDataBuilder, Set set, ChunkRendererRegion chunkRendererRegion, MatrixStack matrixStack, Random random, BlockRenderManager blockRenderManager, Iterator var15, BlockPos blockPos3, BlockState blockState, BlockState blockState2, FluidState fluidState, RenderLayer renderLayer, BufferBuilder bufferBuilder) {
-        BlockRenderingEvent be = new BlockRenderingEvent(matrixStack, blockPos3, blockState);
+        // clone the blockpos to prevent it from modifying down the line
+        BlockRenderingEvent be = new BlockRenderingEvent(matrixStack, new BlockPos(blockPos3), blockState);
         Events.fireEvent(EventType.BLOCK_RENDER, Shift.PRE, be);
     }
 }
