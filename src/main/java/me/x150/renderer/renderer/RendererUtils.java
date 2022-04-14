@@ -1,13 +1,22 @@
 package me.x150.renderer.renderer;
 
 import com.mojang.blaze3d.systems.RenderSystem;
+import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.texture.NativeImage;
+import net.minecraft.client.texture.NativeImageBackedTexture;
 import net.minecraft.client.util.math.MatrixStack;
+import net.minecraft.util.Identifier;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Matrix4f;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.util.math.Vector4f;
+import org.lwjgl.BufferUtils;
 
+import javax.imageio.ImageIO;
 import java.awt.*;
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayOutputStream;
+import java.nio.ByteBuffer;
 
 /**
  * <p>Utils for rendering in minecraft</p>
@@ -94,5 +103,28 @@ public class RendererUtils {
         Vector4f parsedVecf = new Vector4f((float) in.x, (float) in.y, (float) in.z, 1);
         parsedVecf.transform(matrix);
         return new Vec3d(parsedVecf.getX(), parsedVecf.getY(), parsedVecf.getZ());
+    }
+
+    /**
+     * <p>Registers a BufferedImage as Identifier, to be used in future render calls</p>
+     * <p><strong>WARNING:</strong> This will wait for the main tick thread to register the texture, keep in mind that the texture will not be available instantly</p>
+     * <p><strong>WARNING 2:</strong> This will throw an exception when called when the OpenGL context is not yet made</p>
+     *
+     * @param i  The identifier to register the texture under
+     * @param bi The BufferedImage holding the texture
+     */
+    public static void registerBufferedImageTexture(Identifier i, BufferedImage bi) {
+        try {
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            ImageIO.write(bi, "png", baos);
+            byte[] bytes = baos.toByteArray();
+
+            ByteBuffer data = BufferUtils.createByteBuffer(bytes.length).put(bytes);
+            data.flip();
+            NativeImageBackedTexture tex = new NativeImageBackedTexture(NativeImage.read(data));
+            MinecraftClient.getInstance().execute(() -> MinecraftClient.getInstance().getTextureManager().registerTexture(i, tex));
+        } catch (Exception e) { // should never happen, but just in case
+            e.printStackTrace();
+        }
     }
 }
