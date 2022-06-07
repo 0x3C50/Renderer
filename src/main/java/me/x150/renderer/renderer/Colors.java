@@ -54,7 +54,7 @@ public class Colors {
         int green = in >> (8 * 2) & 0xFF;
         int blue = in >> (8) & 0xFF;
         int alpha = in & 0xFF;
-        return new int[]{red, green, blue, alpha};
+        return new int[] { red, green, blue, alpha };
     }
 
     /**
@@ -68,7 +68,7 @@ public class Colors {
         int red = in >> (8 * 2) & 0xFF;
         int green = in >> (8) & 0xFF;
         int blue = in & 0xFF;
-        return new int[]{red, green, blue, alpha};
+        return new int[] { red, green, blue, alpha };
     }
 
     /**
@@ -81,7 +81,7 @@ public class Colors {
         int red = in >> (8 * 2) & 0xFF;
         int green = in >> (8) & 0xFF;
         int blue = in & 0xFF;
-        return new int[]{red, green, blue};
+        return new int[] { red, green, blue };
     }
 
     private static boolean validateColorRange(int in) {

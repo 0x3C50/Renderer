@@ -2,14 +2,19 @@ package me.x150.renderer.renderer;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.render.*;
+import net.minecraft.client.render.BufferBuilder;
+import net.minecraft.client.render.BufferRenderer;
+import net.minecraft.client.render.GameRenderer;
+import net.minecraft.client.render.Tessellator;
+import net.minecraft.client.render.VertexFormat;
+import net.minecraft.client.render.VertexFormats;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Matrix4f;
 import org.jetbrains.annotations.Range;
 
-import java.awt.*;
+import java.awt.Color;
 
 /**
  * The rendering class for the 2nd dimension, used in the hud renderer or in screens
@@ -74,8 +79,16 @@ public class Renderer2d {
         double x1 = x0 + width;
         double y1 = y0 + height;
         double z = 0;
-        renderTexturedQuad(matrices.peek()
-                .getPositionMatrix(), x0, x1, y0, y1, z, (u + 0.0F) / (float) textureWidth, (u + (float) regionWidth) / (float) textureWidth, (v + 0.0F) / (float) textureHeight, (v + (float) regionHeight) / (float) textureHeight);
+        renderTexturedQuad(matrices.peek().getPositionMatrix(),
+                x0,
+                x1,
+                y0,
+                y1,
+                z,
+                (u + 0.0F) / (float) textureWidth,
+                (u + (float) regionWidth) / (float) textureWidth,
+                (v + 0.0F) / (float) textureHeight,
+                (v + (float) regionHeight) / (float) textureHeight);
     }
 
     private static void renderTexturedQuad(Matrix4f matrix, double x0, double x1, double y0, double y1, double z, float u0, float u1, float v0, float v1) {
@@ -86,8 +99,7 @@ public class Renderer2d {
         bufferBuilder.vertex(matrix, (float) x1, (float) y1, (float) z).texture(u1, v1).next();
         bufferBuilder.vertex(matrix, (float) x1, (float) y0, (float) z).texture(u1, v0).next();
         bufferBuilder.vertex(matrix, (float) x0, (float) y0, (float) z).texture(u0, v0).next();
-        bufferBuilder.end();
-        BufferRenderer.draw(bufferBuilder);
+        BufferRenderer.drawWithShader(bufferBuilder.end());
     }
 
     /**
@@ -150,8 +162,7 @@ public class Renderer2d {
             double cos = Math.cos(radians) * rad;
             bufferBuilder.vertex(matrix, (float) (originX + sin), (float) (originY + cos), 0).color(g, h, k, f).next();
         }
-        bufferBuilder.end();
-        BufferRenderer.draw(bufferBuilder);
+        BufferRenderer.drawWithShader(bufferBuilder.end());
         RendererUtils.endRender();
     }
 
@@ -192,8 +203,7 @@ public class Renderer2d {
         bufferBuilder.vertex(matrix, (float) x2, (float) y2, 0.0F).color(g, h, k, f).next();
         bufferBuilder.vertex(matrix, (float) x2, (float) y1, 0.0F).color(g, h, k, f).next();
         bufferBuilder.vertex(matrix, (float) x1, (float) y1, 0.0F).color(g, h, k, f).next();
-        bufferBuilder.end();
-        BufferRenderer.draw(bufferBuilder);
+        BufferRenderer.drawWithShader(bufferBuilder.end());
         RendererUtils.endRender();
     }
 
@@ -205,7 +215,8 @@ public class Renderer2d {
         double toY1 = toY - rad;
         double fromX1 = fromX + rad;
         double fromY1 = fromY + rad;
-        double[][] map = new double[][]{new double[]{toX1, toY1}, new double[]{toX1, fromY1}, new double[]{fromX1, fromY1}, new double[]{fromX1, toY1}};
+        double[][] map = new double[][] { new double[] { toX1, toY1 }, new double[] { toX1, fromY1 },
+                new double[] { fromX1, fromY1 }, new double[] { fromX1, toY1 } };
         for (int i = 0; i < 4; i++) {
             double[] current = map[i];
             double max = (360 / 4d + i * 90d);
@@ -213,16 +224,19 @@ public class Renderer2d {
                 float rad1 = (float) Math.toRadians(r);
                 float sin = (float) (Math.sin(rad1) * rad);
                 float cos = (float) (Math.cos(rad1) * rad);
-                bufferBuilder.vertex(matrix, (float) current[0] + sin, (float) current[1] + cos, 0.0F).color(cr, cg, cb, ca).next();
+                bufferBuilder.vertex(matrix, (float) current[0] + sin, (float) current[1] + cos, 0.0F)
+                        .color(cr, cg, cb, ca)
+                        .next();
             }
             // make sure we render the corner properly by adding one final vertex at the end
             float rad1 = (float) Math.toRadians(max);
             float sin = (float) (Math.sin(rad1) * rad);
             float cos = (float) (Math.cos(rad1) * rad);
-            bufferBuilder.vertex(matrix, (float) current[0] + sin, (float) current[1] + cos, 0.0F).color(cr, cg, cb, ca).next();
+            bufferBuilder.vertex(matrix, (float) current[0] + sin, (float) current[1] + cos, 0.0F)
+                    .color(cr, cg, cb, ca)
+                    .next();
         }
-        bufferBuilder.end();
-        BufferRenderer.draw(bufferBuilder);
+        BufferRenderer.drawWithShader(bufferBuilder.end());
     }
 
     /**
@@ -242,8 +256,12 @@ public class Renderer2d {
     public static void renderRoundedQuad(MatrixStack matrices, Color c, double fromX, double fromY, double toX, double toY, double rad, double samples) {
         double height = toY - fromY;
         double width = toX - fromX;
-        if (height <= 0) throw new IllegalArgumentException("Height should be > 0, got " + height);
-        if (width <= 0) throw new IllegalArgumentException("Width should be > 0, got " + width);
+        if (height <= 0) {
+            throw new IllegalArgumentException("Height should be > 0, got " + height);
+        }
+        if (width <= 0) {
+            throw new IllegalArgumentException("Width should be > 0, got " + width);
+        }
         double smallestC = Math.min(height, width) / 2d;
         rad = Math.min(rad, smallestC);
         int color = c.getRGB();
@@ -281,8 +299,7 @@ public class Renderer2d {
         bufferBuilder.begin(VertexFormat.DrawMode.DEBUG_LINES, VertexFormats.POSITION_COLOR);
         bufferBuilder.vertex(m, (float) x, (float) y, 0f).color(g, h, k, f).next();
         bufferBuilder.vertex(m, (float) x1, (float) y1, 0f).color(g, h, k, f).next();
-        bufferBuilder.end();
-        BufferRenderer.draw(bufferBuilder);
+        BufferRenderer.drawWithShader(bufferBuilder.end());
         RendererUtils.endRender();
     }
 

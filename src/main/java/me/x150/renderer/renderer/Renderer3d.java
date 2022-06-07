@@ -2,14 +2,20 @@ package me.x150.renderer.renderer;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.render.*;
+import net.minecraft.client.render.BufferBuilder;
+import net.minecraft.client.render.BufferRenderer;
+import net.minecraft.client.render.Camera;
+import net.minecraft.client.render.GameRenderer;
+import net.minecraft.client.render.Tessellator;
+import net.minecraft.client.render.VertexFormat;
+import net.minecraft.client.render.VertexFormats;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Matrix4f;
 import net.minecraft.util.math.Vec3d;
 import org.lwjgl.opengl.GL11;
 
-import java.awt.*;
+import java.awt.Color;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -55,7 +61,12 @@ public class Renderer3d {
      * @param lifeTimeMs   How long the block should be visible for, in milliseconds
      */
     public static void renderFadingBlock(Color outlineColor, Color fillColor, Vec3d start, Vec3d dimensions, long lifeTimeMs) {
-        FadingBlock fb = new FadingBlock(outlineColor, fillColor, start, dimensions, System.currentTimeMillis(), lifeTimeMs);
+        FadingBlock fb = new FadingBlock(outlineColor,
+                fillColor,
+                start,
+                dimensions,
+                System.currentTimeMillis(),
+                lifeTimeMs);
 
         fades.removeIf(fadingBlock -> fadingBlock.start.equals(start) && fadingBlock.dimensions.equals(dimensions));
         fades.add(fb);
@@ -65,7 +76,9 @@ public class Renderer3d {
         // concurrentmodexception fuckaround, locks didnt work for some fucking reason
         fades.removeIf(FadingBlock::isDead);
         for (FadingBlock fade : fades) {
-            if (fade == null) continue;
+            if (fade == null) {
+                continue;
+            }
             long lifetimeLeft = fade.getLifeTimeLeft();
             double progress = lifetimeLeft / (double) fade.lifeTime;
             Color out = RendererUtils.modify(fade.outline, -1, -1, -1, (int) (fade.outline.getAlpha() * progress));
@@ -141,8 +154,7 @@ public class Renderer3d {
         buffer.vertex(matrix, x2, y1, z2).color(red, green, blue, alpha).next();
         buffer.vertex(matrix, x1, y1, z2).color(red, green, blue, alpha).next();
 
-        buffer.end();
-        BufferRenderer.draw(buffer);
+        BufferRenderer.drawWithShader(buffer.end());
 
         RenderSystem.setShader(GameRenderer::getPositionColorShader);
         buffer.begin(VertexFormat.DrawMode.DEBUG_LINES, VertexFormats.POSITION_COLOR);
@@ -176,9 +188,7 @@ public class Renderer3d {
         buffer.vertex(matrix, x1, y1, z2).color(r1, g1, b1, a1).next();
         buffer.vertex(matrix, x1, y2, z2).color(r1, g1, b1, a1).next();
 
-        buffer.end();
-
-        BufferRenderer.draw(buffer);
+        BufferRenderer.drawWithShader(buffer.end());
         GL11.glDepthFunc(GL11.GL_LEQUAL);
         RendererUtils.endRender();
     }
@@ -243,9 +253,7 @@ public class Renderer3d {
         buffer.vertex(matrix, x2, y1, z2).color(red, green, blue, alpha).next();
         buffer.vertex(matrix, x1, y1, z2).color(red, green, blue, alpha).next();
 
-        buffer.end();
-
-        BufferRenderer.draw(buffer);
+        BufferRenderer.drawWithShader(buffer.end());
         GL11.glDepthFunc(GL11.GL_LEQUAL);
         RendererUtils.endRender();
     }
@@ -310,8 +318,7 @@ public class Renderer3d {
         buffer.vertex(matrix, x1, y1, z2).color(red, green, blue, alpha).next();
         buffer.vertex(matrix, x1, y2, z2).color(red, green, blue, alpha).next();
 
-        buffer.end();
-        BufferRenderer.draw(buffer);
+        BufferRenderer.drawWithShader(buffer.end());
         GL11.glDepthFunc(GL11.GL_LEQUAL);
         RendererUtils.endRender();
     }
@@ -350,9 +357,7 @@ public class Renderer3d {
         buffer.vertex(matrix, x1, y1, z1).color(r, g, b, a).next();
         buffer.vertex(matrix, x2, y2, z2).color(r, g, b, a).next();
 
-        buffer.end();
-
-        BufferRenderer.draw(buffer);
+        BufferRenderer.drawWithShader(buffer.end());
         GL11.glDepthFunc(GL11.GL_LEQUAL);
         RendererUtils.endRender();
     }

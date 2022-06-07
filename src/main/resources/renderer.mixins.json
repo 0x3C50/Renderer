@@ -5,9 +5,9 @@
   "compatibilityLevel": "JAVA_17",
   "mixins": [
     "BlockEntityRenderDispatcherMixin",
+    "BlockRenderManagerMixin",
     "EntityRenderDispatcherMixin",
     "GameRendererMixin",
-    "RebuildTaskMixin",
     "hud.InGameHudMixin"
   ],
   "client": [

@@ -25,7 +25,7 @@ public class GameRendererMixin {
     @Inject(at = @At(value = "FIELD", target = "Lnet/minecraft/client/render/GameRenderer;renderHand:Z", opcode = Opcodes.GETFIELD, ordinal = 0), method = "renderWorld")
     void renderer_postWorldRender(float tickDelta, long limitTime, MatrixStack matrix, CallbackInfo ci) {
         if (vb) {
-            MinecraftClient.getInstance().options.bobView = true;
+            MinecraftClient.getInstance().options.getBobView().setValue(true);
             vb = false;
         }
         Events.fireEvent(EventType.WORLD_RENDER, Shift.POST, new RenderEvent(matrix));
@@ -49,9 +49,9 @@ public class GameRendererMixin {
 
     @Inject(at = @At("HEAD"), method = "bobView", cancellable = true)
     private void renderer_fixBobView(MatrixStack matrices, float f, CallbackInfo ci) {
-        if (MinecraftClient.getInstance().options.bobView && dis) {
+        if (MinecraftClient.getInstance().options.getBobView().getValue() && dis) {
             vb = true;
-            MinecraftClient.getInstance().options.bobView = false;
+            MinecraftClient.getInstance().options.getBobView().setValue(false);
             dis = false;
             ci.cancel();
         }

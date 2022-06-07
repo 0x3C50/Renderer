@@ -12,7 +12,7 @@ import net.minecraft.util.math.BlockPos;
 /**
  * A block has been rendered
  */
-public class BlockRenderingEvent extends RenderEvent {
+public class BlockRenderEvent extends RenderEvent {
 
     /**
      * The BlockPos of the rendered block
@@ -32,7 +32,7 @@ public class BlockRenderingEvent extends RenderEvent {
      * @param pos   The block's position
      * @param state The block's BlockState
      */
-    public BlockRenderingEvent(MatrixStack stack, BlockPos pos, BlockState state) {
+    public BlockRenderEvent(MatrixStack stack, BlockPos pos, BlockState state) {
         super(stack);
         this.position = pos;
         this.state = state;

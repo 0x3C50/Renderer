@@ -6,13 +6,22 @@ import it.unimi.dsi.fastutil.chars.Char2ObjectArrayMap;
 import it.unimi.dsi.fastutil.chars.Char2ObjectMap;
 import me.x150.renderer.renderer.MSAAFramebuffer;
 import me.x150.renderer.renderer.RendererUtils;
-import net.minecraft.client.render.*;
+import net.minecraft.client.render.BufferBuilder;
+import net.minecraft.client.render.BufferRenderer;
+import net.minecraft.client.render.GameRenderer;
+import net.minecraft.client.render.Tessellator;
+import net.minecraft.client.render.VertexFormat;
+import net.minecraft.client.render.VertexFormats;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.Util;
 import net.minecraft.util.math.Matrix4f;
 
-import java.awt.*;
+import java.awt.Color;
+import java.awt.Font;
+import java.awt.FontMetrics;
+import java.awt.Graphics2D;
+import java.awt.RenderingHints;
 import java.awt.font.FontRenderContext;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Rectangle2D;
@@ -82,7 +91,11 @@ public class TTFFontRenderer {
         this.font = font.deriveFont(glyphDimensions);
 
         initGlyphs();
-        cachedHeight = (float) glyphMap.values().stream().max(Comparator.comparingDouble(Glyph::texHeight)).orElseThrow().texHeight() * getScaleFactor();
+        cachedHeight = (float) glyphMap.values()
+                .stream()
+                .max(Comparator.comparingDouble(Glyph::texHeight))
+                .orElseThrow()
+                .texHeight() * getScaleFactor();
 
     }
 
@@ -119,8 +132,7 @@ public class TTFFontRenderer {
         bufferBuilder.vertex(matrix, width, 0, 0).color(r, g, b, a).next();
         bufferBuilder.vertex(matrix, 0, 0, 0).color(r, g, b, a).next();
         bufferBuilder.vertex(matrix, 0, height, 0).color(r, g, b, a).next();
-        bufferBuilder.end();
-        BufferRenderer.draw(bufferBuilder);
+        BufferRenderer.drawWithShader(bufferBuilder.end());
         RenderSystem.setShader(GameRenderer::getPositionTexColorShader);
     }
 
@@ -141,8 +153,7 @@ public class TTFFontRenderer {
         bufferBuilder.vertex(matrix, width, height, 0).texture(1, 1).color(r, g, b, a).next();
         bufferBuilder.vertex(matrix, width, 0, 0).texture(1, 0).color(r, g, b, a).next();
         bufferBuilder.vertex(matrix, 0, 0, 0).texture(0, 0).color(r, g, b, a).next();
-        bufferBuilder.end();
-        BufferRenderer.draw(bufferBuilder);
+        BufferRenderer.drawWithShader(bufferBuilder.end());
 
         return width;
     }
@@ -232,8 +243,11 @@ public class TTFFontRenderer {
         float wid = 0;
         for (char c : stripControlCodes(text).toCharArray()) {
             Glyph g = glyphMap.get(c);
-            if (g == null) wid += 20;
-            else wid += g.texWidth();
+            if (g == null) {
+                wid += 20;
+            } else {
+                wid += g.texWidth();
+            }
         }
         return wid * getScaleFactor();
     }
@@ -248,7 +262,9 @@ public class TTFFontRenderer {
     public String trimStringToWidth(String t, float maxWidth) {
         StringBuilder sb = new StringBuilder();
         for (char c : t.toCharArray()) {
-            if (getStringWidth(sb.toString() + c) >= maxWidth) return sb.toString();
+            if (getStringWidth(sb.toString() + c) >= maxWidth) {
+                return sb.toString();
+            }
             sb.append(c);
         }
         return sb.toString();
@@ -280,7 +296,9 @@ public class TTFFontRenderer {
             Rectangle2D d = this.font.getStringBounds(String.valueOf(c), fontRenderContext);
             int w = (int) Math.ceil(d.getWidth());
             int h = (int) Math.ceil(d.getHeight());
-            if (w < 1 || h < 1) continue; // empty glyph, ignore
+            if (w < 1 || h < 1) {
+                continue; // empty glyph, ignore
+            }
             BufferedImage bi = new BufferedImage(w, h, BufferedImage.TYPE_INT_ARGB);
             Graphics2D graphics = bi.createGraphics();
             graphics.setFont(this.font);
