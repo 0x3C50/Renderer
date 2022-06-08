@@ -9,7 +9,6 @@
   ],
   "contact": {},
   "license": "BSD-3-Clause",
-  "icon": "assets/renderer/icon.png",
   "environment": "client",
   "entrypoints": {
     "client": [
@@ -24,6 +23,6 @@
   ],
   "depends": {
     "fabricloader": ">=0.13.3",
-    "minecraft": "1.18.2"
+    "minecraft": "1.19"
   }
 }
