@@ -79,8 +79,8 @@ public class Renderer3d {
             }
             long lifetimeLeft = fade.getLifeTimeLeft();
             double progress = lifetimeLeft / (double) fade.lifeTime;
-            Color out = RendererUtils.modify(fade.outline, -1, -1, -1, (int) (fade.outline.getAlphaF() * progress));
-            Color fill = RendererUtils.modify(fade.fill, -1, -1, -1, (int) (fade.fill.getAlphaF() * progress));
+            Color out = RendererUtils.modify(fade.outline, -1, -1, -1, (int) (fade.outline.getAlpha() * progress));
+            Color fill = RendererUtils.modify(fade.fill, -1, -1, -1, (int) (fade.fill.getAlpha() * progress));
             renderBlockWithEdges(fade.start, fade.dimensions, fill, out).drawAllOnce(stack);
         }
     }

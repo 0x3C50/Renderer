@@ -86,7 +86,7 @@ public class Color {
     }
 
     public java.awt.Color toAwtColor() {
-        return new java.awt.Color(getGreenF(), getGreenF(), getBlueF(), getAlphaF());
+        return new java.awt.Color(getRedF(), getGreenF(), getBlueF(), getAlphaF());
     }
 
     public float getGreenF() {
