@@ -1,4 +1,4 @@
-package me.x150.renderer.renderer;
+package me.x150.renderer.renderer.color;
 
 import com.google.common.base.Preconditions;
 import org.jetbrains.annotations.Range;
@@ -82,6 +82,19 @@ public class Colors {
         int green = in >> (8) & 0xFF;
         int blue = in & 0xFF;
         return new int[] { red, green, blue };
+    }
+
+    /**
+     * <p>Converts an int[4] color array (RGBA) to a float[4] array (RGBA)</p>
+     *
+     * @return The float[4] array
+     */
+    public static float[] intArrayToFloatArray(int[] in) {
+        Preconditions.checkArgument(in.length == 4, "Expected int[] of size 4, got " + in.length);
+        for (int i = 0; i < in.length; i++) {
+            Preconditions.checkArgument(validateColorRange(in[i]), "Expected in[" + i + "] to be 0-255, got " + in[i]);
+        }
+        return new float[] { in[0] / 255f, in[1] / 255f, in[2] / 255f, in[3] / 255f };
     }
 
     private static boolean validateColorRange(int in) {

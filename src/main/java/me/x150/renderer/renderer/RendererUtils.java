@@ -1,7 +1,9 @@
 package me.x150.renderer.renderer;
 
 import com.mojang.blaze3d.systems.RenderSystem;
+import me.x150.renderer.renderer.color.Color;
 import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.render.Camera;
 import net.minecraft.client.texture.NativeImage;
 import net.minecraft.client.texture.NativeImageBackedTexture;
 import net.minecraft.client.util.math.MatrixStack;
@@ -11,9 +13,9 @@ import net.minecraft.util.math.Matrix4f;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.util.math.Vector4f;
 import org.lwjgl.BufferUtils;
+import org.lwjgl.opengl.GL11;
 
 import javax.imageio.ImageIO;
-import java.awt.Color;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.nio.ByteBuffer;
@@ -38,6 +40,13 @@ public class RendererUtils {
     public static void endRender() {
         RenderSystem.disableBlend();
         RenderSystem.enableCull();
+        RenderSystem.depthFunc(GL11.GL_LEQUAL);
+    }
+
+    public static void alignForRendering(MatrixStack stack) {
+        Camera c = MinecraftClient.getInstance().gameRenderer.getCamera();
+        Vec3d camPos = c.getPos();
+        stack.translate(-camPos.x, -camPos.y, -camPos.z);
     }
 
     /**

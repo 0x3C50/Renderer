@@ -46,6 +46,18 @@ The api is pretty self explanatory, you just register an event for which you wan
 # The two renderers
 Renderer2d is for 2d rendering on screens or the hud, Renderer3d is to be used inside the WORLD_RENDER event, that's where it thrives.
 
+# World rendering
+Rendering inside the world is a bit different than rendering on the screen. The world renderer (Renderer3d) uses VBOs to cache whatever it's doing, and will return a RenderAction instead of drawing it itself.
+
+## Caution with RenderAction
+RenderAction.draw() will draw the action, **but will NOT clear the VBO after it's done**. .draw() is being used to indicate that you want to use this VBO afterwards for faster performance on **large renders**.
+
+.drawOnce() will do exactly what it says, it draws the VBO **once** and deletes it after. So if you're drawing conventionally, use .drawOnce()! You can also regenerate the VBO after it's rendered when you use .drawOnce() multiple times, but that is not recommended. Draw once, forget about it.
+
+Example: `Renderer3d.something().drawOnce(matrixStack);`
+
+If you do want to reuse the VBO afterwards, save the RenderAction somewhere in a variable and reuse the .draw() method. If you're done, don't forget to call action.delete()
+
 # Event shifts
 PRE is for when you want to monitor an event happening and maybe cancel it, POST is for when you want to additionally render stuff when it happens.
 
