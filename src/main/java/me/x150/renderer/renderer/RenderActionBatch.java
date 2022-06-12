@@ -13,8 +13,8 @@ public record RenderActionBatch(RenderAction... actions) {
     /**
      * <p>Draws all actions by creating a new VBO</p>
      *
-     * @see RenderAction#drawWithVBO(MatrixStack) 
      * @param stack The context MatrixStack
+     * @see RenderAction#drawWithVBO(MatrixStack)
      */
     public void drawAllWithVbo(MatrixStack stack) {
         doForAll(renderAction -> renderAction.drawWithVBO(stack));
@@ -23,8 +23,8 @@ public record RenderActionBatch(RenderAction... actions) {
     /**
      * <p>Draws all actions without creating a new VBO</p>
      *
-     * @see RenderAction#drawWithoutVBO(MatrixStack)
      * @param stack The context MatrixStack
+     * @see RenderAction#drawWithoutVBO(MatrixStack)
      */
     public void drawAllWithoutVbo(MatrixStack stack) {
         doForAll(renderAction -> renderAction.drawWithoutVBO(stack));

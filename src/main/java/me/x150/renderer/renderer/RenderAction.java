@@ -4,7 +4,6 @@ import com.mojang.blaze3d.systems.RenderSystem;
 import lombok.RequiredArgsConstructor;
 import net.minecraft.client.gl.VertexBuffer;
 import net.minecraft.client.render.BufferBuilder;
-import net.minecraft.client.render.BufferRenderer;
 import net.minecraft.client.render.Shader;
 import net.minecraft.client.util.math.MatrixStack;
 
@@ -13,11 +12,10 @@ import net.minecraft.client.util.math.MatrixStack;
  */
 @RequiredArgsConstructor
 public class RenderAction {
+    private static final VertexBuffer oneUseBuffer = new VertexBuffer();
     final BufferBuilder.BuiltBuffer buffer;
     final Shader preferredShader;
     VertexBuffer vbo = null;
-
-    private static final VertexBuffer oneUseBuffer = new VertexBuffer();
 
     /**
      * Gets (or creates) a VBO for the current buffer

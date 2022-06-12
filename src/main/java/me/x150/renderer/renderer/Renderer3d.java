@@ -1,7 +1,6 @@
 package me.x150.renderer.renderer;
 
 import com.mojang.blaze3d.systems.RenderSystem;
-import me.x150.renderer.event.events.RenderEvent;
 import me.x150.renderer.renderer.color.Color;
 import me.x150.renderer.renderer.color.Colors;
 import net.minecraft.client.MinecraftClient;
@@ -74,6 +73,7 @@ public class Renderer3d {
 
     /**
      * Renders all fading blocks. This is called automatically by the library.
+     *
      * @param stack The context MatrixStack
      */
     public static void renderFadingBlocks(MatrixStack stack) {

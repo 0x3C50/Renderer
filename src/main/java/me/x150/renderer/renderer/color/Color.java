@@ -63,9 +63,10 @@ public class Color {
 
     /**
      * Constructs a new Color
-     * @param red The red component (0f-1f)
+     *
+     * @param red   The red component (0f-1f)
      * @param green The green component (0f-1f)
-     * @param blue The blue component (0f-1f)
+     * @param blue  The blue component (0f-1f)
      * @param alpha The alpha component (0f-1f)
      */
     public Color(float red, float green, float blue, float alpha) {
@@ -81,9 +82,10 @@ public class Color {
 
     /**
      * Constructs a new color
-     * @param red The red component (0-255)
+     *
+     * @param red   The red component (0-255)
      * @param green The green component (0-255)
-     * @param blue The blue component (0-255)
+     * @param blue  The blue component (0-255)
      * @param alpha The alpha component (0-255)
      */
     public Color(int red, int green, int blue, int alpha) {
@@ -92,9 +94,10 @@ public class Color {
 
     /**
      * Constructs a new color with alpha being 100%
-     * @param red The red component (0-255)
+     *
+     * @param red   The red component (0-255)
      * @param green The green component (0-255)
-     * @param blue The blue component (0-255)
+     * @param blue  The blue component (0-255)
      */
     public Color(int red, int green, int blue) {
         this(red, green, blue, 255);
@@ -102,9 +105,10 @@ public class Color {
 
     /**
      * Constructs a new Color with alpha being 100%
-     * @param red The red component (0f-1f)
+     *
+     * @param red   The red component (0f-1f)
      * @param green The green component (0f-1f)
-     * @param blue The blue component (0f-1f)
+     * @param blue  The blue component (0f-1f)
      */
     public Color(float red, float green, float blue) {
         this(red, green, blue, 1f);
@@ -112,6 +116,7 @@ public class Color {
 
     /**
      * Constructs a new Color based on a {@link java.awt.Color}
+     *
      * @param color The color to copy
      */
     public Color(java.awt.Color color) {
@@ -120,6 +125,7 @@ public class Color {
 
     /**
      * Converts this Color to a {@link java.awt.Color}
+     *
      * @return The {@link java.awt.Color} representing this color
      */
     public java.awt.Color toAwtColor() {
@@ -128,6 +134,7 @@ public class Color {
 
     /**
      * Gets the green component as a float between 0 and 1
+     *
      * @return The green component
      */
     public float getGreenF() {
@@ -136,6 +143,7 @@ public class Color {
 
     /**
      * Gets the alpha component as a float between 0 and 1
+     *
      * @return The alpha component
      */
     public float getAlphaF() {
@@ -144,6 +152,7 @@ public class Color {
 
     /**
      * Gets the blue component as a float between 0 and 1
+     *
      * @return The blue component
      */
     public float getBlueF() {
@@ -152,6 +161,7 @@ public class Color {
 
     /**
      * Gets the red component as a float between 0 and 1
+     *
      * @return The red component
      */
     public float getRedF() {
@@ -160,6 +170,7 @@ public class Color {
 
     /**
      * Gets the red component as a int between 0 and 255
+     *
      * @return The red component
      */
     public int getRed() {
@@ -168,6 +179,7 @@ public class Color {
 
     /**
      * Gets the green component as a int between 0 and 255
+     *
      * @return The green component
      */
     public int getGreen() {
@@ -176,6 +188,7 @@ public class Color {
 
     /**
      * Gets the blue component as a int between 0 and 255
+     *
      * @return The blue component
      */
     public int getBlue() {
@@ -185,6 +198,7 @@ public class Color {
 
     /**
      * Gets the alpha component as a int between 0 and 255
+     *
      * @return The alpha component
      */
     public int getAlpha() {
@@ -193,6 +207,7 @@ public class Color {
 
     /**
      * Converts this color to a 0xRRGGBBAA integer
+     *
      * @return The 0xRRGGBBAA integer
      */
     public int toRGBAInt() {

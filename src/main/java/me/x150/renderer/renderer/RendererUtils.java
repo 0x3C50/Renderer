@@ -45,6 +45,7 @@ public class RendererUtils {
 
     /**
      * Aligns a MatrixStack for rendering
+     *
      * @param stack The MatrixStack to align
      */
     static void alignForRendering(MatrixStack stack) {
