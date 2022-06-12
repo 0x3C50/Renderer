@@ -33,10 +33,8 @@ public class Renderer2d {
      * @param y    The start Y coordinate
      * @param endX The end X coordinate
      * @param endY The end Y coordinate
-     * @deprecated for internal use only
      */
-    @Deprecated
-    public static void beginScissor(double x, double y, double endX, double endY) {
+    static void beginScissor(double x, double y, double endX, double endY) {
         double width = endX - x;
         double height = endY - y;
         width = Math.max(0, width);
@@ -50,11 +48,8 @@ public class Renderer2d {
      * <p>Ends the scissor context</p>
      * <p>Always call when you used {@link #beginScissor(double, double, double, double)} before, unless you want to break something</p>
      * <strong>Do not call directly unless you have a good reason to, use {@link ClipStack#popWindow()} instead</strong>
-     *
-     * @deprecated for internal use only
      */
-    @Deprecated
-    public static void endScissor() {
+    static void endScissor() {
         RenderSystem.disableScissor();
     }
 

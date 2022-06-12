@@ -11,28 +11,23 @@ import java.util.function.Consumer;
  */
 public record RenderActionBatch(RenderAction... actions) {
     /**
-     * <p>Draws all actions</p>
-     * <b>This indicates that all actions will be used multiple times</b>
+     * <p>Draws all actions by creating a new VBO</p>
      *
+     * @see RenderAction#drawWithVBO(MatrixStack) 
      * @param stack The context MatrixStack
      */
-    public void drawAll(MatrixStack stack) {
-        doForAll(renderAction -> {
-            renderAction.draw(stack);
-        });
+    public void drawAllWithVbo(MatrixStack stack) {
+        doForAll(renderAction -> renderAction.drawWithVBO(stack));
     }
 
     /**
-     * <p>Draws all actions once</p>
-     * <b>This will delete all buffers after rendering</b>
-     * <b>Indicates that this action is to be rendered once</b>
+     * <p>Draws all actions without creating a new VBO</p>
      *
+     * @see RenderAction#drawWithoutVBO(MatrixStack)
      * @param stack The context MatrixStack
      */
-    public void drawAllOnce(MatrixStack stack) {
-        doForAll(renderAction -> {
-            renderAction.drawOnce(stack);
-        });
+    public void drawAllWithoutVbo(MatrixStack stack) {
+        doForAll(renderAction -> renderAction.drawWithoutVBO(stack));
     }
 
     /**

@@ -43,7 +43,11 @@ public class RendererUtils {
         RenderSystem.depthFunc(GL11.GL_LEQUAL);
     }
 
-    public static void alignForRendering(MatrixStack stack) {
+    /**
+     * Aligns a MatrixStack for rendering
+     * @param stack The MatrixStack to align
+     */
+    static void alignForRendering(MatrixStack stack) {
         Camera c = MinecraftClient.getInstance().gameRenderer.getCamera();
         Vec3d camPos = c.getPos();
         stack.translate(-camPos.x, -camPos.y, -camPos.z);

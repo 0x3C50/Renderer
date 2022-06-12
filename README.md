@@ -28,11 +28,11 @@ public class RendererTestModClient implements ClientModInitializer {
 ## EventHandler.java
 ```java
 public class EventHandler {
-    @EventListener(shift= Shift.POST, type = EventType.HUD_RENDER)
+    @EventListener(shift = Shift.POST, type = EventType.HUD_RENDER)
     void preHudRender(RenderEvent re) {
         MSAAFramebuffer.use(MSAAFramebuffer.MAX_SAMPLES, () -> {
-            ClipStack.globalInstance.addWindow(re.getStack(),new Rectangle(20,10,110,110));
-            Renderer2d.renderRoundedQuad(re.getStack(), Color.WHITE,10,10,100,100,5,20);
+            ClipStack.globalInstance.addWindow(re.getStack(), new Rectangle(20,10,110,110));
+            Renderer2d.renderRoundedQuad(re.getStack(), Color.WHITE, 10, 10, 100, 100, 5, 20);
             ClipStack.globalInstance.popWindow();
         });
     }
@@ -50,13 +50,13 @@ Renderer2d is for 2d rendering on screens or the hud, Renderer3d is to be used i
 Rendering inside the world is a bit different than rendering on the screen. The world renderer (Renderer3d) uses VBOs to cache whatever it's doing, and will return a RenderAction instead of drawing it itself.
 
 ## Caution with RenderAction
-RenderAction.draw() will draw the action, **but will NOT clear the VBO after it's done**. .draw() is being used to indicate that you want to use this VBO afterwards for faster performance on **large renders**.
+A RenderAction can either be
+- rendered once and forgotten about, or
+- reused multiple times
 
-.drawOnce() will do exactly what it says, it draws the VBO **once** and deletes it after. So if you're drawing conventionally, use .drawOnce()! You can also regenerate the VBO after it's rendered when you use .drawOnce() multiple times, but that is not recommended. Draw once, forget about it.
+To reuse a RenderAction, save the RenderAction in a variable and call `.drawWithVBO()` on it each time you want to render it. After you're done with it, **do not forget to call `.delete()`**. This option works best when you have a big buffer and need to render it multiple times.
 
-Example: `Renderer3d.something().drawOnce(matrixStack);`
-
-If you do want to reuse the VBO afterwards, save the RenderAction somewhere in a variable and reuse the .draw() method. If you're done, don't forget to call action.delete()
+To draw a RenderAction, call `.drawWithoutVBO()`. This will use a throwaway, reusable VBO. This leads to faster performance while rendering once. If you need to reuse the VBO, the option above will yield better results. You do not have to call `.delete()` when using this.
 
 # Event shifts
 PRE is for when you want to monitor an event happening and maybe cancel it, POST is for when you want to additionally render stuff when it happens.

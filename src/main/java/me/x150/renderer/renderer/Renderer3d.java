@@ -1,6 +1,7 @@
 package me.x150.renderer.renderer;
 
 import com.mojang.blaze3d.systems.RenderSystem;
+import me.x150.renderer.event.events.RenderEvent;
 import me.x150.renderer.renderer.color.Color;
 import me.x150.renderer.renderer.color.Colors;
 import net.minecraft.client.MinecraftClient;
@@ -71,6 +72,10 @@ public class Renderer3d {
         fades.add(fb);
     }
 
+    /**
+     * Renders all fading blocks. This is called automatically by the library.
+     * @param stack The context MatrixStack
+     */
     public static void renderFadingBlocks(MatrixStack stack) {
         fades.removeIf(FadingBlock::isDead);
         for (FadingBlock fade : fades) {
@@ -81,7 +86,7 @@ public class Renderer3d {
             double progress = lifetimeLeft / (double) fade.lifeTime;
             Color out = RendererUtils.modify(fade.outline, -1, -1, -1, (int) (fade.outline.getAlpha() * progress));
             Color fill = RendererUtils.modify(fade.fill, -1, -1, -1, (int) (fade.fill.getAlpha() * progress));
-            renderBlockWithEdges(fade.start, fade.dimensions, fill, out).drawAllOnce(stack);
+            renderBlockWithEdges(fade.start, fade.dimensions, fill, out).drawAllWithoutVbo(stack);
         }
     }
 

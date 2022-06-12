@@ -11,7 +11,6 @@ import java.util.Stack;
 /**
  * A class used for defining clipping rectangles
  */
-@SuppressWarnings("deprecation") // deprecated for internal use only
 public class ClipStack {
     public static final ClipStack globalInstance = new ClipStack();
     final Stack<Rectangle> clipStack = new Stack<>();
@@ -19,7 +18,6 @@ public class ClipStack {
     /**
      * <p>Adds a clipping window to the stack</p>
      * <p>All new rendered elements will only be rendered if they conform to this rectangle and the others above it</p>
-     * <p>This method uses the {@link Renderer2d#beginScissor(double, double, double, double)} method to add a scissor window</p>
      * <strong>Always call {@link #popWindow()} after you're done rendering with this</strong>
      *
      * @param stack The context MatrixStack
@@ -56,7 +54,6 @@ public class ClipStack {
 
     /**
      * <p>Pops the latest added window from the stack</p>
-     * <p>This method may use {@link Renderer2d#endScissor()} if the stack has been cleared, to clear the scissor stack as well</p>
      */
     public void popWindow() {
         clipStack.pop();
@@ -71,7 +68,6 @@ public class ClipStack {
 
     /**
      * <p>Renders something outside of the currently applied clipping rectangle stack</p>
-     * <p>This method may use the {@link Renderer2d#endScissor()} and {@link Renderer2d#beginScissor(double, double, double, double)} methods to temporarily disable the scissor stack</p>
      *
      * @param e The runnable to run outside the clip stack
      */

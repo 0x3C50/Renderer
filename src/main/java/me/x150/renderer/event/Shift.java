@@ -5,11 +5,11 @@ package me.x150.renderer.event;
  */
 public enum Shift {
     /**
-     * PRE event. Can (often) be cancelled
+     * Before the event happens. Can be cancelled
      */
     PRE,
     /**
-     * POST event. Can (often) not be cancelled, but will not throw when attempted to.
+     * After the event happened. Cancelling will not throw an exception, but will not do anything
      */
     POST
 }
