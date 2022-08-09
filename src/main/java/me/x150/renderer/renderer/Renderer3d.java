@@ -11,6 +11,7 @@ import net.minecraft.client.render.Tessellator;
 import net.minecraft.client.render.VertexFormat;
 import net.minecraft.client.render.VertexFormats;
 import net.minecraft.client.util.math.MatrixStack;
+import net.minecraft.util.math.Box;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec3d;
 import org.lwjgl.opengl.GL11;
@@ -239,6 +240,19 @@ public class Renderer3d {
     }
 
     /**
+     * Renders a filled block
+     *
+     * @param box Contains start and end coordinates of the block
+     * @param color The color of the filling
+     * @return The render action
+     */
+    public static RenderAction renderFilled(Box box, Color color) {
+        Vec3d start = new Vec3d(box.minX, box.minY, box.minZ);
+        Vec3d dimensions = new Vec3d(box.maxX, box.maxY, box.maxZ).subtract(start);
+        return renderFilled(start, dimensions, color);
+    }
+
+    /**
      * Renders an outline of a block
      *
      * @param start      The start coordinate of the block
@@ -292,6 +306,19 @@ public class Renderer3d {
 
         return new RenderAction(buffer.end(), GameRenderer.getPositionColorShader());
 
+    }
+
+    /**
+     * Renders an outline of a block
+     *
+     * @param box Contains start and end coordinates of the block
+     * @param color The color of the outline
+     * @return The render action
+     */
+    public static RenderAction renderOutline(Box box, Color color) {
+        Vec3d start = new Vec3d(box.minX, box.minY, box.minZ);
+        Vec3d dimensions = new Vec3d(box.maxX, box.maxY, box.maxZ).subtract(start);
+        return renderOutline(start, dimensions, color);
     }
 
     /**
