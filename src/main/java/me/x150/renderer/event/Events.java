@@ -105,8 +105,8 @@ public class Events {
     @SuppressWarnings("unchecked")
     public static boolean fireEvent(EventType event, Shift shift, Event argument) {
         for (ListenerEntry entry : entries) {
-            if (entry.type == event) {
-                ((Consumer) entry.eventListener()).accept(argument);
+            if (entry.type == event && entry.shift == shift) {
+                ((Consumer<Event>) entry.eventListener()).accept(argument);
             }
         }
         return argument.isCancelled();
