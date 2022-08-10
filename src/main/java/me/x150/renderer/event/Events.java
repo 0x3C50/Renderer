@@ -72,23 +72,19 @@ public class Events {
                     EventListener ev = (EventListener) declaredAnnotation;
                     Class<?>[] params = declaredMethod.getParameterTypes();
                     if (params.length != 1 || !Event.class.isAssignableFrom(params[0])) {
-                        throw new IllegalArgumentException("Event handler " + declaredMethod.getName() + "(" + Arrays.stream(
-                                        params)
+                        throw new IllegalArgumentException("Event handler " + declaredMethod.getName() + "(" + Arrays.stream(params)
                                 .map(Class::getSimpleName)
-                                .collect(Collectors.joining(", ")) + ") -> " + declaredMethod.getReturnType()
-                                .getName() + " from " + instance.getClass().getName() + " is malformed");
+                                .collect(Collectors.joining(", ")) + ") -> " + declaredMethod.getReturnType().getName() + " from " + instance.getClass()
+                                .getName() + " is malformed");
                     } else {
                         declaredMethod.setAccessible(true);
-                        registerEventHandler((instance.getClass().getName() + declaredMethod.getName()).hashCode(),
-                                ev.type(),
-                                ev.shift(),
-                                event -> {
-                                    try {
-                                        declaredMethod.invoke(instance, event);
-                                    } catch (IllegalAccessException | InvocationTargetException e) {
-                                        e.printStackTrace();
-                                    }
-                                });
+                        registerEventHandler((instance.getClass().getName() + declaredMethod.getName()).hashCode(), ev.type(), ev.shift(), event -> {
+                            try {
+                                declaredMethod.invoke(instance, event);
+                            } catch (IllegalAccessException | InvocationTargetException e) {
+                                e.printStackTrace();
+                            }
+                        });
                     }
                 }
             }
