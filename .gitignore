@@ -6,6 +6,7 @@ lib/
 build/
 out/
 classes/
+*.lock
 
 # idea
 
