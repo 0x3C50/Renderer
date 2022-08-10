@@ -2,10 +2,12 @@ package me.x150.renderer.renderer;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 import lombok.RequiredArgsConstructor;
+import me.x150.renderer.renderer.util.CameraContext3D;
 import net.minecraft.client.gl.VertexBuffer;
 import net.minecraft.client.render.BufferBuilder;
 import net.minecraft.client.render.Shader;
 import net.minecraft.client.util.math.MatrixStack;
+import net.minecraft.util.math.Vec3d;
 
 /**
  * A render action
@@ -61,6 +63,29 @@ public class RenderAction {
 
         stack.push();
         RendererUtils.alignForRendering(stack);
+
+        RendererUtils.setupRender();
+        Renderer3d.setAppropiateGlMode();
+        vbo.bind();
+        vbo.upload(buffer);
+        vbo.draw(stack.peek().getPositionMatrix(), RenderSystem.getProjectionMatrix(), preferredShader);
+        VertexBuffer.unbind();
+        stack.pop();
+        RendererUtils.endRender();
+    }
+
+    /**
+     * <p>Draws this action by reusing a one-off buffer and rendering off that, and using a fake 3d camera. To be used on hud rendering.</p>
+     * <b>Read the README for more information</b>
+     * @param context The 3D context to apply
+     */
+    public void drawWithoutVboWith3DContext(CameraContext3D context) {
+        MatrixStack stack = context.createProjectionStack();
+        VertexBuffer vbo = oneUseBuffer;
+
+        stack.push();
+        Vec3d camPos = context.getPosition();
+        stack.translate(-camPos.x, -camPos.y, -camPos.z);
 
         RendererUtils.setupRender();
         Renderer3d.setAppropiateGlMode();
