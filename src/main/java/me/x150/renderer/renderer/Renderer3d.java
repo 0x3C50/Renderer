@@ -99,7 +99,7 @@ public class Renderer3d {
 
     public static RenderActionBatch renderBlockWithEdges(Box box, Color colorFill, Color colorEdges) {
         RenderAction actionFill = renderFilled(box, colorFill);
-        RenderAction actionEdges = drawBox(box, colorEdges, GameRenderer.getRenderTypeLinesShader());
+        RenderAction actionEdges = renderOutline(box, colorEdges);
         return new RenderActionBatch(actionFill, actionEdges);
     }
 
@@ -191,30 +191,52 @@ public class Renderer3d {
      * @return The render action
      */
     public static RenderAction renderOutline(Box box, Color color) {
-        return drawBox(box, color, GameRenderer.getRenderTypeLinesShader());
-    }
+        double x1 = box.minX;
+        double y1 = box.minY;
+        double z1 = box.minZ;
+        double x2 = box.maxX;
+        double y2 = box.maxY;
+        double z2 = box.maxZ;
 
-    /**
-     * Renders a debug outline of a block
-     *
-     * @param start      The start coordinate of the block
-     * @param dimensions The dimensions of the block
-     * @param color      The color of the outline
-     * @return The render action
-     */
-    public static RenderAction renderDebugOutline(Vec3d start, Vec3d dimensions, Color color) {
-        return renderDebugOutline(new Box(start, start.add(dimensions)), color);
-    }
+        int red = color.getRed();
+        int green = color.getGreen();
+        int blue = color.getBlue();
+        int alpha = color.getAlpha();
 
-    /**
-     * Renders a debug outline of a block
-     *
-     * @param box Contains start and end coordinates of the block
-     * @param color The color of the outline
-     * @return The render action
-     */
-    public static RenderAction renderDebugOutline(Box box, Color color) {
-        return drawBox(box, color, GameRenderer.getPositionColorShader());
+        BufferBuilder buffer = Tessellator.getInstance().getBuffer();
+        buffer.begin(VertexFormat.DrawMode.LINES, VertexFormats.LINES);
+
+        buffer.vertex(x1, y1, z1).color(red, green, blue, alpha).normal(1.0F, 0.0F, 0.0F).next();
+        buffer.vertex(x2, y1, z1).color(red, green, blue, alpha).normal(1.0F, 0.0F, 0.0F).next();
+        buffer.vertex(x1, y1, z1).color(red, green, blue, alpha).normal(0.0F, 1.0F, 0.0F).next();
+        buffer.vertex(x1, y2, z1).color(red, green, blue, alpha).normal(0.0F, 1.0F, 0.0F).next();
+        buffer.vertex(x1, y1, z1).color(red, green, blue, alpha).normal(0.0F, 0.0F, 1.0F).next();
+        buffer.vertex(x1, y1, z2).color(red, green, blue, alpha).normal(0.0F, 0.0F, 1.0F).next();
+        buffer.vertex(x2, y1, z1).color(red, green, blue, alpha).normal(0.0F, 1.0F, 0.0F).next();
+        buffer.vertex(x2, y2, z1).color(red, green, blue, alpha).normal(0.0F, 1.0F, 0.0F).next();
+
+        buffer.vertex(x2, y2, z1).color(red, green, blue, alpha).normal(-1.0F, 0.0F, 0.0F).next();
+        buffer.vertex(x1, y2, z1).color(red, green, blue, alpha).normal(-1.0F, 0.0F, 0.0F).next();
+        buffer.vertex(x1, y2, z1).color(red, green, blue, alpha).normal(0.0F, 0.0F, 1.0F).next();
+        buffer.vertex(x1, y2, z2).color(red, green, blue, alpha).normal(0.0F, 0.0F, 1.0F).next();
+        buffer.vertex(x1, y2, z2).color(red, green, blue, alpha).normal(0.0F, -1.0F, 0.0F).next();
+        buffer.vertex(x1, y1, z2).color(red, green, blue, alpha).normal(0.0F, -1.0F, 0.0F).next();
+        buffer.vertex(x1, y1, z2).color(red, green, blue, alpha).normal(1.0F, 0.0F, 0.0F).next();
+        buffer.vertex(x2, y1, z2).color(red, green, blue, alpha).normal(1.0F, 0.0F, 0.0F).next();
+
+        buffer.vertex(x2, y1, z2).color(red, green, blue, alpha).normal(0.0F, 0.0F, -1.0F).next();
+        buffer.vertex(x2, y1, z1).color(red, green, blue, alpha).normal(0.0F, 0.0F, -1.0F).next();
+
+        buffer.vertex(x1, y2, z2).color(red, green, blue, alpha).normal(1.0F, 0.0F, 0.0F).next();
+        buffer.vertex(x2, y2, z2).color(red, green, blue, alpha).normal(1.0F, 0.0F, 0.0F).next();
+
+        buffer.vertex(x2, y1, z2).color(red, green, blue, alpha).normal(0.0F, 1.0F, 0.0F).next();
+        buffer.vertex(x2, y2, z2).color(red, green, blue, alpha).normal(0.0F, 1.0F, 0.0F).next();
+
+        buffer.vertex(x2, y2, z1).color(red, green, blue, alpha).normal(0.0F, 0.0F, 1.0F).next();
+        buffer.vertex(x2, y2, z2).color(red, green, blue, alpha).normal(0.0F, 0.0F, 1.0F).next();
+
+        return new RenderAction(buffer.end(), GameRenderer.getRenderTypeLinesShader());
     }
 
     /**
@@ -242,61 +264,6 @@ public class Renderer3d {
 
         return new RenderAction(buffer.end(), GameRenderer.getPositionColorShader());
     }
-
-    static RenderAction drawBox(Box box, Color color, Shader shader) {
-        double x1 = box.minX;
-        double y1 = box.minY;
-        double z1 = box.minZ;
-        double x2 = box.maxX;
-        double y2 = box.maxY;
-        double z2 = box.maxZ;
-
-        int red = color.getRed();
-        int green = color.getGreen();
-        int blue = color.getBlue();
-        int alpha = color.getAlpha();
-
-        BufferBuilder buffer = Tessellator.getInstance().getBuffer();
-        if (shader == GameRenderer.getPositionColorShader())
-            buffer.begin(VertexFormat.DrawMode.DEBUG_LINES, VertexFormats.POSITION_COLOR);
-        else if (shader == GameRenderer.getRenderTypeLinesShader())
-            buffer.begin(VertexFormat.DrawMode.LINES, VertexFormats.LINES);
-        else return null;
-
-        buffer.vertex(x1, y1, z1).color(red, green, blue, alpha).next();
-        buffer.vertex(x1, y1, z2).color(red, green, blue, alpha).next();
-        buffer.vertex(x1, y1, z2).color(red, green, blue, alpha).next();
-        buffer.vertex(x2, y1, z2).color(red, green, blue, alpha).next();
-        buffer.vertex(x2, y1, z2).color(red, green, blue, alpha).next();
-        buffer.vertex(x2, y1, z1).color(red, green, blue, alpha).next();
-        buffer.vertex(x2, y1, z1).color(red, green, blue, alpha).next();
-        buffer.vertex(x1, y1, z1).color(red, green, blue, alpha).next();
-
-        buffer.vertex(x1, y2, z1).color(red, green, blue, alpha).next();
-        buffer.vertex(x1, y2, z2).color(red, green, blue, alpha).next();
-        buffer.vertex(x1, y2, z2).color(red, green, blue, alpha).next();
-        buffer.vertex(x2, y2, z2).color(red, green, blue, alpha).next();
-        buffer.vertex(x2, y2, z2).color(red, green, blue, alpha).next();
-        buffer.vertex(x2, y2, z1).color(red, green, blue, alpha).next();
-        buffer.vertex(x2, y2, z1).color(red, green, blue, alpha).next();
-        buffer.vertex(x1, y2, z1).color(red, green, blue, alpha).next();
-
-        buffer.vertex(x1, y1, z1).color(red, green, blue, alpha).next();
-        buffer.vertex(x1, y2, z1).color(red, green, blue, alpha).next();
-
-        buffer.vertex(x2, y1, z1).color(red, green, blue, alpha).next();
-        buffer.vertex(x2, y2, z1).color(red, green, blue, alpha).next();
-
-        buffer.vertex(x2, y1, z2).color(red, green, blue, alpha).next();
-        buffer.vertex(x2, y2, z2).color(red, green, blue, alpha).next();
-
-        buffer.vertex(x1, y1, z2).color(red, green, blue, alpha).next();
-        buffer.vertex(x1, y2, z2).color(red, green, blue, alpha).next();
-
-        return new RenderAction(buffer.end(), shader);
-    }
-
-
 
     /**
      * Gets the world position the crosshair is in. Used for rendering a tracer line from the crosshair to a specific coordinate
