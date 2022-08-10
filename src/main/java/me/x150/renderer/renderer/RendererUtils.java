@@ -2,14 +2,16 @@ package me.x150.renderer.renderer;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 import me.x150.renderer.renderer.color.Color;
-import me.x150.renderer.renderer.color.Colors;
 import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.render.*;
+import net.minecraft.client.render.Camera;
 import net.minecraft.client.texture.NativeImage;
 import net.minecraft.client.texture.NativeImageBackedTexture;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.util.Identifier;
-import net.minecraft.util.math.*;
+import net.minecraft.util.math.MathHelper;
+import net.minecraft.util.math.Matrix4f;
+import net.minecraft.util.math.Vec3d;
+import net.minecraft.util.math.Vector4f;
 import org.lwjgl.BufferUtils;
 import org.lwjgl.opengl.GL11;
 
@@ -85,10 +87,12 @@ public class RendererUtils {
      * @return The interpolated color
      */
     public static Color lerp(Color a, Color b, double c) {
-        return new Color(lerp(a.getRed(), b.getRed(), c),
+        return new Color(
+                lerp(a.getRed(), b.getRed(), c),
                 lerp(a.getGreen(), b.getGreen(), c),
                 lerp(a.getBlue(), b.getBlue(), c),
-                lerp(a.getAlpha(), b.getAlpha(), c));
+                lerp(a.getAlpha(), b.getAlpha(), c)
+        );
     }
 
     /**
@@ -103,10 +107,12 @@ public class RendererUtils {
      * @return The new color
      */
     public static Color modify(Color original, int redOverwrite, int greenOverwrite, int blueOverwrite, int alphaOverwrite) {
-        return new Color(redOverwrite == -1 ? original.getRed() : redOverwrite,
+        return new Color(
+                redOverwrite == -1 ? original.getRed() : redOverwrite,
                 greenOverwrite == -1 ? original.getGreen() : greenOverwrite,
                 blueOverwrite == -1 ? original.getBlue() : blueOverwrite,
-                alphaOverwrite == -1 ? original.getAlpha() : alphaOverwrite);
+                alphaOverwrite == -1 ? original.getAlpha() : alphaOverwrite
+        );
     }
 
     /**
@@ -140,8 +146,7 @@ public class RendererUtils {
             ByteBuffer data = BufferUtils.createByteBuffer(bytes.length).put(bytes);
             data.flip();
             NativeImageBackedTexture tex = new NativeImageBackedTexture(NativeImage.read(data));
-            MinecraftClient.getInstance()
-                    .execute(() -> MinecraftClient.getInstance().getTextureManager().registerTexture(i, tex));
+            MinecraftClient.getInstance().execute(() -> MinecraftClient.getInstance().getTextureManager().registerTexture(i, tex));
         } catch (Exception e) { // should never happen, but just in case
             e.printStackTrace();
         }

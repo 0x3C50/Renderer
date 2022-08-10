@@ -5,6 +5,7 @@ import com.mojang.blaze3d.systems.RenderSystem;
 import it.unimi.dsi.fastutil.chars.Char2ObjectArrayMap;
 import it.unimi.dsi.fastutil.chars.Char2ObjectMap;
 import lombok.Getter;
+import lombok.Setter;
 import me.x150.renderer.renderer.MSAAFramebuffer;
 import me.x150.renderer.renderer.RendererUtils;
 import net.minecraft.client.render.BufferBuilder;
@@ -70,8 +71,15 @@ public class TTFFontRenderer {
         }
         return f;
     });
-    @Getter float size;
-    @Getter Font font;
+    /**
+     * <p>The size of the font</p>
+     * <p>Only modify when needed, changing this too much can cause the font to become pixelated</p>
+     */
+    @Setter
+    @Getter
+    float size;
+    @Getter
+    Font font;
     Identifier texture;
     Char2ObjectMap<Glyph> glyphMap = new Char2ObjectArrayMap<>();
     float cachedHeight;
@@ -111,8 +119,16 @@ public class TTFFontRenderer {
     public static TTFFontRenderer create(Font font, float sizePx) {
         return new TTFFontRenderer(font, sizePx);
     }
+
+    /**
+     * <p>Creates a new FontRenderer with the size extracted from the font given</p>
+     * <p>Use once, then save the font renderer in a cache. Initializing this a lot of times can cause a memory leak down the line</p>
+     *
+     * @param font The font to use
+     * @return The new FontRenderer instance
+     */
     public static TTFFontRenderer create(Font font) {
-        return create(font, font.getSize());
+        return create(font, font.getSize2D());
     }
 
     /**

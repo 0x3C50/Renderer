@@ -4,9 +4,16 @@ import com.mojang.blaze3d.systems.RenderSystem;
 import me.x150.renderer.renderer.color.Color;
 import me.x150.renderer.renderer.color.Colors;
 import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.render.*;
+import net.minecraft.client.render.BufferBuilder;
+import net.minecraft.client.render.Camera;
+import net.minecraft.client.render.GameRenderer;
+import net.minecraft.client.render.Tessellator;
+import net.minecraft.client.render.VertexFormat;
+import net.minecraft.client.render.VertexFormats;
 import net.minecraft.client.util.math.MatrixStack;
-import net.minecraft.util.math.*;
+import net.minecraft.util.math.Box;
+import net.minecraft.util.math.MathHelper;
+import net.minecraft.util.math.Vec3d;
 import org.lwjgl.opengl.GL11;
 
 import java.util.List;
@@ -54,12 +61,7 @@ public class Renderer3d {
      * @param lifeTimeMs   How long the block should be visible for, in milliseconds
      */
     public static void renderFadingBlock(Color outlineColor, Color fillColor, Vec3d start, Vec3d dimensions, long lifeTimeMs) {
-        FadingBlock fb = new FadingBlock(outlineColor,
-                fillColor,
-                start,
-                dimensions,
-                System.currentTimeMillis(),
-                lifeTimeMs);
+        FadingBlock fb = new FadingBlock(outlineColor, fillColor, start, dimensions, System.currentTimeMillis(), lifeTimeMs);
 
         fades.removeIf(fadingBlock -> fadingBlock.start.equals(start) && fadingBlock.dimensions.equals(dimensions));
         fades.add(fb);
@@ -118,7 +120,7 @@ public class Renderer3d {
     /**
      * Renders a filled block
      *
-     * @param box Contains start and end coordinates of the block
+     * @param box   Contains start and end coordinates of the block
      * @param color The color of the filling
      * @return The render action
      */
@@ -186,7 +188,7 @@ public class Renderer3d {
     /**
      * Renders an outline of a block
      *
-     * @param box Contains start and end coordinates of the block
+     * @param box   Contains start and end coordinates of the block
      * @param color The color of the outline
      * @return The render action
      */
