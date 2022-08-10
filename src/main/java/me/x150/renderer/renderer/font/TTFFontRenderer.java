@@ -4,6 +4,7 @@ import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.systems.RenderSystem;
 import it.unimi.dsi.fastutil.chars.Char2ObjectArrayMap;
 import it.unimi.dsi.fastutil.chars.Char2ObjectMap;
+import lombok.Getter;
 import me.x150.renderer.renderer.MSAAFramebuffer;
 import me.x150.renderer.renderer.RendererUtils;
 import net.minecraft.client.render.BufferBuilder;
@@ -69,8 +70,8 @@ public class TTFFontRenderer {
         }
         return f;
     });
-    float size;
-    Font font;
+    @Getter float size;
+    @Getter Font font;
     Identifier texture;
     Char2ObjectMap<Glyph> glyphMap = new Char2ObjectArrayMap<>();
     float cachedHeight;
@@ -275,6 +276,10 @@ public class TTFFontRenderer {
             sb.append(c);
         }
         return sb.toString();
+    }
+
+    public void drawCenteredString(MatrixStack matrices, String s, float x, float y, me.x150.renderer.renderer.color.Color color) {
+        drawCenteredString(matrices, s, x, y, color.getRed(), color.getGreen(), color.getBlue(), color.getAlpha());
     }
 
     /**
