@@ -210,6 +210,7 @@ public class Renderer3d {
         buffer.vertex(x2, y1, z1).color(red, green, blue, alpha).normal(1.0F, 0.0F, 0.0F).next();
         buffer.vertex(x1, y1, z1).color(red, green, blue, alpha).normal(0.0F, 1.0F, 0.0F).next();
         buffer.vertex(x1, y2, z1).color(red, green, blue, alpha).normal(0.0F, 1.0F, 0.0F).next();
+
         buffer.vertex(x1, y1, z1).color(red, green, blue, alpha).normal(0.0F, 0.0F, 1.0F).next();
         buffer.vertex(x1, y1, z2).color(red, green, blue, alpha).normal(0.0F, 0.0F, 1.0F).next();
         buffer.vertex(x2, y1, z1).color(red, green, blue, alpha).normal(0.0F, 1.0F, 0.0F).next();
@@ -219,6 +220,7 @@ public class Renderer3d {
         buffer.vertex(x1, y2, z1).color(red, green, blue, alpha).normal(-1.0F, 0.0F, 0.0F).next();
         buffer.vertex(x1, y2, z1).color(red, green, blue, alpha).normal(0.0F, 0.0F, 1.0F).next();
         buffer.vertex(x1, y2, z2).color(red, green, blue, alpha).normal(0.0F, 0.0F, 1.0F).next();
+
         buffer.vertex(x1, y2, z2).color(red, green, blue, alpha).normal(0.0F, -1.0F, 0.0F).next();
         buffer.vertex(x1, y1, z2).color(red, green, blue, alpha).normal(0.0F, -1.0F, 0.0F).next();
         buffer.vertex(x1, y1, z2).color(red, green, blue, alpha).normal(1.0F, 0.0F, 0.0F).next();
@@ -226,13 +228,11 @@ public class Renderer3d {
 
         buffer.vertex(x2, y1, z2).color(red, green, blue, alpha).normal(0.0F, 0.0F, -1.0F).next();
         buffer.vertex(x2, y1, z1).color(red, green, blue, alpha).normal(0.0F, 0.0F, -1.0F).next();
-
         buffer.vertex(x1, y2, z2).color(red, green, blue, alpha).normal(1.0F, 0.0F, 0.0F).next();
         buffer.vertex(x2, y2, z2).color(red, green, blue, alpha).normal(1.0F, 0.0F, 0.0F).next();
 
         buffer.vertex(x2, y1, z2).color(red, green, blue, alpha).normal(0.0F, 1.0F, 0.0F).next();
         buffer.vertex(x2, y2, z2).color(red, green, blue, alpha).normal(0.0F, 1.0F, 0.0F).next();
-
         buffer.vertex(x2, y2, z1).color(red, green, blue, alpha).normal(0.0F, 0.0F, 1.0F).next();
         buffer.vertex(x2, y2, z2).color(red, green, blue, alpha).normal(0.0F, 0.0F, 1.0F).next();
 

@@ -110,6 +110,9 @@ public class TTFFontRenderer {
     public static TTFFontRenderer create(Font font, float sizePx) {
         return new TTFFontRenderer(font, sizePx);
     }
+    public static TTFFontRenderer create(Font font) {
+        return create(font, font.getSize());
+    }
 
     /**
      * Gets the font's height in pixels
