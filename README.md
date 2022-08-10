@@ -9,7 +9,7 @@ To install the library, just add the jitpack repository to your repositories blo
 ```groovy
 include modImplementation("com.github.0x3C50:Renderer:master-SNAPSHOT")
 ```
-This will always update with the latest commit, do not worry about being out of date.
+This will use the latest commit as build target, but will cache that build target every time. Use the latest short commit hash found on [Jitpack](https://jitpack.io/#0x3C50/Renderer) (example: `d2cc995ff4`) as the version, to get that release instead.
 
 # Usage
 Using this library is very simple, here's an example:
