@@ -72,14 +72,16 @@ public class Events {
                     EventListener ev = (EventListener) declaredAnnotation;
                     Class<?>[] params = declaredMethod.getParameterTypes();
                     if (params.length != 1 || !Event.class.isAssignableFrom(params[0])) {
-                        throw new IllegalArgumentException("Event handler " + declaredMethod.getName() + "(" + Arrays.stream(params)
-                                .map(Class::getSimpleName)
-                                .collect(Collectors.joining(", ")) + ") -> " + declaredMethod.getReturnType()
-                                .getName() + " from " + instance.getClass().getName() + " is malformed");
+                        throw new IllegalArgumentException(String.format(
+                                "Event handler %s(%s) -> %s from %s is malformed",
+                                declaredMethod.getName(),
+                                Arrays.stream(params).map(Class::getSimpleName).collect(Collectors.joining(", ")),
+                                declaredMethod.getReturnType().getName(),
+                                instance.getClass().getName()
+                        ));
                     } else {
                         declaredMethod.setAccessible(true);
-                        registerEventHandler(
-                                (instance.getClass().getName() + declaredMethod.getName()).hashCode(),
+                        registerEventHandler((instance.getClass().getName() + declaredMethod.getName()).hashCode(),
                                 ev.type(),
                                 ev.shift(),
                                 event -> {
