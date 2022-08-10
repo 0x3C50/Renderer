@@ -167,7 +167,7 @@ public class TTFFontRenderer {
     }
 
     public void drawString(MatrixStack matrices, String s, float x, float y, me.x150.renderer.renderer.color.Color color) {
-        drawString(matrices, s, x, y, color.getRed(), color.getGreen(), color.getBlue(), color.getAlpha());
+        drawString(matrices, s, x, y, color.getRedF(), color.getGreenF(), color.getBlueF(), color.getAlphaF());
     }
 
     /**
