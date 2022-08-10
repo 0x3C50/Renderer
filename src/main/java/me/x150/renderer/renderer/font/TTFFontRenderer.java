@@ -165,6 +165,10 @@ public class TTFFontRenderer {
         return 1f / (glyphDimensions / size);
     }
 
+    public void drawString(MatrixStack matrices, String s, float x, float y, me.x150.renderer.renderer.color.Color color) {
+        drawString(matrices, s, x, y, color.getRed(), color.getGreen(), color.getBlue(), color.getAlpha());
+    }
+
     /**
      * <p>Draws a string</p>
      * <p>Best used inside of {@link MSAAFramebuffer#use(int, Runnable)}</p>
