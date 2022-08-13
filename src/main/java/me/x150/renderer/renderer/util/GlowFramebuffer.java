@@ -44,14 +44,14 @@ public class GlowFramebuffer extends Framebuffer {
             buffer.resize(mainBuffer.textureWidth, mainBuffer.textureHeight, false);
         }
 
-//        GlStateManager._glBindFramebuffer(GL30C.GL_READ_FRAMEBUFFER, mainBuffer.fbo);
+        //        GlStateManager._glBindFramebuffer(GL30C.GL_READ_FRAMEBUFFER, mainBuffer.fbo);
         GlStateManager._glBindFramebuffer(GL30C.GL_DRAW_FRAMEBUFFER, buffer.fbo);
 
         buffer.beginWrite(true);
         r.run();
         buffer.endWrite();
 
-//        GlStateManager._glBindFramebuffer(GL30C.GL_READ_FRAMEBUFFER, buffer.fbo);
+        //        GlStateManager._glBindFramebuffer(GL30C.GL_READ_FRAMEBUFFER, buffer.fbo);
         GlStateManager._glBindFramebuffer(GL30C.GL_DRAW_FRAMEBUFFER, mainBuffer.fbo);
 
         mainBuffer.beginWrite(false);
