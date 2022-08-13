@@ -1,5 +1,6 @@
 package me.x150.renderer.renderer.util;
 
+import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.systems.RenderSystem;
 import lombok.Builder;
 import lombok.Getter;
@@ -79,15 +80,33 @@ public class CameraContext3D {
     }
 
     /**
-     * Applies a generic projection matrix and runs the rendering code provided
+     * Applies a generic transformation matrix and viewport, then draws with this camera
      *
-     * @param action The rendering code to render with this camera
+     * @param action The rendering calls to draw
+     * @param x The X coordinate of the new viewport
+     * @param y The Y coordinate of the new viewport
+     * @param endX The end X coordinate of the new viewport
+     * @param endY The end Y coordinate of the new viewport
      */
-    public void use(Runnable action) {
+    public void use(Runnable action, double x, double y, double endX, double endY) {
+        MinecraftClient client = MinecraftClient.getInstance();
+        double width = endX - x;
+        double height = endY - y;
+        width = Math.max(0, width);
+        height = Math.max(0, height);
+        float d = (float) client.getWindow().getScaleFactor();
+        int ay = (int) ((client.getWindow().getScaledHeight() - (y + height)) * d);
+
         Matrix4f basicProjectionMatrix = MinecraftClient.getInstance().gameRenderer.getBasicProjectionMatrix(getFov());
         RenderSystem.backupProjectionMatrix();
         RenderSystem.setProjectionMatrix(basicProjectionMatrix);
+        int x1 = GlStateManager.Viewport.getX();
+        int y1 = GlStateManager.Viewport.getY();
+        int width1 = GlStateManager.Viewport.getWidth();
+        int height1 = GlStateManager.Viewport.getHeight();
+        RenderSystem.viewport((int) (x * d), ay, (int) (width * d), (int) (height * d));
         action.run();
         RenderSystem.restoreProjectionMatrix();
+        RenderSystem.viewport(x1, y1, width1, height1);
     }
 }

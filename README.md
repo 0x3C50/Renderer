@@ -44,8 +44,10 @@ This will render an anti aliased rounded rectangle with 5px of corners and 20 sa
 The api is pretty self explanatory, you just register an event for which you want to listen and render your stuff in there.
 
 # The two renderers
-Renderer2d is for 2d rendering on screens or the hud, Renderer3d is to be used inside the WORLD_RENDER event, that's where it thrives.
+Renderer2d draws in 2 dimensions, on the hud. Renderer3d draws in 3 dimensions, in the world or with a fake 3d context.
 
+# Faking 3d rendering
+This library allows you to fake a 3d scene by 
 # World rendering
 Rendering inside the world is a bit different than rendering on the screen. The world renderer (Renderer3d) uses VBOs to cache whatever it's doing, and will return a RenderAction instead of drawing it itself.
 

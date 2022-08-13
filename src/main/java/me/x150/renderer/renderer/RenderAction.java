@@ -77,6 +77,7 @@ public class RenderAction {
     /**
      * <p>Draws this action by reusing a one-off buffer and rendering off that, and using a fake 3d camera. To be used on hud rendering.</p>
      * <b>Read the README for more information</b>
+     *
      * @param context The 3D context to apply
      */
     public void drawWithoutVboWith3DContext(CameraContext3D context) {
