@@ -100,11 +100,7 @@ public class TTFFontRenderer {
         this.font = font.deriveFont(glyphDimensions);
 
         initGlyphs();
-        cachedHeight = (float) glyphMap.values()
-                .stream()
-                .max(Comparator.comparingDouble(Glyph::texHeight))
-                .orElseThrow()
-                .texHeight() * getScaleFactor();
+        cachedHeight = (float) glyphMap.values().stream().max(Comparator.comparingDouble(Glyph::texHeight)).orElseThrow().texHeight() * getScaleFactor();
 
     }
 

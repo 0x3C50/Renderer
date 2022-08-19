@@ -87,12 +87,7 @@ public class RendererUtils {
      * @return The interpolated color
      */
     public static Color lerp(Color a, Color b, double c) {
-        return new Color(
-                lerp(a.getRed(), b.getRed(), c),
-                lerp(a.getGreen(), b.getGreen(), c),
-                lerp(a.getBlue(), b.getBlue(), c),
-                lerp(a.getAlpha(), b.getAlpha(), c)
-        );
+        return new Color(lerp(a.getRed(), b.getRed(), c), lerp(a.getGreen(), b.getGreen(), c), lerp(a.getBlue(), b.getBlue(), c), lerp(a.getAlpha(), b.getAlpha(), c));
     }
 
     /**
@@ -107,12 +102,8 @@ public class RendererUtils {
      * @return The new color
      */
     public static Color modify(Color original, int redOverwrite, int greenOverwrite, int blueOverwrite, int alphaOverwrite) {
-        return new Color(
-                redOverwrite == -1 ? original.getRed() : redOverwrite,
-                greenOverwrite == -1 ? original.getGreen() : greenOverwrite,
-                blueOverwrite == -1 ? original.getBlue() : blueOverwrite,
-                alphaOverwrite == -1 ? original.getAlpha() : alphaOverwrite
-        );
+        return new Color(redOverwrite == -1 ? original.getRed() : redOverwrite, greenOverwrite == -1 ? original.getGreen() : greenOverwrite, blueOverwrite == -1 ? original.getBlue() : blueOverwrite,
+                alphaOverwrite == -1 ? original.getAlpha() : alphaOverwrite);
     }
 
     /**

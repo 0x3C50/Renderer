@@ -11,6 +11,5 @@ class ShaderManager {
     /**
      * The glow shader
      */
-    public static ManagedShaderEffect GLOW_SHADER = ShaderEffectManager.getInstance()
-            .manage(new Identifier("renderer", "shaders/post/glow.json"));
+    public static ManagedShaderEffect GLOW_SHADER = ShaderEffectManager.getInstance().manage(new Identifier("renderer", "shaders/post/glow.json"));
 }

@@ -14,19 +14,19 @@ class EventHandler {
     }
     // Testing the library - can be ignored
 
-    //    CameraContext3D build = CameraContext3D.builder().position(new Vec3d(-5, 0, 0)).fov(90f).build();
-    //    @EventListener(shift = Shift.POST, type = EventType.HUD_RENDER)
-    //    void hud(RenderEvent event) {
-    //        double v = Math.toRadians((System.currentTimeMillis() % 4000) / 4000d * 360d);
-    //        double v1 = Math.toRadians((System.currentTimeMillis() % 7000) / 7000d * 360d);
-    //        build.setPosition(new Vec3d(Math.sin(v) * 10, Math.sin(v1) * 5, Math.cos(v) * 10));
-    //        build.faceTowards(new Vec3d(.5, .5, .5));
-    //        GlowFramebuffer.useAndDraw(() -> {
-    //            build.use(() -> {
-    //                Renderer3d.renderOutline(Vec3d.ZERO, new Vec3d(1, 1, 1), Color.RED).drawWithoutVboWith3DContext(build);
-    //                Renderer3d.renderFilled(new Vec3d(2, 2, 2), new Vec3d(1, 1, 1), Color.BLUE).drawWithoutVboWith3DContext(build);
-    //                Renderer3d.renderLine(Vec3d.ZERO, new Vec3d(10, 0, 0), Color.YELLOW).drawWithoutVboWith3DContext(build);
-    //            }, 0, 0, 500, 500);
-    //        }, 6);
-    //    }
+    //        CameraContext3D build = CameraContext3D.builder().position(new Vec3d(-5, 0, 0)).fov(90f).build();
+    //        @EventListener(shift = Shift.POST, type = EventType.HUD_RENDER)
+    //        void hud(RenderEvent event) {
+    //            double v = Math.toRadians((System.currentTimeMillis() % 4000) / 4000d * 360d);
+    //            double v1 = Math.toRadians((System.currentTimeMillis() % 7000) / 7000d * 360d);
+    //            build.setPosition(new Vec3d(Math.sin(v) * 10, Math.sin(v1) * 5, Math.cos(v) * 10));
+    //            build.faceTowards(new Vec3d(.5, .5, .5));
+    //            GlowFramebuffer.useAndDraw(() -> {
+    //                build.use(() -> {
+    //                    Renderer3d.renderOutline(Vec3d.ZERO, new Vec3d(1, 1, 1), Color.RED).drawWithoutVboWith3DContext(build);
+    //                    Renderer3d.renderFilled(new Vec3d(2, 2, 2), new Vec3d(1, 1, 1), Color.BLUE).drawWithoutVboWith3DContext(build);
+    //                    Renderer3d.renderLine(Vec3d.ZERO, new Vec3d(10, 0, 0), Color.YELLOW).drawWithoutVboWith3DContext(build);
+    //                }, 0, 0, 500, 500);
+    //            }, 16);
+    //        }
 }

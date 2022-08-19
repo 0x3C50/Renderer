@@ -11,6 +11,8 @@
     "hud.InGameHudMixin"
   ],
   "client": [
+    "PostProcessShaderMixin",
+    "ShaderEffectMixin"
   ],
   "injectors": {
     "defaultRequire": 1

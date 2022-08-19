@@ -73,18 +73,8 @@ public class Renderer2d {
         double x1 = x0 + width;
         double y1 = y0 + height;
         double z = 0;
-        renderTexturedQuad(
-                matrices.peek().getPositionMatrix(),
-                x0,
-                x1,
-                y0,
-                y1,
-                z,
-                (u + 0.0F) / (float) textureWidth,
-                (u + (float) regionWidth) / (float) textureWidth,
-                (v + 0.0F) / (float) textureHeight,
-                (v + (float) regionHeight) / (float) textureHeight
-        );
+        renderTexturedQuad(matrices.peek().getPositionMatrix(), x0, x1, y0, y1, z, (u + 0.0F) / (float) textureWidth, (u + (float) regionWidth) / (float) textureWidth,
+                (v + 0.0F) / (float) textureHeight, (v + (float) regionHeight) / (float) textureHeight);
     }
 
     private static void renderTexturedQuad(Matrix4f matrix, double x0, double x1, double y0, double y1, double z, float u0, float u1, float v0, float v1) {
@@ -153,9 +143,7 @@ public class Renderer2d {
             double radians = Math.toRadians(i);
             double sin = Math.sin(radians) * rad;
             double cos = Math.cos(radians) * rad;
-            buffer.vertex(matrix, (float) (originX + sin), (float) (originY + cos), 0)
-                    .color(colorFloat[0], colorFloat[1], colorFloat[2], colorFloat[3])
-                    .next();
+            buffer.vertex(matrix, (float) (originX + sin), (float) (originY + cos), 0).color(colorFloat[0], colorFloat[1], colorFloat[2], colorFloat[3]).next();
         }
         RendererUtils.setupRender();
         RenderSystem.setShader(GameRenderer::getPositionColorShader);
