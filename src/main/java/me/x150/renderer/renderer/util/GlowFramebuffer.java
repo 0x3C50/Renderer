@@ -59,7 +59,7 @@ public class GlowFramebuffer extends Framebuffer {
     /**
      * <p>Draws this framebuffer to the main buffer</p>
      *
-     * @param radius The glow radius. Recommended: 8 px. Shader will do (n*2)^2 iterations, keep this small
+     * @param radius The glow radius
      */
     public static void draw(float radius) {
         Framebuffer mainBuffer = MinecraftClient.getInstance().getFramebuffer();
@@ -78,7 +78,7 @@ public class GlowFramebuffer extends Framebuffer {
      * Uses this framebuffer and draws it
      *
      * @param r      The action to run within this framebuffer
-     * @param radius The glow radius. Recommended: 8 px. Shader will do (n*2)^2 iterations, keep this small
+     * @param radius The glow radius
      * @see #use(Runnable)
      */
     public static void useAndDraw(Runnable r, float radius) {
