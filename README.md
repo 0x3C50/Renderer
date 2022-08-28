@@ -12,42 +12,14 @@ include modImplementation("com.github.0x3C50:Renderer:master-SNAPSHOT")
 This will use the latest commit as build target, but will cache that build target every time. Use the latest short commit hash found on [Jitpack](https://jitpack.io/#0x3C50/Renderer) (example: `d2cc995ff4`) as the version, to get that release instead.
 
 # Usage
-Using this library is very simple, here's an example:
-
-## Mod initializer class
-```java
-public class RendererTestModClient implements ClientModInitializer {
-    @Override
-    public void onInitializeClient() {
-        Events.registerEventHandlerClass(new EventHandler());
-    }
-}
-
-```
-
-## EventHandler.java
-```java
-public class EventHandler {
-    @EventListener(shift = Shift.POST, type = EventType.HUD_RENDER)
-    void preHudRender(RenderEvent re) {
-        MSAAFramebuffer.use(MSAAFramebuffer.MAX_SAMPLES, () -> {
-            ClipStack.globalInstance.addWindow(re.getStack(), new Rectangle(20,10,110,110));
-            Renderer2d.renderRoundedQuad(re.getStack(), Color.WHITE, 10, 10, 100, 100, 5, 20);
-            ClipStack.globalInstance.popWindow();
-        });
-    }
-}
-```
-
-This will render an anti aliased rounded rectangle with 5px of corners and 20 samples with the left side cut off top left of the screen, each time the hud is rendered
-
-The api is pretty self explanatory, you just register an event for which you want to listen and render your stuff in there.
+The api has an extensive javadoc, which explains almost anything. The wiki also has some more insights and examples.
 
 # The two renderers
 Renderer2d draws in 2 dimensions, on the hud. Renderer3d draws in 3 dimensions, in the world or with a fake 3d context.
 
 # Faking 3d rendering
-This library allows you to fake a 3d scene by 
+This library allows you to fake a 3d scene with the CameraContext3D class, which can be used to render 3d content on the hud. More on that in the wiki.
+
 # World rendering
 Rendering inside the world is a bit different than rendering on the screen. The world renderer (Renderer3d) uses VBOs to cache whatever it's doing, and will return a RenderAction instead of drawing it itself.
 
@@ -60,8 +32,16 @@ To reuse a RenderAction, save the RenderAction in a variable and call `.drawWith
 
 To draw a RenderAction, call `.drawWithoutVBO()`. This will use a throwaway, reusable VBO. This leads to faster performance while rendering once. If you need to reuse the VBO, the option above will yield better results. You do not have to call `.delete()` when using this.
 
-# Event shifts
+## Custom RenderActions
+If you have a large buffer you want to render multiple times, upload it to a RenderAction and it will manage everything for you.
+
+# Events
+This library allows you to monitor specific rendering events, an example can be found within the EventHandler class, which is used to render the fading blocks. The wiki also contains examples and explanations.
+
+## Event shifts
 PRE is for when you want to monitor an event happening and maybe cancel it, POST is for when you want to additionally render stuff when it happens.
 
 # Suggestions
 You can leave suggestions in the issues section
+
+If this library helped you, please consider leaving a star, since this library took me a while to make as it is right now :)
