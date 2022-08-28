@@ -60,6 +60,7 @@ public class RendererUtils {
      * @param from  Range from
      * @param to    Range to
      * @param delta Range delta
+     *
      * @return The interpolated value between from and to
      */
     public static int lerp(int from, int to, double delta) {
@@ -72,6 +73,7 @@ public class RendererUtils {
      * @param from  Range from
      * @param to    Range to
      * @param delta Range delta
+     *
      * @return The interpolated value between from and to
      */
     public static double lerp(double from, double to, double delta) {
@@ -84,6 +86,7 @@ public class RendererUtils {
      * @param a Color range from
      * @param b Color range to
      * @param c Range delta
+     *
      * @return The interpolated color
      */
     public static Color lerp(Color a, Color b, double c) {
@@ -99,11 +102,11 @@ public class RendererUtils {
      * @param greenOverwrite The new green component
      * @param blueOverwrite  The new blue component
      * @param alphaOverwrite The new alpha component
+     *
      * @return The new color
      */
     public static Color modify(Color original, int redOverwrite, int greenOverwrite, int blueOverwrite, int alphaOverwrite) {
-        return new Color(redOverwrite == -1 ? original.getRed() : redOverwrite, greenOverwrite == -1 ? original.getGreen() : greenOverwrite, blueOverwrite == -1 ? original.getBlue() : blueOverwrite,
-                alphaOverwrite == -1 ? original.getAlpha() : alphaOverwrite);
+        return new Color(redOverwrite == -1 ? original.getRed() : redOverwrite, greenOverwrite == -1 ? original.getGreen() : greenOverwrite, blueOverwrite == -1 ? original.getBlue() : blueOverwrite, alphaOverwrite == -1 ? original.getAlpha() : alphaOverwrite);
     }
 
     /**
@@ -111,6 +114,7 @@ public class RendererUtils {
      *
      * @param stack The MatrixStack to translate with
      * @param in    The Vec3d to translate
+     *
      * @return The translated Vec3d
      */
     public static Vec3d translateVec3dWithMatrixStack(MatrixStack stack, Vec3d in) {

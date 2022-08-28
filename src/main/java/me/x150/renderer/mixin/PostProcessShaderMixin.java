@@ -10,9 +10,9 @@ import org.spongepowered.asm.mixin.gen.Accessor;
 public interface PostProcessShaderMixin {
     @Mutable
     @Accessor("input")
-    void setInput(Framebuffer framebuffer);
+    void renderer_setInput(Framebuffer framebuffer);
 
     @Mutable
     @Accessor("output")
-    void setOutput(Framebuffer framebuffer);
+    void renderer_setOutput(Framebuffer framebuffer);
 }

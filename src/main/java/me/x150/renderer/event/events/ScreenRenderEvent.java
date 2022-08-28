@@ -12,6 +12,12 @@ public class ScreenRenderEvent extends RenderEvent {
     @Getter
     Screen screen;
 
+    /**
+     * Constructs a new event
+     *
+     * @param stack  The context MatrixStack
+     * @param screen The screen that has been rendered
+     */
     public ScreenRenderEvent(MatrixStack stack, Screen screen) {
         super(stack);
         this.screen = screen;

@@ -12,4 +12,8 @@ class ShaderManager {
      * The glow shader
      */
     public static ManagedShaderEffect GLOW_SHADER = ShaderEffectManager.getInstance().manage(new Identifier("renderer", "shaders/post/glow.json"));
+    /**
+     * The blur mask shader
+     */
+    public static ManagedShaderEffect BLUR_MASK_SHADER = ShaderEffectManager.getInstance().manage(new Identifier("renderer", "shaders/post/blur_mask.json"));
 }

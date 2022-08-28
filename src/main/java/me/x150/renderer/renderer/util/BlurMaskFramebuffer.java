@@ -6,39 +6,58 @@ import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gl.Framebuffer;
 import org.lwjgl.opengl.GL30C;
 
-import java.util.Objects;
-
 /**
- * <p>A glowing framebuffer</p>
- * <p>Will make everything drawn to it glow, in the color being drawn</p>
+ * A framebuffer which acts as a mask for blurring content behind it
  */
-public class GlowFramebuffer extends Framebuffer {
-    private static GlowFramebuffer instance;
+public class BlurMaskFramebuffer extends Framebuffer {
+    private static BlurMaskFramebuffer instance;
 
-    private GlowFramebuffer(int width, int height) {
+    private BlurMaskFramebuffer(int width, int height) {
         super(true);
         RenderSystem.assertOnRenderThreadOrInit();
         this.resize(width, height, true);
         this.setClearColor(0f, 0f, 0f, 0f);
     }
 
-    private static GlowFramebuffer obtain() {
+    private static BlurMaskFramebuffer obtain() {
         if (instance == null) {
-            instance = new GlowFramebuffer(MinecraftClient.getInstance().getFramebuffer().textureWidth, MinecraftClient.getInstance().getFramebuffer().textureHeight);
+            instance = new BlurMaskFramebuffer(MinecraftClient.getInstance().getFramebuffer().textureWidth, MinecraftClient.getInstance().getFramebuffer().textureHeight);
         }
         return instance;
     }
 
     /**
-     * Draws to this framebuffer
+     * <p>Draws to this framebuffer</p>
+     * <p>The color of the element doesn't matter, the alpha does.</p>
+     * <table>
+     *     <thead>
+     *     <tr>
+     *         <td>Alpha</td>
+     *         <td>Blur radius</td>
+     *     </tr>
+     *     </thead>
+     *     <tbody>
+     *     <tr>
+     *         <td>255 (100%)</td>
+     *         <td>Full radius (100%)</td>
+     *     </tr>
+     *     <tr>
+     *         <td>100 (40%)</td>
+     *         <td>Half the radius (40%)</td>
+     *     </tr>
+     *     <tr>
+     *         <td>0 (0%)</td>
+     *         <td>No blur (0% radius, default)</td>
+     *     </tr>
+     *     </tbody>
+     * </table>
      *
      * @param r The action with rendering calls to write to this framebuffer
      */
-
     public static void use(Runnable r) {
         Framebuffer mainBuffer = MinecraftClient.getInstance().getFramebuffer();
         RenderSystem.assertOnRenderThreadOrInit();
-        GlowFramebuffer buffer = obtain();
+        BlurMaskFramebuffer buffer = obtain();
         if (buffer.textureWidth != mainBuffer.textureWidth || buffer.textureHeight != mainBuffer.textureHeight) {
             buffer.resize(mainBuffer.textureWidth, mainBuffer.textureHeight, false);
         }
@@ -57,17 +76,16 @@ public class GlowFramebuffer extends Framebuffer {
     }
 
     /**
-     * <p>Draws this framebuffer to the main buffer</p>
+     * <p>Applies this mask to the main buffer</p>
      *
-     * @param radius The glow radius
+     * @param radius The blur
      */
     public static void draw(float radius) {
         Framebuffer mainBuffer = MinecraftClient.getInstance().getFramebuffer();
-        GlowFramebuffer buffer = obtain();
-        ((ShaderEffectDuck) Objects.requireNonNull(ShaderManager.GLOW_SHADER.getShaderEffect())).addFakeTarget("glowFbo", buffer);
-        ShaderManager.GLOW_SHADER.setSamplerUniform("vanilla", mainBuffer);
-        ShaderManager.GLOW_SHADER.setUniformValue("radius", radius);
-        ShaderManager.GLOW_SHADER.render(MinecraftClient.getInstance().getTickDelta());
+        BlurMaskFramebuffer buffer = obtain();
+        ShaderManager.BLUR_MASK_SHADER.setSamplerUniform("MaskSampler", buffer);
+        ShaderManager.BLUR_MASK_SHADER.setUniformValue("Radius", radius);
+        ShaderManager.BLUR_MASK_SHADER.render(MinecraftClient.getInstance().getTickDelta());
         GlStateManager._glBindFramebuffer(GL30C.GL_DRAW_FRAMEBUFFER, buffer.fbo);
         buffer.clear(true);
         GlStateManager._glBindFramebuffer(GL30C.GL_DRAW_FRAMEBUFFER, mainBuffer.fbo);
@@ -75,10 +93,10 @@ public class GlowFramebuffer extends Framebuffer {
     }
 
     /**
-     * Uses this framebuffer and draws it
+     * Uses this framebuffer and applies the mask
      *
      * @param r      The action to run within this framebuffer
-     * @param radius The glow radius
+     * @param radius The blur radius
      *
      * @see #use(Runnable)
      */

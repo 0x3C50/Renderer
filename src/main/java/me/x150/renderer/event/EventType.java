@@ -18,7 +18,8 @@ public enum EventType {
     BLOCK_ENTITY_RENDER,
     /**
      * <p>A block has been rendered</p>
-     * <p>Gets called once to cache the block, then only when the block is regenerated. Does <b>NOT</b> get called each frame</p>
+     * <p>Due to how minecraft renders blocks, this gets called each time the block texture generates. NOT each frame.</p>
+     * <p>This means this block is only rendered when necessary, to update a block state, for example.</p>
      */
     BLOCK_RENDER,
     /**

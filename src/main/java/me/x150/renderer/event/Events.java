@@ -28,6 +28,7 @@ public class Events {
      * @param uniqueId The ID of this event. Used to check if it was previously registered and to un-register it.
      * @param event    The event type to subscribe to
      * @param handler  The event handler
+     *
      * @return The ListenerEntry for this event
      */
     public static ListenerEntry registerEventHandler(int uniqueId, EventType event, Shift shift, Consumer<? extends Event> handler) {
@@ -54,6 +55,7 @@ public class Events {
      *
      * @param event   The event to subscribe to
      * @param handler The event handler
+     *
      * @return The ListenerEntry for this event, with a randomly generated ID
      */
     public static ListenerEntry registerEventHandler(EventType event, Shift shift, Consumer<? extends Event> handler) {
@@ -72,11 +74,10 @@ public class Events {
                     EventListener ev = (EventListener) declaredAnnotation;
                     Class<?>[] params = declaredMethod.getParameterTypes();
                     if (params.length != 1 || !Event.class.isAssignableFrom(params[0])) {
-                        throw new IllegalArgumentException(String.format("Event handler %s(%s) -> %s from %s is malformed", declaredMethod.getName(),
-                                Arrays.stream(params).map(Class::getSimpleName).collect(Collectors.joining(", ")), declaredMethod.getReturnType().getName(), instance.getClass().getName()));
+                        throw new IllegalArgumentException(String.format("Event handler %s(%s) -> %s from %s is malformed", declaredMethod.getName(), Arrays.stream(params).map(Class::getSimpleName).collect(Collectors.joining(", ")), declaredMethod.getReturnType().getName(), instance.getClass().getName()));
                     } else {
                         declaredMethod.setAccessible(true);
-                        registerEventHandler((instance.getClass().getName() + declaredMethod.getName()).hashCode(), ev.type(), ev.shift(), event -> {
+                        registerEventHandler((instance.getClass().getName() + declaredMethod.getName()).hashCode(), ev.value(), ev.shift(), event -> {
                             try {
                                 declaredMethod.invoke(instance, event);
                             } catch (IllegalAccessException | InvocationTargetException e) {
@@ -94,6 +95,7 @@ public class Events {
      *
      * @param event    The event to fire
      * @param argument The argument supplied to the handlers
+     *
      * @return If the event has been marked as cancelled
      */
     @SuppressWarnings("unchecked")

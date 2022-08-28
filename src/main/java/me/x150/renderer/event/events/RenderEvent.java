@@ -16,6 +16,11 @@ public class RenderEvent extends Event {
     @Getter
     final MatrixStack stack;
 
+    /**
+     * Constructs a new event
+     *
+     * @param stack The context MatrixStack
+     */
     public RenderEvent(MatrixStack stack) {
         this.stack = stack;
     }

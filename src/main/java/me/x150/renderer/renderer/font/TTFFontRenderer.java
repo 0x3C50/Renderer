@@ -8,22 +8,13 @@ import lombok.Getter;
 import lombok.Setter;
 import me.x150.renderer.renderer.MSAAFramebuffer;
 import me.x150.renderer.renderer.RendererUtils;
-import net.minecraft.client.render.BufferBuilder;
-import net.minecraft.client.render.BufferRenderer;
-import net.minecraft.client.render.GameRenderer;
-import net.minecraft.client.render.Tessellator;
-import net.minecraft.client.render.VertexFormat;
-import net.minecraft.client.render.VertexFormats;
+import net.minecraft.client.render.*;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.Util;
 import net.minecraft.util.math.Matrix4f;
 
-import java.awt.Color;
-import java.awt.Font;
-import java.awt.FontMetrics;
-import java.awt.Graphics2D;
-import java.awt.RenderingHints;
+import java.awt.*;
 import java.awt.font.FontRenderContext;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Rectangle2D;
@@ -78,6 +69,9 @@ public class TTFFontRenderer {
     @Setter
     @Getter
     float size;
+    /**
+     * The font which was used to generate this renderer
+     */
     @Getter
     Font font;
     Identifier texture;
@@ -89,7 +83,7 @@ public class TTFFontRenderer {
      * Creates a new FontRenderer
      *
      * @param font The font to use
-     * @param size The size to use
+     * @param size The size of the font
      */
     private TTFFontRenderer(Font font, float size) {
         this.size = size;
@@ -106,10 +100,11 @@ public class TTFFontRenderer {
 
     /**
      * <p>Creates a new FontRenderer</p>
-     * <p>Use once, then save the font renderer in a cache. Initializing this a lot of times can cause a memory leak down the line</p>
+     * <p>Creates a lot of textures, use with caution. Use a caching system</p>
      *
      * @param font   The font to use
      * @param sizePx The size in pixels for the new font to be
+     *
      * @return The new FontRenderer instance
      */
     public static TTFFontRenderer create(Font font, float sizePx) {
@@ -118,13 +113,35 @@ public class TTFFontRenderer {
 
     /**
      * <p>Creates a new FontRenderer with the size extracted from the font given</p>
-     * <p>Use once, then save the font renderer in a cache. Initializing this a lot of times can cause a memory leak down the line</p>
+     * <p>Creates a lot of textures, use with caution. Use a caching system</p>
      *
      * @param font The font to use
+     *
      * @return The new FontRenderer instance
      */
     public static TTFFontRenderer create(Font font) {
         return create(font, font.getSize2D());
+    }
+
+    /**
+     * Removes all color control codes from the string
+     *
+     * @param in The input string with color codes
+     *
+     * @return The output without color codes
+     */
+    public static String stripControlCodes(String in) {
+        char[] s = in.toCharArray();
+        StringBuilder out = new StringBuilder();
+        for (int i = 0; i < s.length; i++) {
+            char current = s[i];
+            if (current == '§') {
+                i++;
+                continue;
+            }
+            out.append(current);
+        }
+        return out.toString();
     }
 
     /**
@@ -174,7 +191,7 @@ public class TTFFontRenderer {
         return width;
     }
 
-    float getScaleFactor() {
+    private float getScaleFactor() {
         return 1f / (glyphDimensions / size);
     }
 
@@ -234,29 +251,10 @@ public class TTFFontRenderer {
     }
 
     /**
-     * Removes all color control codes from the string
-     *
-     * @param in The input string with color codes
-     * @return The output without color codes
-     */
-    public String stripControlCodes(String in) {
-        char[] s = in.toCharArray();
-        StringBuilder out = new StringBuilder();
-        for (int i = 0; i < s.length; i++) {
-            char current = s[i];
-            if (current == '§') {
-                i++;
-                continue;
-            }
-            out.append(current);
-        }
-        return out.toString();
-    }
-
-    /**
      * Returns the width of the input, in pixels
      *
      * @param text The input text
+     *
      * @return The width of the input, in pixels
      */
     public float getStringWidth(String text) {
@@ -277,6 +275,7 @@ public class TTFFontRenderer {
      *
      * @param t        The input
      * @param maxWidth The width to trim the string to
+     *
      * @return The trimmed string, so that {@link #getStringWidth(String)} of the output is less than the maxWidth
      */
     public String trimStringToWidth(String t, float maxWidth) {

@@ -59,6 +59,7 @@ public class MSAAFramebuffer extends Framebuffer {
      * Gets an instance with the sample count provided
      *
      * @param samples The desired sample count
+     *
      * @return The framebuffer instance
      */
     public static MSAAFramebuffer getInstance(int samples) {

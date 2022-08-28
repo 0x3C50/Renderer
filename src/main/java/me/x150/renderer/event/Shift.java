@@ -9,7 +9,7 @@ public enum Shift {
      */
     PRE,
     /**
-     * After the event happened. Cancelling will not throw an exception, but will not do anything
+     * After the event happened. Cancelling will not throw an exception, but will not do anything either
      */
     POST
 }

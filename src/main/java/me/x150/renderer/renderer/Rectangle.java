@@ -18,6 +18,7 @@ public class Rectangle {
      *
      * @param x The X coordinate
      * @param y The Y coordinate
+     *
      * @return Whether the coordinates specified are inside the rectangle
      */
     public boolean contains(double x, double y) {

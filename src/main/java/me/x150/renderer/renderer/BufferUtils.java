@@ -19,6 +19,7 @@ public class BufferUtils {
      * Creates a VBO for this buffer
      *
      * @param builder The buffer
+     *
      * @return The VBO
      */
     public static VertexBuffer createVbo(BufferBuilder.BuiltBuffer builder) {

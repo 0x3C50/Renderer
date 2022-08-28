@@ -36,10 +36,10 @@ public class ShaderEffectMixin implements ShaderEffectDuck {
             for (PostProcessShader pass : this.passes) {
                 // replace input and output of each pass to our new framebuffer, if they reference the one we're replacing
                 if (pass.input == previousFramebuffer) {
-                    ((PostProcessShaderMixin) pass).setInput(buffer);
+                    ((PostProcessShaderMixin) pass).renderer_setInput(buffer);
                 }
                 if (pass.output == previousFramebuffer) {
-                    ((PostProcessShaderMixin) pass).setOutput(buffer);
+                    ((PostProcessShaderMixin) pass).renderer_setOutput(buffer);
                 }
             }
             this.targetsByName.remove(name);

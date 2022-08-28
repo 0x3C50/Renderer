@@ -13,11 +13,11 @@ import java.lang.annotation.RetentionPolicy;
 @Retention(RetentionPolicy.RUNTIME)
 public @interface EventListener {
     /**
-     * The type to subscribe to
+     * The event type to subscribe to
      *
      * @return The event type
      */
-    EventType type();
+    EventType value();
 
     /**
      * The desired shift of the event

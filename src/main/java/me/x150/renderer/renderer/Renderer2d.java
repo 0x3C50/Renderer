@@ -4,11 +4,7 @@ import com.mojang.blaze3d.systems.RenderSystem;
 import me.x150.renderer.renderer.color.Color;
 import me.x150.renderer.renderer.color.Colors;
 import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.render.BufferBuilder;
-import net.minecraft.client.render.GameRenderer;
-import net.minecraft.client.render.Tessellator;
-import net.minecraft.client.render.VertexFormat;
-import net.minecraft.client.render.VertexFormats;
+import net.minecraft.client.render.*;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.MathHelper;
@@ -73,8 +69,7 @@ public class Renderer2d {
         double x1 = x0 + width;
         double y1 = y0 + height;
         double z = 0;
-        renderTexturedQuad(matrices.peek().getPositionMatrix(), x0, x1, y0, y1, z, (u + 0.0F) / (float) textureWidth, (u + (float) regionWidth) / (float) textureWidth,
-                (v + 0.0F) / (float) textureHeight, (v + (float) regionHeight) / (float) textureHeight);
+        renderTexturedQuad(matrices.peek().getPositionMatrix(), x0, x1, y0, y1, z, (u + 0.0F) / (float) textureWidth, (u + (float) regionWidth) / (float) textureWidth, (v + 0.0F) / (float) textureHeight, (v + (float) regionHeight) / (float) textureHeight);
     }
 
     private static void renderTexturedQuad(Matrix4f matrix, double x0, double x1, double y0, double y1, double z, float u0, float u1, float v0, float v1) {
@@ -198,9 +193,7 @@ public class Renderer2d {
         double toY1 = toY - rad;
         double fromX1 = fromX + rad;
         double fromY1 = fromY + rad;
-        double[][] map = new double[][] {
-                new double[] { toX1, toY1 }, new double[] { toX1, fromY1 }, new double[] { fromX1, fromY1 }, new double[] { fromX1, toY1 }
-        };
+        double[][] map = new double[][]{new double[]{toX1, toY1}, new double[]{toX1, fromY1}, new double[]{fromX1, fromY1}, new double[]{fromX1, toY1}};
         for (int i = 0; i < 4; i++) {
             double[] current = map[i];
             double max = (360 / 4d + i * 90d);
@@ -231,6 +224,7 @@ public class Renderer2d {
      * @param toY      The end Y coordinate
      * @param rad      The radius of the corners
      * @param samples  How many samples to use for the corners
+     *
      * @throws IllegalArgumentException If height or width are below 1 px
      */
     public static void renderRoundedQuad(MatrixStack matrices, Color color, double fromX, double fromY, double toX, double toY, double rad, double samples) {

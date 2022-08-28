@@ -4,12 +4,7 @@ import com.mojang.blaze3d.systems.RenderSystem;
 import me.x150.renderer.renderer.color.Color;
 import me.x150.renderer.renderer.color.Colors;
 import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.render.BufferBuilder;
-import net.minecraft.client.render.Camera;
-import net.minecraft.client.render.GameRenderer;
-import net.minecraft.client.render.Tessellator;
-import net.minecraft.client.render.VertexFormat;
-import net.minecraft.client.render.VertexFormats;
+import net.minecraft.client.render.*;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.util.math.Box;
 import net.minecraft.util.math.MathHelper;
@@ -93,6 +88,7 @@ public class Renderer3d {
      * @param dimensions The dimensions of the blockk
      * @param colorFill  The color the block should be filled with
      * @param colorEdges The color of the outline
+     *
      * @return The action batch
      */
     public static RenderActionBatch renderBlockWithEdges(Vec3d start, Vec3d dimensions, Color colorFill, Color colorEdges) {
@@ -111,6 +107,7 @@ public class Renderer3d {
      * @param start      The start coordinate of the block
      * @param dimensions The dimensions of the block
      * @param color      The color of the filling
+     *
      * @return The render action
      */
     public static RenderAction renderFilled(Vec3d start, Vec3d dimensions, Color color) {
@@ -122,6 +119,7 @@ public class Renderer3d {
      *
      * @param box   Contains start and end coordinates of the block
      * @param color The color of the filling
+     *
      * @return The render action
      */
     public static RenderAction renderFilled(Box box, Color color) {
@@ -179,6 +177,7 @@ public class Renderer3d {
      * @param start      The start coordinate of the block
      * @param dimensions The dimensions of the block
      * @param color      The color of the outline
+     *
      * @return The render action
      */
     public static RenderAction renderOutline(Vec3d start, Vec3d dimensions, Color color) {
@@ -190,6 +189,7 @@ public class Renderer3d {
      *
      * @param box   Contains start and end coordinates of the block
      * @param color The color of the outline
+     *
      * @return The render action
      */
     public static RenderAction renderOutline(Box box, Color color) {
@@ -247,6 +247,7 @@ public class Renderer3d {
      * @param start The start coordinate of the line
      * @param end   The end coordinate of the line
      * @param color The color of the line
+     *
      * @return The render action
      */
     public static RenderAction renderLine(Vec3d start, Vec3d end, Color color) {
