@@ -24,5 +24,5 @@ public @interface EventListener {
      *
      * @return The shift
      */
-    Shift shift();
+    Shift shift() default Shift.POST;
 }
