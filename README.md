@@ -1,6 +1,11 @@
 # Renderer
 An easy to use rendering library for modern fabricmc
 
+# WARNING
+This library uses some very old rendering techniques, and is barely maintained anymore. It does still work, but there's no guarantee it will continue to do so in a few updates. A remake will eventually be public.
+
+You can still use this library, and it will probably work, but I do not know for how long.
+
 # Installing
 You can install this library using [Jitpack](https://jitpack.io/)
 

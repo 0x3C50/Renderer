@@ -14,13 +14,16 @@ uniform float Radius;
 out vec4 fragColor;
 
 void main() {
-    vec4 blurred = vec4(0);
-    int total = 0;
-    float progRadius = max(.5f, Radius*texture(MaskSampler, texCoord).a); // min 1 sample = no blur
-    for(float r = -progRadius;r<progRadius;++r) {
-        blurred += texture(DiffuseSampler, texCoord + oneTexel * r * BlurDir);
-        total += 1;
+    float progRadius = Radius*texture(MaskSampler, texCoord).a; // multiply our max radius by the alpha of the current pixel
+    if (progRadius < 1f) {
+        fragColor = texture(DiffuseSampler, texCoord); // no change, sample size less than one pixel
+    } else {
+        vec4 blurred = vec4(0);
+        int i = 0;
+        for(float r = -progRadius;r<=progRadius;r++) { // ex progRadius 2: -2, -1, 0, 1, 2
+            blurred += texture(DiffuseSampler, texCoord + oneTexel * r * BlurDir);
+            i++;
+        }
+        fragColor = blurred / i;
     }
-    fragColor = blurred / total;
-    //fragColor = texture(MaskSampler, texCoord);
 }
