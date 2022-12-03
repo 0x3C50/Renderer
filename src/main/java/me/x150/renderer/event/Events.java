@@ -8,7 +8,7 @@ package me.x150.renderer.event;
 import me.x150.renderer.event.events.base.Event;
 
 import java.lang.annotation.Annotation;
-import java.lang.reflect.InvocationTargetException;
+import java.lang.invoke.*;
 import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.List;
@@ -81,13 +81,22 @@ public class Events {
                             instance.getClass().getName()));
                     } else {
                         declaredMethod.setAccessible(true);
-                        registerEventHandler((instance.getClass().getName() + declaredMethod.getName()).hashCode(), ev.value(), ev.shift(), event -> {
-                            try {
-                                declaredMethod.invoke(instance, event);
-                            } catch (IllegalAccessException | InvocationTargetException e) {
-                                e.printStackTrace();
-                            }
-                        });
+                        try {
+                            MethodHandles.Lookup lookup = MethodHandles.lookup();
+                            CallSite site = LambdaMetafactory.metafactory(
+                                    lookup,
+                                    "accept",
+                                    MethodType.methodType(Consumer.class, instance.getClass()),
+                                    MethodType.methodType(void.class, Object.class),
+                                    lookup.unreflect(declaredMethod),
+                                    MethodType.methodType(void.class, declaredMethod.getParameterTypes()[0])
+                            );
+                            MethodHandle target = site.getTarget();
+                            registerEventHandler((instance.getClass().getName() + declaredMethod.getName()).hashCode(), ev.value(), ev.shift(), (Consumer<? extends Event>) (target.invoke(instance)));
+                        } catch (Throwable e) {
+                            e.printStackTrace();
+                        }
+
                     }
                 }
             }
