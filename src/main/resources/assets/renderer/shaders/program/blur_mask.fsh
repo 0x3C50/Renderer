@@ -15,7 +15,7 @@ out vec4 fragColor;
 
 void main() {
     float progRadius = Radius*texture(MaskSampler, texCoord).a; // multiply our max radius by the alpha of the current pixel
-    if (progRadius < 1f) {
+    if (progRadius < 1) {
         fragColor = texture(DiffuseSampler, texCoord); // no change, sample size less than one pixel
     } else {
         vec4 blurred = vec4(0);
