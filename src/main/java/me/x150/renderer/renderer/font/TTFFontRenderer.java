@@ -17,7 +17,7 @@ import net.minecraft.client.render.VertexFormats;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.Util;
-import net.minecraft.util.math.Matrix4f;
+import org.joml.Matrix4f;
 
 import java.awt.Color;
 import java.awt.Font;
@@ -167,15 +167,15 @@ public class TTFFontRenderer {
         float g = 1f;
         float b = 1f;
         float a = 1f;
-        RenderSystem.setShader(GameRenderer::getPositionColorShader);
+        RenderSystem.setShader(GameRenderer::getPositionColorProgram);
         bufferBuilder.begin(VertexFormat.DrawMode.DEBUG_LINE_STRIP, VertexFormats.POSITION_COLOR);
         bufferBuilder.vertex(matrix, 0, height, 0).color(r, g, b, a).next();
         bufferBuilder.vertex(matrix, width, height, 0).color(r, g, b, a).next();
         bufferBuilder.vertex(matrix, width, 0, 0).color(r, g, b, a).next();
         bufferBuilder.vertex(matrix, 0, 0, 0).color(r, g, b, a).next();
         bufferBuilder.vertex(matrix, 0, height, 0).color(r, g, b, a).next();
-        BufferRenderer.drawWithShader(bufferBuilder.end());
-        RenderSystem.setShader(GameRenderer::getPositionTexColorShader);
+        BufferRenderer.drawWithGlobalProgram(bufferBuilder.end());
+        RenderSystem.setShader(GameRenderer::getPositionTexColorProgram);
     }
 
     private double drawChar(BufferBuilder bufferBuilder, Matrix4f matrix, char c, float r, float g, float b, float a) {
@@ -195,7 +195,7 @@ public class TTFFontRenderer {
         bufferBuilder.vertex(matrix, width, height, 0).texture(1, 1).color(r, g, b, a).next();
         bufferBuilder.vertex(matrix, width, 0, 0).texture(1, 0).color(r, g, b, a).next();
         bufferBuilder.vertex(matrix, 0, 0, 0).texture(0, 0).color(r, g, b, a).next();
-        BufferRenderer.drawWithShader(bufferBuilder.end());
+        BufferRenderer.drawWithGlobalProgram(bufferBuilder.end());
 
         return width;
     }
@@ -233,7 +233,7 @@ public class TTFFontRenderer {
         RenderSystem.disableCull();
         GlStateManager._texParameter(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
-        RenderSystem.setShader(GameRenderer::getPositionTexColorShader);
+        RenderSystem.setShader(GameRenderer::getPositionTexColorProgram);
         BufferBuilder bufferBuilder = Tessellator.getInstance().getBuffer();
         boolean isInSelector = false;
         for (char c : s.toCharArray()) {

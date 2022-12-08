@@ -2,8 +2,8 @@ package me.x150.renderer.renderer;
 
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.util.math.MathHelper;
-import net.minecraft.util.math.Matrix4f;
-import net.minecraft.util.math.Vector4f;
+import org.joml.Matrix4f;
+import org.joml.Vector4f;
 
 import java.util.Stack;
 
@@ -27,12 +27,12 @@ public class ClipStack {
         Matrix4f matrix = stack.peek().getPositionMatrix();
         Vector4f coord = new Vector4f((float) r1.getX(), (float) r1.getY(), 0, 1);
         Vector4f end = new Vector4f((float) r1.getX1(), (float) r1.getY1(), 0, 1);
-        coord.transform(matrix);
-        end.transform(matrix);
-        double x = coord.getX();
-        double y = coord.getY();
-        double endX = end.getX();
-        double endY = end.getY();
+        coord.mul(matrix);
+        end.mul(matrix);
+        double x = coord.x();
+        double y = coord.y();
+        double endX = end.x();
+        double endY = end.y();
         Rectangle r = new Rectangle(x, y, endX, endY);
         if (clipStack.empty()) {
             clipStack.push(r);
@@ -50,6 +50,20 @@ public class ClipStack {
             clipStack.push(new Rectangle(nsx, nsy, nstx, nsty));
             Renderer2d.beginScissor(nsx, nsy, nstx, nsty);
         }
+    }
+
+    /**
+     * Adds a window using {@link #addWindow(MatrixStack, Rectangle)}, calls renderAction, then removes the previously added window automatically.
+     * <p></p>
+     * You can replace this by separate {@link #addWindow(MatrixStack, Rectangle)} and {@link #popWindow()} calls, although using this method will do that for you.
+     * @param stack The context MatrixStack
+     * @param clippingRect The clipping rectangle that should be applied to the renderAction
+     * @param renderAction The actual render method, that renders the content
+     */
+    public void use(MatrixStack stack, Rectangle clippingRect, Runnable renderAction) {
+        addWindow(stack, clippingRect);
+        renderAction.run();
+        popWindow();
     }
 
     /**

@@ -3,9 +3,9 @@ package me.x150.renderer.renderer;
 import com.mojang.blaze3d.systems.RenderSystem;
 import lombok.RequiredArgsConstructor;
 import me.x150.renderer.renderer.util.CameraContext3D;
+import net.minecraft.client.gl.ShaderProgram;
 import net.minecraft.client.gl.VertexBuffer;
 import net.minecraft.client.render.BufferBuilder;
-import net.minecraft.client.render.Shader;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.util.math.Vec3d;
 
@@ -16,7 +16,7 @@ import net.minecraft.util.math.Vec3d;
 public class RenderAction {
     private static final VertexBuffer oneUseBuffer = new VertexBuffer();
     final BufferBuilder.BuiltBuffer buffer;
-    final Shader preferredShader;
+    final ShaderProgram preferredShader;
     VertexBuffer vbo = null;
 
     /**

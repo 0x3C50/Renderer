@@ -8,9 +8,9 @@ import lombok.Setter;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.util.math.MathHelper;
-import net.minecraft.util.math.Matrix4f;
+import net.minecraft.util.math.RotationAxis;
 import net.minecraft.util.math.Vec3d;
-import net.minecraft.util.math.Vec3f;
+import org.joml.Matrix4f;
 
 /**
  * <p>A pseudo 3D-Camera to be used in the hud</p>
@@ -60,8 +60,8 @@ public class CameraContext3D {
      */
     public MatrixStack createProjectionStack() {
         MatrixStack matrices = new MatrixStack();
-        matrices.multiply(Vec3f.POSITIVE_X.getDegreesQuaternion(getPitch()));
-        matrices.multiply(Vec3f.POSITIVE_Y.getDegreesQuaternion(getYaw() + 180.0F));
+        matrices.multiply(RotationAxis.POSITIVE_X.rotationDegrees(getPitch()));
+        matrices.multiply(RotationAxis.POSITIVE_Y.rotationDegrees(getYaw() + 180.0F));
         return matrices;
     }
 

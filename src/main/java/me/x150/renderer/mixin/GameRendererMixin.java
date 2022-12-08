@@ -31,7 +31,7 @@ public class GameRendererMixin {
         Events.fireEvent(EventType.WORLD_RENDER, Shift.POST, new RenderEvent(matrix));
     }
 
-    @Redirect(method = "render", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/screen/Screen;render(Lnet/minecraft/client/util/math/MatrixStack;IIF)V"))
+    @Redirect(method = "render", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/screen/Screen;renderWithTooltip(Lnet/minecraft/client/util/math/MatrixStack;IIF)V"))
     void renderer_dispatchScreenRender(Screen instance, MatrixStack matrices, int mouseX, int mouseY, float delta) {
         if (!Events.fireEvent(EventType.SCREEN_RENDER, Shift.PRE, new ScreenRenderEvent(matrices, instance))) {
             instance.render(matrices, mouseX, mouseY, delta);

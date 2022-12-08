@@ -6,8 +6,6 @@ import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gl.Framebuffer;
 import org.lwjgl.opengl.GL30C;
 
-import java.util.Objects;
-
 /**
  * <p>A glowing framebuffer</p>
  * <p>Will make everything drawn to it glow, in the color being drawn</p>
@@ -16,7 +14,7 @@ public class GlowFramebuffer extends Framebuffer {
     private static GlowFramebuffer instance;
 
     private GlowFramebuffer(int width, int height) {
-        super(true);
+        super(false);
         RenderSystem.assertOnRenderThreadOrInit();
         this.resize(width, height, true);
         this.setClearColor(0f, 0f, 0f, 0f);
@@ -64,9 +62,9 @@ public class GlowFramebuffer extends Framebuffer {
     public static void draw(float radius) {
         Framebuffer mainBuffer = MinecraftClient.getInstance().getFramebuffer();
         GlowFramebuffer buffer = obtain();
-        ((ShaderEffectDuck) Objects.requireNonNull(ShaderManager.GLOW_SHADER.getShaderEffect())).addFakeTarget("glowFbo", buffer);
-        ShaderManager.GLOW_SHADER.setSamplerUniform("vanilla", mainBuffer);
-        ShaderManager.GLOW_SHADER.setUniformValue("radius", radius);
+        ((ShaderEffectDuck) ShaderManager.GLOW_SHADER.getShader()).addFakeTarget("glowFbo", buffer);
+        ShaderManager.GLOW_SHADER.setUniformSampler("vanilla", mainBuffer);
+        ShaderManager.GLOW_SHADER.setUniformf("radius", radius);
         ShaderManager.GLOW_SHADER.render(MinecraftClient.getInstance().getTickDelta());
         GlStateManager._glBindFramebuffer(GL30C.GL_DRAW_FRAMEBUFFER, buffer.fbo);
         buffer.clear(true);

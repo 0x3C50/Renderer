@@ -173,7 +173,7 @@ public class Renderer3d {
         buffer.vertex(x1, y1, z2).color(red, green, blue, alpha).next();
 
 
-        return new RenderAction(buffer.end(), GameRenderer.getPositionColorShader());
+        return new RenderAction(buffer.end(), GameRenderer.getPositionColorProgram());
     }
 
     /**
@@ -243,7 +243,7 @@ public class Renderer3d {
         buffer.vertex(x2, y2, z1).color(red, green, blue, alpha).normal(0.0F, 0.0F, 1.0F).next();
         buffer.vertex(x2, y2, z2).color(red, green, blue, alpha).normal(0.0F, 0.0F, 1.0F).next();
 
-        return new RenderAction(buffer.end(), GameRenderer.getRenderTypeLinesShader());
+        return new RenderAction(buffer.end(), GameRenderer.getRenderTypeLinesProgram());
     }
 
     /**
@@ -270,7 +270,7 @@ public class Renderer3d {
         buffer.vertex(x1, y1, z1).color(colorFloat[0], colorFloat[1], colorFloat[2], colorFloat[3]).next();
         buffer.vertex(x2, y2, z2).color(colorFloat[0], colorFloat[1], colorFloat[2], colorFloat[3]).next();
 
-        return new RenderAction(buffer.end(), GameRenderer.getPositionColorShader());
+        return new RenderAction(buffer.end(), GameRenderer.getPositionColorProgram());
     }
 
     /**

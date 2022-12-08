@@ -12,8 +12,8 @@ import net.minecraft.client.render.VertexFormats;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.MathHelper;
-import net.minecraft.util.math.Matrix4f;
 import org.jetbrains.annotations.Range;
+import org.joml.Matrix4f;
 
 /**
  * The rendering class for the 2nd dimension, used in the hud renderer or in screens
@@ -93,7 +93,7 @@ public class Renderer2d {
         buffer.vertex(matrix, (float) x1, (float) y0, (float) z).texture(u1, v0).next();
         buffer.vertex(matrix, (float) x0, (float) y0, (float) z).texture(u0, v0).next();
 
-        RenderSystem.setShader(GameRenderer::getPositionTexShader);
+        RenderSystem.setShader(GameRenderer::getPositionTexProgram);
         BufferUtils.draw(buffer);
     }
 
@@ -154,7 +154,7 @@ public class Renderer2d {
             buffer.vertex(matrix, (float) (originX + sin), (float) (originY + cos), 0).color(colorFloat[0], colorFloat[1], colorFloat[2], colorFloat[3]).next();
         }
         RendererUtils.setupRender();
-        RenderSystem.setShader(GameRenderer::getPositionColorShader);
+        RenderSystem.setShader(GameRenderer::getPositionColorProgram);
         BufferUtils.draw(buffer);
         RendererUtils.endRender();
     }
@@ -193,7 +193,7 @@ public class Renderer2d {
         buffer.vertex(matrix, (float) x1, (float) y1, 0.0F).color(colorFloat[0], colorFloat[1], colorFloat[2], colorFloat[3]).next();
 
         RendererUtils.setupRender();
-        RenderSystem.setShader(GameRenderer::getPositionColorShader);
+        RenderSystem.setShader(GameRenderer::getPositionColorProgram);
         BufferUtils.draw(buffer);
         RendererUtils.endRender();
     }
@@ -256,7 +256,7 @@ public class Renderer2d {
         float[] colorFloat = Colors.intArrayToFloatArray(Colors.RGBAIntToRGBA(color.toRGBAInt()));
 
         RendererUtils.setupRender();
-        RenderSystem.setShader(GameRenderer::getPositionColorShader);
+        RenderSystem.setShader(GameRenderer::getPositionColorProgram);
         renderRoundedQuadInternal(matrix, colorFloat[0], colorFloat[1], colorFloat[2], colorFloat[3], fromX, fromY, toX, toY, rad, samples);
         RendererUtils.endRender();
     }
@@ -281,10 +281,8 @@ public class Renderer2d {
         bufferBuilder.vertex(m, (float) x1, (float) y1, 0f).color(colorFloat[0], colorFloat[1], colorFloat[2], colorFloat[3]).next();
 
         RendererUtils.setupRender();
-        RenderSystem.setShader(GameRenderer::getPositionColorShader);
+        RenderSystem.setShader(GameRenderer::getPositionColorProgram);
         BufferUtils.draw(bufferBuilder);
         RendererUtils.endRender();
     }
-
-
 }

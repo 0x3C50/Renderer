@@ -13,13 +13,13 @@ public class BlurMaskFramebuffer extends Framebuffer {
     private static BlurMaskFramebuffer instance;
 
     private BlurMaskFramebuffer(int width, int height) {
-        super(true);
+        super(false);
         RenderSystem.assertOnRenderThreadOrInit();
         this.resize(width, height, true);
         this.setClearColor(0f, 0f, 0f, 0f);
     }
 
-    private static BlurMaskFramebuffer obtain() {
+    public static BlurMaskFramebuffer getInstance() {
         if (instance == null) {
             instance = new BlurMaskFramebuffer(MinecraftClient.getInstance().getFramebuffer().textureWidth, MinecraftClient.getInstance().getFramebuffer().textureHeight);
         }
@@ -57,7 +57,7 @@ public class BlurMaskFramebuffer extends Framebuffer {
     public static void use(Runnable r) {
         Framebuffer mainBuffer = MinecraftClient.getInstance().getFramebuffer();
         RenderSystem.assertOnRenderThreadOrInit();
-        BlurMaskFramebuffer buffer = obtain();
+        BlurMaskFramebuffer buffer = getInstance();
         if (buffer.textureWidth != mainBuffer.textureWidth || buffer.textureHeight != mainBuffer.textureHeight) {
             buffer.resize(mainBuffer.textureWidth, mainBuffer.textureHeight, false);
         }
@@ -82,9 +82,9 @@ public class BlurMaskFramebuffer extends Framebuffer {
      */
     public static void draw(float radius) {
         Framebuffer mainBuffer = MinecraftClient.getInstance().getFramebuffer();
-        BlurMaskFramebuffer buffer = obtain();
-        ShaderManager.BLUR_MASK_SHADER.setSamplerUniform("MaskSampler", buffer);
-        ShaderManager.BLUR_MASK_SHADER.setUniformValue("Radius", radius);
+        BlurMaskFramebuffer buffer = getInstance();
+        ShaderManager.BLUR_MASK_SHADER.setUniformSampler("MaskSampler", buffer);
+        ShaderManager.BLUR_MASK_SHADER.setUniformf("Radius", radius);
         ShaderManager.BLUR_MASK_SHADER.render(MinecraftClient.getInstance().getTickDelta());
         GlStateManager._glBindFramebuffer(GL30C.GL_DRAW_FRAMEBUFFER, buffer.fbo);
         buffer.clear(true);

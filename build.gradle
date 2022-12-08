@@ -15,14 +15,14 @@ repositories {
     // Loom adds the essential maven repositories to download Minecraft and libraries from automatically.
     // See https://docs.gradle.org/current/userguide/declaring_repositories.html
     // for more information about repositories.
-    maven {
-        name = 'Ladysnake Mods'
-        url = 'https://ladysnake.jfrog.io/artifactory/mods'
-        content {
-            includeGroup 'io.github.ladysnake'
-            includeGroupByRegex 'io\\.github\\.onyxstudios.*'
-        }
-    }
+//    maven {
+//        name = 'Ladysnake Mods'
+//        url = 'https://ladysnake.jfrog.io/artifactory/mods'
+//        content {
+//            includeGroup 'io.github.ladysnake'
+//            includeGroupByRegex 'io\\.github\\.onyxstudios.*'
+//        }
+//    }
     mavenCentral()
 }
 configurations {
@@ -44,9 +44,9 @@ dependencies {
         modImpl(fabricApi.module(it, project.fabric_api_version))
     }
 
-    modImpl ("io.github.ladysnake:satin:1.9.0") {
-        transitive = false
-    }
+//    modImpl ("io.github.ladysnake:satin:1.9.0") {
+//        transitive = false
+//    }
 
     compileOnly 'org.projectlombok:lombok:1.18.24'
     annotationProcessor 'org.projectlombok:lombok:1.18.24'

@@ -12,7 +12,7 @@ public class BufferUtils {
      * @param builder The buffer
      */
     public static void draw(BufferBuilder builder) {
-        BufferRenderer.drawWithShader(builder.end());
+        BufferRenderer.drawWithGlobalProgram(builder.end());
     }
 
     /**

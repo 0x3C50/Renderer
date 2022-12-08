@@ -9,9 +9,9 @@ import net.minecraft.client.texture.NativeImageBackedTexture;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.MathHelper;
-import net.minecraft.util.math.Matrix4f;
 import net.minecraft.util.math.Vec3d;
-import net.minecraft.util.math.Vector4f;
+import org.joml.Matrix4f;
+import org.joml.Vector4f;
 import org.lwjgl.BufferUtils;
 import org.lwjgl.opengl.GL11;
 
@@ -123,8 +123,8 @@ public class RendererUtils {
     public static Vec3d translateVec3dWithMatrixStack(MatrixStack stack, Vec3d in) {
         Matrix4f matrix = stack.peek().getPositionMatrix();
         Vector4f parsedVecf = new Vector4f((float) in.x, (float) in.y, (float) in.z, 1);
-        parsedVecf.transform(matrix);
-        return new Vec3d(parsedVecf.getX(), parsedVecf.getY(), parsedVecf.getZ());
+        parsedVecf.mul(matrix);
+        return new Vec3d(parsedVecf.x(), parsedVecf.y(), parsedVecf.z());
     }
 
     /**
