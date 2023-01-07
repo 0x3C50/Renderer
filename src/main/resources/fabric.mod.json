@@ -1,0 +1,31 @@
+{
+  "schemaVersion": 1,
+  "id": "renderer",
+  "version": "${version}",
+  "name": "Renderer",
+  "description": "A rendering library",
+  "authors": [
+    "0x150"
+  ],
+  "contact": {
+    "repo": "https://github.com/0x3C50/Renderer"
+  },
+  "license": "GPL-3.0",
+  "icon": "assets/renderer/icon.png",
+  "environment": "client",
+  "entrypoints": {
+    "client": [
+      "me.x150.renderer.client.RendererClient"
+    ],
+    "main": [
+      "me.x150.renderer.Renderer"
+    ]
+  },
+  "mixins": [
+    "renderer.mixins.json"
+  ],
+  "depends": {
+    "fabricloader": ">=0.14.12",
+    "minecraft": "1.19.3"
+  }
+}
