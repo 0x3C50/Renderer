@@ -23,39 +23,60 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
+/**
+ * Renderer in the world context
+ */
 public class Renderer3d {
     static final List<FadingBlock> fades = new CopyOnWriteArrayList<>();
     private static final MinecraftClient client = MinecraftClient.getInstance();
     private static boolean renderThroughWalls = false;
 
+    /**
+     * Starts rendering through walls
+     */
     public static void renderThroughWalls() {
         renderThroughWalls = true;
     }
 
+    /**
+     * Stops rendering through walls
+     */
     public static void stopRenderThroughWalls() {
         renderThroughWalls = false;
     }
 
+    /**
+     * Returns true if the renderer is currently configured to render through walls
+     * @return True if the renderer is currently configured to render through walls
+     */
     public static boolean rendersThroughWalls() {
         return renderThroughWalls;
     }
 
-    public static void setupRender() {
+    private static void setupRender() {
         RenderSystem.enableBlend();
         RenderSystem.setShaderColor(1f, 1f, 1f, 1f);
         RenderSystem.enableDepthTest();
         RenderSystem.depthFunc(renderThroughWalls ? GL11.GL_ALWAYS : GL11.GL_LEQUAL);
     }
 
-    public static void endRender() {
+    private static void endRender() {
         RenderSystem.enableCull();
         RenderSystem.disableBlend();
     }
 
-    public static float transformColor(float f) {
+    private static float transformColor(float f) {
         return AlphaOverride.compute(f);
     }
 
+    /**
+     * Renders a fading block, that gets more transparent with time
+     * @param outlineColor The color of the outline
+     * @param fillColor The color of the filling
+     * @param start Start coordinate of the block
+     * @param dimensions Dimensions of the block
+     * @param lifeTimeMs The lifetime of the block, in millis
+     */
     public static void renderFadingBlock(Color outlineColor, Color fillColor, Vec3d start, Vec3d dimensions, long lifeTimeMs) {
         FadingBlock fb = new FadingBlock(outlineColor, fillColor, start, dimensions, System.currentTimeMillis(), lifeTimeMs);
 
@@ -63,6 +84,10 @@ public class Renderer3d {
         fades.add(fb);
     }
 
+    /**
+     * Renders all fading blocks. Automatically called by the library.
+     * @param stack The MatrixStack
+     */
     public static void renderFadingBlocks(MatrixStack stack) {
         fades.removeIf(FadingBlock::isDead);
         for (FadingBlock fade : fades) {
@@ -81,13 +106,13 @@ public class Renderer3d {
         }
     }
 
-    static Vec3d transformVec3d(Vec3d in) {
+    private static Vec3d transformVec3d(Vec3d in) {
         Camera camera = client.gameRenderer.getCamera();
         Vec3d camPos = camera.getPos();
         return in.subtract(camPos);
     }
 
-    static float[] getColor(Color c) {
+    private static float[] getColor(Color c) {
         return new float[] { c.getRed() / 255f, c.getGreen() / 255f, c.getBlue() / 255f, transformColor(c.getAlpha() / 255f) };
     }
 
@@ -105,24 +130,13 @@ public class Renderer3d {
         endRender();
     }
 
-    public static void renderQuad(MatrixStack stack, Color color, Vec3d tl, Vec3d tr, Vec3d bl, Vec3d br) {
-        Matrix4f m = stack.peek().getPositionMatrix();
-        float red = color.getRed() / 255f;
-        float green = color.getGreen() / 255f;
-        float blue = color.getBlue() / 255f;
-        float alpha = transformColor(color.getAlpha() / 255f);
-        Vec3d ftl = transformVec3d(tl);
-        Vec3d ftr = transformVec3d(tr);
-        Vec3d fbl = transformVec3d(bl);
-        Vec3d fbr = transformVec3d(br);
-        useBuffer(VertexFormat.DrawMode.QUADS, VertexFormats.POSITION_COLOR, GameRenderer::getPositionColorProgram, bufferBuilder -> {
-            bufferBuilder.vertex(m, (float) ftl.x, (float) ftl.y, (float) ftl.z).color(red, green, blue, alpha).next();
-            bufferBuilder.vertex(m, (float) ftr.x, (float) ftr.y, (float) ftr.z).color(red, green, blue, alpha).next();
-            bufferBuilder.vertex(m, (float) fbr.x, (float) fbr.y, (float) fbr.z).color(red, green, blue, alpha).next();
-            bufferBuilder.vertex(m, (float) fbl.x, (float) fbl.y, (float) fbl.z).color(red, green, blue, alpha).next();
-        });
-    }
-
+    /**
+     * Renders a block outline
+     * @param stack The MatrixStack
+     * @param color The color of the outline
+     * @param start Start position of the block
+     * @param dimensions Dimensions of the block
+     */
     public static void renderOutline(MatrixStack stack, Color color, Vec3d start, Vec3d dimensions) {
         Matrix4f m = stack.peek().getPositionMatrix();
         genericAABBRender(VertexFormat.DrawMode.DEBUG_LINES,
@@ -165,6 +179,14 @@ public class Renderer3d {
             });
     }
 
+    /**
+     * Renders both a filled and outlined block
+     * @param stack The MatrixStack
+     * @param colorFill The color of the filling
+     * @param colorOutline The color of the outline
+     * @param start The start coordinate
+     * @param dimensions The dimensions
+     */
     public static void renderEdged(MatrixStack stack, Color colorFill, Color colorOutline, Vec3d start, Vec3d dimensions) {
         Matrix4f matrix = stack.peek().getPositionMatrix();
         float[] fill = getColor(colorFill);
@@ -269,6 +291,13 @@ public class Renderer3d {
         //            stack.pop();
     }
 
+    /**
+     * Renders a filled block
+     * @param stack The MatrixStack
+     * @param color The color of the filling
+     * @param start Start coordinates
+     * @param dimensions Dimensions
+     */
     public static void renderFilled(MatrixStack stack, Color color, Vec3d start, Vec3d dimensions) {
         Matrix4f s = stack.peek().getPositionMatrix();
         genericAABBRender(VertexFormat.DrawMode.QUADS,
@@ -311,6 +340,13 @@ public class Renderer3d {
             });
     }
 
+    /**
+     * Renders an AAABBB line
+     * @param matrices The MatrixStack
+     * @param color The color of the line
+     * @param start The start coordinate
+     * @param end The end coordinate
+     */
     public static void renderLine(MatrixStack matrices, Color color, Vec3d start, Vec3d end) {
         Matrix4f s = matrices.peek().getPositionMatrix();
         genericAABBRender(VertexFormat.DrawMode.DEBUG_LINES,

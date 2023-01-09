@@ -62,13 +62,7 @@ public class RendererClient implements ClientModInitializer {
         //        Renderer3d.renderLine(wor.getMatrixStack(), Color.RED, near, far);
         //        Renderer3d.renderEdged(wor.getMatrixStack(), Color.BLUE, Color.RED, pos.subtract(.5, .5, .5), new Vec3d(1,1,1));
         Renderer3d.renderFadingBlock(Color.BLUE, Color.RED, pos.subtract(.5, .5, .5), new Vec3d(1, 1, 1), 500);
-        Renderer3d.renderFadingBlocks(wor.getMatrixStack());
         Renderer3d.stopRenderThroughWalls();
         Renderer3d.renderFilled(wor.getMatrixStack(), Color.RED, Vec3d.ZERO, new Vec3d(1, 1, 1));
-        //        try {
-        //            Thread.sleep(50);
-        //        } catch (Throwable t) {
-        //            t.printStackTrace();
-        //        }
     }
 }

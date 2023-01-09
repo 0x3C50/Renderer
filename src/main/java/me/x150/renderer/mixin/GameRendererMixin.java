@@ -3,6 +3,7 @@ package me.x150.renderer.mixin;
 import com.mojang.blaze3d.systems.RenderSystem;
 import me.x150.renderer.event.Events;
 import me.x150.renderer.event.RenderEvent;
+import me.x150.renderer.render.Renderer3d;
 import me.x150.renderer.util.RenderProfiler;
 import me.x150.renderer.util.RendererUtils;
 import net.minecraft.client.MinecraftClient;
@@ -27,22 +28,16 @@ public class GameRendererMixin {
             MinecraftClient.getInstance().options.getBobView().setValue(true);
             vb = false;
         }
-        //        GL11.glGetIntegerv(GL11.GL_VIEWPORT, RendererUtils.lastViewport);
         RendererUtils.lastProjMat.set(RenderSystem.getProjectionMatrix());
         RendererUtils.lastModMat.set(RenderSystem.getModelViewMatrix());
         RendererUtils.lastWorldSpaceMatrix.set(matrix.peek().getPositionMatrix());
         Events.manager.send(new RenderEvent.World(matrix));
+        Renderer3d.renderFadingBlocks(matrix);
         RenderProfiler.pop();
-        //        Events.fireEvent(EventType.WORLD_RENDER, Shift.POST, new RenderEvent(matrix));
     }
 
     @Inject(at = @At("HEAD"), method = "renderWorld")
     private void renderer_preWorldRender(float tickDelta, long limitTime, MatrixStack matrix, CallbackInfo ci) {
-        //        RenderEvent.World world = new RenderEvent.World(matrix, Event.Shift.POST);
-        //        Events.manager.send(world);
-        //        if (world.isCancelled()) {
-        //            ci.cancel();
-        //        }
         dis = true;
     }
 

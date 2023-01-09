@@ -19,8 +19,6 @@ import org.joml.Matrix4f;
 import org.lwjgl.opengl.GL11;
 
 import java.awt.Font;
-import java.awt.font.FontRenderContext;
-import java.awt.geom.AffineTransform;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -53,7 +51,6 @@ public class FontRenderer {
     private int scaleMul = 0;
     private Font[] font;
     private int previousGameScale = -1;
-    private float maxHeight = 0f;
 
     /**
      * Initializes a new FontRenderer with the specified fonts
@@ -87,11 +84,8 @@ public class FontRenderer {
         this.previousGameScale = MinecraftClient.getInstance().options.getGuiScale().getValue();
         this.scaleMul = this.previousGameScale;
         this.font = new Font[fonts.length];
-        FontRenderContext frc = new FontRenderContext(new AffineTransform(), true, false);
-        this.maxHeight = 0f;
         for (int i = 0; i < fonts.length; i++) {
             this.font[i] = fonts[i].deriveFont(sizePx * this.scaleMul);
-            this.maxHeight = Math.max(this.maxHeight, (float) this.font[i].getStringBounds("A", frc).getHeight() / (float) this.scaleMul);
         }
     }
 
@@ -176,6 +170,17 @@ public class FontRenderer {
         stack.pop();
     }
 
+    /**
+     * Draws a string centered on the X coordinate
+     * @param stack The MatrixStack
+     * @param s The string to draw
+     * @param x X center coordinate of the text to draw
+     * @param y Y coordinate of the text to draw
+     * @param r Red color component
+     * @param g Green color component
+     * @param b Blue color component
+     * @param a Alpha color component
+     */
     public void drawCenteredString(MatrixStack stack, String s, float x, float y, float r, float g, float b, float a) {
         drawString(stack, s, x - getStringWidth(s) / 2f, y, r, g, b, a);
     }
@@ -204,6 +209,11 @@ public class FontRenderer {
         return w;
     }
 
+    /**
+     * Strips all characters prefixed with a § from the given string
+     * @param text The string to strip
+     * @return The stripped string
+     */
     public String stripControlCodes(String text) {
         char[] chars = text.toCharArray();
         StringBuilder f = new StringBuilder();
@@ -218,6 +228,11 @@ public class FontRenderer {
         return f.toString();
     }
 
+    /**
+     * Calculates the width of the string, if it were drawn on the screen
+     * @param text The text to simulate
+     * @return The width of the string if it'd be drawn on the screen
+     */
     public float getStringWidth(String text) {
         char[] c = stripControlCodes(text).toCharArray();
         float total = 0;
@@ -228,6 +243,11 @@ public class FontRenderer {
         return total;
     }
 
+    /**
+     * Calculates the height of the string, if it were drawn on the screen. This is necessary, because the fonts in this FontRenderer might have a different height for each char.
+     * @param text The text to simulate
+     * @return The height of the string if it'd be drawn on the screen
+     */
     public float getStringHeight(String text) {
         char[] c = stripControlCodes(text).toCharArray();
         float total = 0;
