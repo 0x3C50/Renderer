@@ -2,7 +2,6 @@ package me.x150.renderer.render;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 import me.x150.renderer.util.AlphaOverride;
-import me.x150.renderer.util.RendererUtils;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gl.ShaderProgram;
 import net.minecraft.client.render.BufferBuilder;
@@ -25,8 +24,8 @@ import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 public class Renderer3d {
-    private static final MinecraftClient client = MinecraftClient.getInstance();
     static final List<FadingBlock> fades = new CopyOnWriteArrayList<>();
+    private static final MinecraftClient client = MinecraftClient.getInstance();
     private static boolean renderThroughWalls = false;
 
     public static void renderThroughWalls() {

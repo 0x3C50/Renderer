@@ -16,16 +16,21 @@ import org.lwjgl.BufferUtils;
 import org.lwjgl.opengl.GL11;
 
 import javax.imageio.ImageIO;
+import java.awt.Color;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.nio.ByteBuffer;
-
-import java.awt.Color;
 
 /**
  * <p>Utils for rendering in minecraft</p>
  */
 public class RendererUtils {
+    private static final MatrixStack empty = new MatrixStack();
+    private static final MinecraftClient client = MinecraftClient.getInstance();
+    public static Matrix4f lastProjMat = new Matrix4f();
+    public static Matrix4f lastModMat = new Matrix4f();
+    public static Matrix4f lastWorldSpaceMatrix = new Matrix4f();
+
     /**
      * <p>Sets up rendering and resets everything that should be reset</p>
      */
@@ -140,11 +145,10 @@ public class RendererUtils {
             e.printStackTrace();
         }
     }
-    private static final MatrixStack empty = new MatrixStack();
-    private static final MinecraftClient client = MinecraftClient.getInstance();
 
     /**
      * Gets an empty matrix stack without having to initialize the object
+     *
      * @return An empty matrix stack
      */
     public static MatrixStack getEmptyMatrixStack() {
@@ -154,6 +158,7 @@ public class RendererUtils {
 
     /**
      * Gets the position of the crosshair of the player, transformed into world space
+     *
      * @return The position of the crosshair of the player, transformed into world space
      */
     public static Vec3d getCrosshairVector() {
@@ -170,10 +175,6 @@ public class RendererUtils {
         return new Vec3d(f2 * f3, f4, f1 * f3).add(camera.getPos());
     }
 
-    public static Matrix4f lastProjMat = new Matrix4f();
-    public static Matrix4f lastModMat = new Matrix4f();
-    public static Matrix4f lastWorldSpaceMatrix = new Matrix4f();
-
     /**
      * Transforms an input position into a (x, y, d) coordinate, transformed to screen space. d specifies the far plane of the position, and can be used to check if the position is on screen. Use {@link #screenSpaceCoordinateIsVisible(Vec3d)}.
      * Example:
@@ -187,7 +188,9 @@ public class RendererUtils {
      * }
      * }
      * </pre>
+     *
      * @param pos The world space coordinates to translate
+     *
      * @return The (x, y, d) coordinates
      */
     public static Vec3d worldSpaceToScreenSpace(Vec3d pos) {
@@ -209,14 +212,14 @@ public class RendererUtils {
 
         matrixProj.mul(matrixModel).project(transformedCoordinates.x(), transformedCoordinates.y(), transformedCoordinates.z(), viewport, target);
 
-        return new Vec3d(target.x / client.getWindow().getScaleFactor(),
-            (displayHeight - target.y) / client.getWindow().getScaleFactor(),
-            target.z);
+        return new Vec3d(target.x / client.getWindow().getScaleFactor(), (displayHeight - target.y) / client.getWindow().getScaleFactor(), target.z);
     }
 
     /**
      * Checks if a screen space coordinate (x, y, d) is on screen
+     *
      * @param pos The (x, y, d) coordinates to check
+     *
      * @return True if the coordinates are visible
      */
     public static boolean screenSpaceCoordinateIsVisible(Vec3d pos) {
@@ -232,14 +235,18 @@ public class RendererUtils {
      * // Ray-cast from near to far to get block or entity at (100, 100) screen space
      * }
      * </pre>
+     *
      * @param x x
      * @param y y
      * @param d d
+     *
      * @return The world space coordinate
      */
     public static Vec3d screenSpaceToWorldSpace(double x, double y, double d) {
         Camera camera = client.getEntityRenderDispatcher().camera;
-        if (camera == null) return null;
+        if (camera == null) {
+            return null;
+        }
         int displayHeight = client.getWindow().getScaledHeight();
         int displayWidth = client.getWindow().getScaledWidth();
         int[] viewport = new int[4];
@@ -249,10 +256,10 @@ public class RendererUtils {
         Matrix4f matrixProj = new Matrix4f(RenderSystem.getProjectionMatrix());
         Matrix4f matrixModel = new Matrix4f(RenderSystem.getModelViewMatrix());
 
-        matrixProj.mul(matrixModel).mul(lastWorldSpaceMatrix).unproject((float) x / displayWidth * viewport[2], (float) (displayHeight - y) / displayHeight * viewport[3], (float) d, viewport, target);
+        matrixProj.mul(matrixModel)
+            .mul(lastWorldSpaceMatrix)
+            .unproject((float) x / displayWidth * viewport[2], (float) (displayHeight - y) / displayHeight * viewport[3], (float) d, viewport, target);
 
-        return new Vec3d(target.x,
-            target.y,
-            target.z).add(camera.getPos());
+        return new Vec3d(target.x, target.y, target.z).add(camera.getPos());
     }
 }

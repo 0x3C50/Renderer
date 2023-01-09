@@ -47,23 +47,32 @@ public class FontRenderer {
         put('F', 0xFFFFFF);
     }};
     private static final int BLOCK_SIZE = 32;
-    private int scaleMul = 0;
-    private Font[] font;
     private final float originalSize;
-    private int previousGameScale = -1;
     private final List<GlyphMap> maps = new ArrayList<>();
     private final Char2ObjectArrayMap<Glyph> allGlyphs = new Char2ObjectArrayMap<>();
+    private int scaleMul = 0;
+    private Font[] font;
+    private int previousGameScale = -1;
     private float maxHeight = 0f;
 
     /**
      * Initializes a new FontRenderer with the specified fonts
-     * @param fonts The fonts to use. The font renderer will go over each font in this array, search for the glyph, and render it if found. If no font has the specified glyph, it will draw the missing font symbol.
+     *
+     * @param fonts  The fonts to use. The font renderer will go over each font in this array, search for the glyph, and render it if found. If no font has the specified glyph, it will draw the missing font symbol.
      * @param sizePx The size of the font in minecraft pixel units. One pixel unit = guiScale pixels
      */
     public FontRenderer(Font[] fonts, float sizePx) {
         Preconditions.checkArgument(fonts.length > 0, "fonts.length == 0");
         this.originalSize = sizePx;
         init(fonts, sizePx);
+    }
+
+    private static Identifier randomIdent() {
+        return new Identifier("renderer", "font/gp_" + RandomStringUtils.randomAlphabetic(32).toLowerCase());
+    }
+
+    private static int floorNearestMulN(int x, int n) {
+        return n * ((int) Math.floor((double) x / (double) n));
     }
 
     private void sizeCheck() {
@@ -76,7 +85,7 @@ public class FontRenderer {
 
     private void init(Font[] fonts, float sizePx) {
         this.previousGameScale = MinecraftClient.getInstance().options.getGuiScale().getValue();
-        this.scaleMul = this.previousGameScale; // always double res
+        this.scaleMul = this.previousGameScale;
         this.font = new Font[fonts.length];
         FontRenderContext frc = new FontRenderContext(new AffineTransform(), true, false);
         this.maxHeight = 0f;
@@ -84,10 +93,6 @@ public class FontRenderer {
             this.font[i] = fonts[i].deriveFont(sizePx * this.scaleMul);
             this.maxHeight = Math.max(this.maxHeight, (float) this.font[i].getStringBounds("A", frc).getHeight() / (float) this.scaleMul);
         }
-    }
-
-    private static Identifier randomIdent() {
-        return new Identifier("renderer", "font/gp_"+ RandomStringUtils.randomAlphabetic(32).toLowerCase());
     }
 
     private GlyphMap generateMap(char from, char to) {
@@ -111,24 +116,24 @@ public class FontRenderer {
         return allGlyphs.computeIfAbsent(glyph, this::locateGlyph0);
     }
 
-
     /**
      * Draws a string
+     *
      * @param stack The MatrixStack
-     * @param s The string to draw
-     * @param x X coordinate to draw at
-     * @param y Y coordinate to draw at
-     * @param r Red color component of the text to draw
-     * @param g Green color component of the text to draw
-     * @param b Blue color component of the text to draw
-     * @param a Alpha color component of the text to draw
+     * @param s     The string to draw
+     * @param x     X coordinate to draw at
+     * @param y     Y coordinate to draw at
+     * @param r     Red color component of the text to draw
+     * @param g     Green color component of the text to draw
+     * @param b     Blue color component of the text to draw
+     * @param a     Alpha color component of the text to draw
      */
     public void drawString(MatrixStack stack, String s, float x, float y, float r, float g, float b, float a) {
         sizeCheck();
         float r2 = r, g2 = g, b2 = b;
         stack.push();
         stack.translate(x, y, 0);
-        stack.scale(1f/this.scaleMul, 1f/this.scaleMul, 1f);
+        stack.scale(1f / this.scaleMul, 1f / this.scaleMul, 1f);
 
         RenderSystem.enableBlend();
         RenderSystem.defaultBlendFunc();
@@ -162,7 +167,10 @@ public class FontRenderer {
                 inSel = true;
                 continue;
             }
+
+
             float v = drawCharacter(bb, mat, r2, g2, b2, a, c);
+
             stack.translate(v, 0, 0);
         }
         stack.pop();
@@ -181,10 +189,10 @@ public class FontRenderer {
 
         buf.begin(VertexFormat.DrawMode.QUADS, VertexFormats.POSITION_TEXTURE_COLOR);
 
-        float u1 = (float) glyph.u()/owner.width;
-        float v1 = (float) glyph.v()/owner.height;
-        float u2 = (float) (glyph.u()+glyph.width())/owner.width;
-        float v2 = (float) (glyph.v()+glyph.height())/owner.height;
+        float u1 = (float) glyph.u() / owner.width;
+        float v1 = (float) glyph.v() / owner.height;
+        float u2 = (float) (glyph.u() + glyph.width()) / owner.width;
+        float v2 = (float) (glyph.v() + glyph.height()) / owner.height;
 
         buf.vertex(mat, 0, h, 0).texture(u1, v2).color(r, g, b, a).next();
         buf.vertex(mat, w, h, 0).texture(u2, v2).color(r, g, b, a).next();
@@ -239,9 +247,5 @@ public class FontRenderer {
         }
         maps.clear();
         allGlyphs.clear();
-    }
-
-    private static int floorNearestMulN(int x, int n) {
-        return n*((int) Math.floor((double) x/(double) n));
     }
 }

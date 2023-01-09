@@ -1,15 +1,13 @@
 package me.x150.renderer.mixin;
 
 import com.mojang.blaze3d.systems.RenderSystem;
-import me.x150.renderer.Renderer;
-import me.x150.renderer.event.Event;
 import me.x150.renderer.event.Events;
 import me.x150.renderer.event.RenderEvent;
+import me.x150.renderer.util.RenderProfiler;
 import me.x150.renderer.util.RendererUtils;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.render.GameRenderer;
 import net.minecraft.client.util.math.MatrixStack;
-import org.lwjgl.opengl.GL11;
 import org.objectweb.asm.Opcodes;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
@@ -24,25 +22,27 @@ public class GameRendererMixin {
 
     @Inject(at = @At(value = "FIELD", target = "Lnet/minecraft/client/render/GameRenderer;renderHand:Z", opcode = Opcodes.GETFIELD, ordinal = 0), method = "renderWorld")
     void renderer_postWorldRender(float tickDelta, long limitTime, MatrixStack matrix, CallbackInfo ci) {
+        RenderProfiler.begin("World");
         if (vb) {
             MinecraftClient.getInstance().options.getBobView().setValue(true);
             vb = false;
         }
-//        GL11.glGetIntegerv(GL11.GL_VIEWPORT, RendererUtils.lastViewport);
+        //        GL11.glGetIntegerv(GL11.GL_VIEWPORT, RendererUtils.lastViewport);
         RendererUtils.lastProjMat.set(RenderSystem.getProjectionMatrix());
         RendererUtils.lastModMat.set(RenderSystem.getModelViewMatrix());
         RendererUtils.lastWorldSpaceMatrix.set(matrix.peek().getPositionMatrix());
-        Events.manager.send(new RenderEvent.World(matrix, Event.Shift.POST));
-//        Events.fireEvent(EventType.WORLD_RENDER, Shift.POST, new RenderEvent(matrix));
+        Events.manager.send(new RenderEvent.World(matrix));
+        RenderProfiler.pop();
+        //        Events.fireEvent(EventType.WORLD_RENDER, Shift.POST, new RenderEvent(matrix));
     }
 
-    @Inject(at = @At("HEAD"), method = "renderWorld", cancellable = true)
+    @Inject(at = @At("HEAD"), method = "renderWorld")
     private void renderer_preWorldRender(float tickDelta, long limitTime, MatrixStack matrix, CallbackInfo ci) {
-        RenderEvent.World world = new RenderEvent.World(matrix, Event.Shift.POST);
-        Events.manager.send(world);
-        if (world.isCancelled()) {
-            ci.cancel();
-        }
+        //        RenderEvent.World world = new RenderEvent.World(matrix, Event.Shift.POST);
+        //        Events.manager.send(world);
+        //        if (world.isCancelled()) {
+        //            ci.cancel();
+        //        }
         dis = true;
     }
 

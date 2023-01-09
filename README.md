@@ -10,7 +10,7 @@ You can install this library using [Jitpack](https://jitpack.io/)
 To install the library, just add the jitpack repository to your repositories block as described on the website, and this to your dependencies block in build.gradle:
 
 ```groovy
-include modImplementation("com.github.0x3C50:Renderer:master-SNAPSHOT")
+include modImplementation("com.github.0x3C50:Renderer:rewrite-SNAPSHOT")
 ```
 This will use the latest commit as build target, but will cache that build target every time. Use the latest short commit hash found on [Jitpack](https://jitpack.io/#0x3C50/Renderer) (example: `d2cc995ff4`) as the version, to get that release instead.
 

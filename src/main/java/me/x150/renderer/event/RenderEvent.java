@@ -1,15 +1,13 @@
 package me.x150.renderer.event;
 
-import lombok.AllArgsConstructor;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 import net.minecraft.client.util.math.MatrixStack;
 
 /**
  * Something has been rendered
  */
 @Getter
-public class RenderEvent extends Event {
+public class RenderEvent {
     /**
      * The MatrixStack used to render the element
      */
@@ -17,11 +15,10 @@ public class RenderEvent extends Event {
 
     /**
      * Constructs a new RenderEvent
+     *
      * @param stack The MatrixStack used to render the element
-     * @param shift The shift
      */
-    public RenderEvent(MatrixStack stack, Shift shift) {
-        super(shift);
+    public RenderEvent(MatrixStack stack) {
         this.matrixStack = stack;
     }
 
@@ -31,22 +28,23 @@ public class RenderEvent extends Event {
     public static class Hud extends RenderEvent {
         /**
          * Constructs a new HUD RenderEvent
-         * @param matrixStack The MatrixStack used to render the element
-         * @param shift The shift
+         *
+         * @param stack The MatrixStack used to render the element
          */
-        public Hud(MatrixStack matrixStack, Shift shift) {
-            super(matrixStack, shift);
+        public Hud(MatrixStack stack) {
+            super(stack);
         }
     }
 
     public static class World extends RenderEvent {
+
         /**
-         * Constructs a new world RenderEvent
-         * @param matrixStack The MatrixStack used to render the element
-         * @param shift The shift
+         * Constructs a new World RenderEvent
+         *
+         * @param stack The MatrixStack used to render the element
          */
-        public World(MatrixStack matrixStack, Shift shift) {
-            super(matrixStack, shift);
+        public World(MatrixStack stack) {
+            super(stack);
         }
     }
 
