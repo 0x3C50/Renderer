@@ -4,12 +4,8 @@ import it.unimi.dsi.fastutil.chars.Char2ObjectArrayMap;
 import lombok.RequiredArgsConstructor;
 import me.x150.renderer.util.RendererUtils;
 import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.texture.NativeImage;
-import net.minecraft.client.texture.NativeImageBackedTexture;
 import net.minecraft.util.Identifier;
-import org.lwjgl.BufferUtils;
 
-import javax.imageio.ImageIO;
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.FontMetrics;
@@ -19,9 +15,6 @@ import java.awt.font.FontRenderContext;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -36,7 +29,9 @@ class GlyphMap {
     boolean generated = false;
 
     public Glyph getGlyph(char c) {
-        if (!generated) generate();
+        if (!generated) {
+            generate();
+        }
         return glyphs.get(c);
     }
 
@@ -54,15 +49,19 @@ class GlyphMap {
 
     private Font getFontForGlyph(char c) {
         for (Font font1 : this.font) {
-            if (font1.canDisplay(c)) return font1;
+            if (font1.canDisplay(c)) {
+                return font1;
+            }
         }
         return this.font[0]; // no font can display it, so it doesn't matter which one we pick; it'll always be missing
     }
 
     public void generate() {
-        if (generated) return;
-        int range = toExcl-fromIncl-1;
-        int charsVert = (int) Math.ceil(Math.sqrt(range))*2;  // double as many chars wide as high
+        if (generated) {
+            return;
+        }
+        int range = toExcl - fromIncl - 1;
+        int charsVert = (int) Math.ceil(Math.sqrt(range)) * 2;  // double as many chars wide as high
         glyphs.clear();
         int generatedChars = 0;
         int charNX = 0;
@@ -72,7 +71,7 @@ class GlyphMap {
         AffineTransform af = new AffineTransform();
         FontRenderContext frc = new FontRenderContext(af, true, false);
         while (generatedChars <= range) {
-            char currentChar = (char) (fromIncl+generatedChars);
+            char currentChar = (char) (fromIncl + generatedChars);
             Font font = getFontForGlyph(currentChar);
             Rectangle2D stringBounds = font.getStringBounds(String.valueOf(currentChar), frc);
 
@@ -94,7 +93,7 @@ class GlyphMap {
         width = bi.getWidth();
         height = bi.getHeight();
         Graphics2D g2d = bi.createGraphics();
-//        g2d.setFont(this.font);
+        //        g2d.setFont(this.font);
         g2d.setColor(new Color(255, 255, 255, 0));
         g2d.fillRect(0, 0, width, height);
         g2d.setColor(Color.WHITE);
@@ -106,7 +105,7 @@ class GlyphMap {
         for (Glyph glyph : glyphs1) {
             g2d.setFont(getFontForGlyph(glyph.repr()));
             FontMetrics fontMetrics = g2d.getFontMetrics();
-            g2d.drawString(String.valueOf(glyph.repr()), glyph.u(), glyph.v()+fontMetrics.getAscent());
+            g2d.drawString(String.valueOf(glyph.repr()), glyph.u(), glyph.v() + fontMetrics.getAscent());
             glyphs.put(glyph.repr(), glyph);
         }
         RendererUtils.registerBufferedImageTexture(bindToTexture, bi);

@@ -57,7 +57,8 @@ public class ClipStack {
      * Adds a window using {@link #addWindow(MatrixStack, Rectangle)}, calls renderAction, then removes the previously added window automatically.
      * <p></p>
      * You can replace this by separate {@link #addWindow(MatrixStack, Rectangle)} and {@link #popWindow()} calls, although using this method will do that for you.
-     * @param stack The context MatrixStack
+     *
+     * @param stack        The context MatrixStack
      * @param clippingRect The clipping rectangle that should be applied to the renderAction
      * @param renderAction The actual render method, that renders the content
      */
