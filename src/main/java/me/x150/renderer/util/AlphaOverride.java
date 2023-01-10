@@ -10,6 +10,7 @@ public class AlphaOverride {
 
     /**
      * Pushes an alpha multiplier (0-1) to the stack
+     *
      * @param val The alpha multiplier
      */
     public static void pushAlphaMul(float val) {
@@ -25,7 +26,9 @@ public class AlphaOverride {
 
     /**
      * Computes the new alpha from the initialAlpha, based on the current state of the stack
+     *
      * @param initialAlpha The initial alpha (0-1)
+     *
      * @return The new alpha
      */
     public static float compute(float initialAlpha) {

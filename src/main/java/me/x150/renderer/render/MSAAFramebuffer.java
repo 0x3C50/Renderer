@@ -68,9 +68,9 @@ public class MSAAFramebuffer extends Framebuffer {
 
     /**
      * <p>Uses the framebuffer with the rendering calls in the action specified</p>
-     * <p>Make sure to batch your rendering code you want to antialias as far as possible, switching from the default framebuffer to this one takes time.</p>
+     * <p>Switching framebuffers is not particularly efficient. Use with caution</p>
      *
-     * @param samples    The desired amount of samples to be used
+     * @param samples    The desired amount of samples to be used. While you can go above MAX_SAMPLES, anything above 16 is generally overkill.
      * @param drawAction The runnable that gets executed within the framebuffer. Render your things there.
      */
     public static void use(int samples, Runnable drawAction) {

@@ -1,22 +1,18 @@
 package me.x150.renderer.client;
 
 import me.x150.MessageSubscription;
-import me.x150.renderer.event.Events;
 import me.x150.renderer.event.RenderEvent;
 import me.x150.renderer.font.FontRenderer;
+import me.x150.renderer.render.MSAAFramebuffer;
 import me.x150.renderer.render.Renderer2d;
-import me.x150.renderer.render.Renderer3d;
-import me.x150.renderer.util.RenderProfiler;
 import me.x150.renderer.util.RendererUtils;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.Mouse;
-import net.minecraft.util.hit.BlockHitResult;
+import net.minecraft.entity.Entity;
+import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec3d;
-import net.minecraft.world.RaycastContext;
-import org.apache.commons.lang3.RandomStringUtils;
 
 import java.awt.Color;
 import java.awt.Font;
@@ -27,7 +23,7 @@ public class RendererClient implements ClientModInitializer {
 
     @Override
     public void onInitializeClient() {
-//        Events.manager.registerSubscribers(this); // Testing
+        //        Events.manager.registerSubscribers(this); // Testing
     }
 
     @MessageSubscription
@@ -35,34 +31,37 @@ public class RendererClient implements ClientModInitializer {
         if (fr == null) {
             fr = new FontRenderer(new Font[] { new Font("JetBrains Mono", Font.PLAIN, 40), new Font("Comfortaa", Font.PLAIN, 40), }, 9);
         }
-        String st = "Hello §aworld§r :) abcdefg 12345 !\"§$%" + RandomStringUtils.randomNumeric(10);
-        float stringWidth = fr.getStringWidth(st);
-        float fontHeight = fr.getStringHeight(st);
-        Renderer2d.renderRoundedQuad(hud.getMatrixStack(), Color.BLACK, 5, 5, 15 + stringWidth, 15 + fontHeight, 5, 10);
-        RenderProfiler.begin("font");
-        fr.drawString(hud.getMatrixStack(), st, 10, 10, 1, 0, 0, 1);
-        RenderProfiler.pop();
+        MinecraftClient client = MinecraftClient.getInstance();
+        MSAAFramebuffer.use(16, () -> {
+            for (Entity entity : client.world.getEntities()) {
+                if (entity == client.player) {
+                    continue;
+                }
+                float d = client.getTickDelta();
+                Vec3d p = new Vec3d(MathHelper.lerp(d, entity.prevX, entity.getX()),
+                    MathHelper.lerp(d, entity.prevY, entity.getY()),
+                    MathHelper.lerp(d, entity.prevZ, entity.getZ()));
+                Vec3d vec3d = RendererUtils.worldSpaceToScreenSpace(p.add(0, entity.getHeight() + 0.3, 0));
+                if (RendererUtils.screenSpaceCoordinateIsVisible(vec3d)) {
+                    String simpleName = entity.getClass().getSimpleName();
+                    float width = fr.getStringWidth(simpleName);
+                    float height = fr.getStringHeight(simpleName);
+                    float pad = 5;
+                    Renderer2d.renderRoundedQuad(RendererUtils.getEmptyMatrixStack(),
+                        new Color(20, 20, 20, 100),
+                        vec3d.x - width / 2d - pad,
+                        vec3d.y - height - pad * 2,
+                        vec3d.x + width / 2d + pad,
+                        vec3d.y,
+                        5,
+                        10);
+                    fr.drawCenteredString(RendererUtils.getEmptyMatrixStack(), simpleName, (float) vec3d.x, (float) vec3d.y - pad - height, 1f, 1f, 1f, 1f);
+                }
+            }
+        });
     }
 
-    @MessageSubscription
-    void onWorld(RenderEvent.World wor) {
-        Renderer3d.renderThroughWalls();
-        //        Window window = MinecraftClient.getInstance().getWindow();
-        Mouse mouse = MinecraftClient.getInstance().mouse;
-        Integer value = MinecraftClient.getInstance().options.getGuiScale().getValue();
-        Vec3d near = RendererUtils.screenSpaceToWorldSpace(mouse.getX() / value, mouse.getY() / value, 0);
-        Vec3d far = RendererUtils.screenSpaceToWorldSpace(mouse.getX() / value, mouse.getY() / value, 1);
-        if (near == null || far == null) {
-            return;
-        }
-        assert MinecraftClient.getInstance().player != null;
-        RaycastContext rc = new RaycastContext(near, far, RaycastContext.ShapeType.VISUAL, RaycastContext.FluidHandling.ANY, MinecraftClient.getInstance().player);
-        BlockHitResult raycast = MinecraftClient.getInstance().world.raycast(rc);
-        Vec3d pos = raycast.getPos();
-        //        Renderer3d.renderLine(wor.getMatrixStack(), Color.RED, near, far);
-        //        Renderer3d.renderEdged(wor.getMatrixStack(), Color.BLUE, Color.RED, pos.subtract(.5, .5, .5), new Vec3d(1,1,1));
-        Renderer3d.renderFadingBlock(Color.BLUE, Color.RED, pos.subtract(.5, .5, .5), new Vec3d(1, 1, 1), 500);
-        Renderer3d.stopRenderThroughWalls();
-        Renderer3d.renderFilled(wor.getMatrixStack(), Color.RED, Vec3d.ZERO, new Vec3d(1, 1, 1));
-    }
+    //    @MessageSubscription
+    //    void onWorld(RenderEvent.World wor) {
+    //    }
 }

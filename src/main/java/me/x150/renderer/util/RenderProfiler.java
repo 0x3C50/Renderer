@@ -13,6 +13,7 @@ public class RenderProfiler {
 
     /**
      * Adds a new element to the profiler
+     *
      * @param sec The name of the element
      */
     public static void begin(String sec) {
@@ -30,6 +31,7 @@ public class RenderProfiler {
 
     /**
      * Gets all elements recorded
+     *
      * @return All elements recorded
      */
     public static Entry[] getAllTickTimes() {
@@ -38,6 +40,7 @@ public class RenderProfiler {
         for (int i = 0; i < ks.length; i++) {
             e[i] = latestTickTimes.get(ks[i]);
         }
+        latestTickTimes.clear();
         return e;
     }
 

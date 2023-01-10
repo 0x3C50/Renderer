@@ -47,6 +47,7 @@ public class Renderer3d {
 
     /**
      * Returns true if the renderer is currently configured to render through walls
+     *
      * @return True if the renderer is currently configured to render through walls
      */
     public static boolean rendersThroughWalls() {
@@ -71,11 +72,12 @@ public class Renderer3d {
 
     /**
      * Renders a fading block, that gets more transparent with time
+     *
      * @param outlineColor The color of the outline
-     * @param fillColor The color of the filling
-     * @param start Start coordinate of the block
-     * @param dimensions Dimensions of the block
-     * @param lifeTimeMs The lifetime of the block, in millis
+     * @param fillColor    The color of the filling
+     * @param start        Start coordinate of the block
+     * @param dimensions   Dimensions of the block
+     * @param lifeTimeMs   The lifetime of the block, in millis
      */
     public static void renderFadingBlock(Color outlineColor, Color fillColor, Vec3d start, Vec3d dimensions, long lifeTimeMs) {
         FadingBlock fb = new FadingBlock(outlineColor, fillColor, start, dimensions, System.currentTimeMillis(), lifeTimeMs);
@@ -86,6 +88,7 @@ public class Renderer3d {
 
     /**
      * Renders all fading blocks. Automatically called by the library.
+     *
      * @param stack The MatrixStack
      */
     public static void renderFadingBlocks(MatrixStack stack) {
@@ -132,9 +135,10 @@ public class Renderer3d {
 
     /**
      * Renders a block outline
-     * @param stack The MatrixStack
-     * @param color The color of the outline
-     * @param start Start position of the block
+     *
+     * @param stack      The MatrixStack
+     * @param color      The color of the outline
+     * @param start      Start position of the block
      * @param dimensions Dimensions of the block
      */
     public static void renderOutline(MatrixStack stack, Color color, Vec3d start, Vec3d dimensions) {
@@ -181,11 +185,12 @@ public class Renderer3d {
 
     /**
      * Renders both a filled and outlined block
-     * @param stack The MatrixStack
-     * @param colorFill The color of the filling
+     *
+     * @param stack        The MatrixStack
+     * @param colorFill    The color of the filling
      * @param colorOutline The color of the outline
-     * @param start The start coordinate
-     * @param dimensions The dimensions
+     * @param start        The start coordinate
+     * @param dimensions   The dimensions
      */
     public static void renderEdged(MatrixStack stack, Color colorFill, Color colorOutline, Vec3d start, Vec3d dimensions) {
         Matrix4f matrix = stack.peek().getPositionMatrix();
@@ -293,9 +298,10 @@ public class Renderer3d {
 
     /**
      * Renders a filled block
-     * @param stack The MatrixStack
-     * @param color The color of the filling
-     * @param start Start coordinates
+     *
+     * @param stack      The MatrixStack
+     * @param color      The color of the filling
+     * @param start      Start coordinates
      * @param dimensions Dimensions
      */
     public static void renderFilled(MatrixStack stack, Color color, Vec3d start, Vec3d dimensions) {
@@ -342,10 +348,11 @@ public class Renderer3d {
 
     /**
      * Renders an AAABBB line
+     *
      * @param matrices The MatrixStack
-     * @param color The color of the line
-     * @param start The start coordinate
-     * @param end The end coordinate
+     * @param color    The color of the line
+     * @param start    The start coordinate
+     * @param end      The end coordinate
      */
     public static void renderLine(MatrixStack matrices, Color color, Vec3d start, Vec3d end) {
         Matrix4f s = matrices.peek().getPositionMatrix();
