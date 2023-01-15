@@ -20,6 +20,7 @@ import java.util.List;
 
 @RequiredArgsConstructor
 class GlyphMap {
+    private static final int PADDING = 5; // 5 px padding per char
     final char fromIncl, toExcl;
     final Font[] font;
     final Identifier bindToTexture;
@@ -61,12 +62,13 @@ class GlyphMap {
             return;
         }
         int range = toExcl - fromIncl - 1;
-        int charsVert = (int) Math.ceil(Math.sqrt(range)) * 2;  // double as many chars wide as high
+        int charsVert = (int) (Math.ceil(Math.sqrt(range)) * 1.5);  // double as many chars wide as high
         glyphs.clear();
         int generatedChars = 0;
         int charNX = 0;
         int maxX = 0, maxY = 0;
         int currentX = 0, currentY = 0;
+        int currentRowMaxY = 0;
         List<Glyph> glyphs1 = new ArrayList<>();
         AffineTransform af = new AffineTransform();
         FontRenderContext frc = new FontRenderContext(af, true, false);
@@ -76,20 +78,22 @@ class GlyphMap {
             Rectangle2D stringBounds = font.getStringBounds(String.valueOf(currentChar), frc);
 
             int width = (int) Math.ceil(stringBounds.getWidth());
-            int height = (int) Math.ceil(stringBounds.getHeight()); // should always be constant
+            int height = (int) Math.ceil(stringBounds.getHeight());
             generatedChars++;
             maxX = Math.max(maxX, currentX + width);
             maxY = Math.max(maxY, currentY + height);
             if (charNX >= charsVert) {
                 currentX = 0;
-                currentY += height;
+                currentY += currentRowMaxY + PADDING; // add height of highest glyph, and reset
                 charNX = 0;
+                currentRowMaxY = 0;
             }
+            currentRowMaxY = Math.max(currentRowMaxY, height); // calculate highest glyph in this row
             glyphs1.add(new Glyph(currentX, currentY, width, height, currentChar, this));
-            currentX += width;
+            currentX += width + PADDING;
             charNX++;
         }
-        BufferedImage bi = new BufferedImage(Math.max(maxX, 1), Math.max(maxY, 1), BufferedImage.TYPE_INT_ARGB);
+        BufferedImage bi = new BufferedImage(Math.max(maxX + PADDING, 1), Math.max(maxY + PADDING, 1), BufferedImage.TYPE_INT_ARGB);
         width = bi.getWidth();
         height = bi.getHeight();
         Graphics2D g2d = bi.createGraphics();
@@ -109,6 +113,11 @@ class GlyphMap {
             glyphs.put(glyph.repr(), glyph);
         }
         RendererUtils.registerBufferedImageTexture(bindToTexture, bi);
+        //        try { // debug - dumps the map out to a file
+        //            ImageIO.write(bi, "png", new File("cock"+Math.random()+".png"));
+        //        } catch (Throwable t) {
+        //            t.printStackTrace();
+        //        }
         generated = true;
     }
 }

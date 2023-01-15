@@ -177,12 +177,13 @@ public class RendererUtils {
 
     /**
      * Transforms an input position into a (x, y, d) coordinate, transformed to screen space. d specifies the far plane of the position, and can be used to check if the position is on screen. Use {@link #screenSpaceCoordinateIsVisible(Vec3d)}.
+     * <b>Only works in the hud render event.</b>
      * Example:
      * <pre>
      * {@code
      * // Hud render event
      * Vec3d targetPos = new Vec3d(100, 64, 100); // world space
-     * Vec3d screenSpace = RendererUtils.getScreenSpaceCoordinate(targetPos, stack);
+     * Vec3d screenSpace = RendererUtils.worldSpaceToScreenSpace(targetPos);
      * if (RendererUtils.screenSpaceCoordinateIsVisible(screenSpace)) {
      *     // do something with screenSpace.x and .y
      * }
@@ -227,11 +228,12 @@ public class RendererUtils {
     }
 
     /**
-     * Converts a (x, y, d) screen space coordinate back into a world space coordinate. Example:
+     * Converts a (x, y, d) screen space coordinate back into a world space coordinate. <b>Only works in the world render event.</b> Example:
      * <pre>
      * {@code
-     * Vec3d near = RendererUtils.screenSpaceToWorldOffset(100, 100, 0);
-     * Vec3d far = RendererUtils.screenSpaceToWorldOffset(100, 100, 1);
+     * // World render event
+     * Vec3d near = RendererUtils.screenSpaceToWorldSpace(100, 100, 0);
+     * Vec3d far = RendererUtils.screenSpaceToWorldSpace(100, 100, 1);
      * // Ray-cast from near to far to get block or entity at (100, 100) screen space
      * }
      * </pre>

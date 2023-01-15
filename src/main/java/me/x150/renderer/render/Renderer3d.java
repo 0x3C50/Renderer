@@ -66,7 +66,7 @@ public class Renderer3d {
         RenderSystem.disableBlend();
     }
 
-    private static float transformColor(float f) {
+    static float transformColor(float f) {
         return AlphaOverride.compute(f);
     }
 
@@ -115,7 +115,7 @@ public class Renderer3d {
         return in.subtract(camPos);
     }
 
-    private static float[] getColor(Color c) {
+    static float[] getColor(Color c) {
         return new float[] { c.getRed() / 255f, c.getGreen() / 255f, c.getBlue() / 255f, transformColor(c.getAlpha() / 255f) };
     }
 

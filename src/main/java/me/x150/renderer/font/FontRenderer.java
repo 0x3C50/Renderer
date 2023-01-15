@@ -45,7 +45,7 @@ public class FontRenderer {
         put('E', 0xFFFF55);
         put('F', 0xFFFFFF);
     }};
-    private static final int BLOCK_SIZE = 128;
+    private static final int BLOCK_SIZE = 256;
     private static final Object2ObjectArrayMap<Identifier, List<Object[]>> oe = new Object2ObjectArrayMap<>();
     private final float originalSize;
     private final List<GlyphMap> maps = new ArrayList<>();
