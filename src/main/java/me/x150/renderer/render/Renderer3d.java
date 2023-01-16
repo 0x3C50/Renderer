@@ -1,6 +1,8 @@
 package me.x150.renderer.render;
 
 import com.mojang.blaze3d.systems.RenderSystem;
+import me.x150.renderer.client.RendererClient;
+import me.x150.renderer.objfile.ObjFile;
 import me.x150.renderer.util.AlphaOverride;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gl.ShaderProgram;
@@ -182,6 +184,42 @@ public class Renderer3d {
                 buffer.vertex(matrix, x1, y2, z2).color(red, green, blue, alpha).next();
             });
     }
+
+    /**
+     * Renders an {@link me.x150.renderer.objfile.ObjFile}, initializing it if not already initialized.
+     *
+     * @param stack   MatrixStack
+     * @param objFile {@link ObjFile} to render
+     * @param origin  Origin in world space
+     * @param scaleX  X scale
+     * @param scaleY  Y scale
+     * @param scaleZ  Z scale
+     */
+    public static void renderObjFile(MatrixStack stack, ObjFile objFile, Vec3d origin, float scaleX, float scaleY, float scaleZ) {
+        Matrix4f matrix = stack.peek().getPositionMatrix();
+        Vec3d vec3d = transformVec3d(origin);
+        if (!objFile.isInitialized()) {
+            try {
+                RendererClient.logger.warn("Trying to render uninitialized ObjFile, initializing manually..");
+                objFile.read();
+            } catch (Throwable t) {
+                RendererClient.logger.error("Failed to initialize ObjFile", t);
+            }
+        }
+        for (ObjFile.ObjObject object : objFile.objects) {
+            renderObj(object, matrix, vec3d, scaleX, scaleY, scaleZ);
+        }
+    }
+
+    private static void renderObj(ObjFile.ObjObject oo, Matrix4f mat, Vec3d origin, float scaleX, float scaleY, float scaleZ) {
+        VertexFormat vf = (oo.getMaterial() != null && oo.getMaterial()
+            .getDiffuseTextureMap() != null) ? VertexFormats.POSITION_TEXTURE_COLOR_NORMAL : VertexFormats.POSITION_COLOR;
+        Supplier<ShaderProgram> sp = vf == VertexFormats.POSITION_TEXTURE_COLOR_NORMAL ? GameRenderer::getPositionTexColorNormalProgram : GameRenderer::getPositionColorProgram;
+        useBuffer(VertexFormat.DrawMode.TRIANGLES, vf, sp, bufferBuilder -> {
+            ObjFile.drawObject(oo, bufferBuilder, mat, origin, scaleX, scaleY, scaleZ);
+        });
+    }
+
 
     /**
      * Renders both a filled and outlined block
