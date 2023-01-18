@@ -20,7 +20,7 @@ public class RendererClient implements ClientModInitializer {
 
     @Override
     public void onInitializeClient() {
-        Events.manager.registerSubscribers(this); // Testing
+//        Events.manager.registerSubscribers(this); // Testing
     }
 
     @MessageSubscription
