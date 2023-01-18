@@ -1,16 +1,13 @@
 # Renderer
 An easy to use rendering library for modern fabric
 
-## WARNING
-This library is still in beta, and might break or behave funny. If you encounter any unwanted behaviour, please open an issue.
-
 # Installing
 You can install this library using [Jitpack](https://jitpack.io/)
 
 To install the library, just add the jitpack repository to your repositories block as described on the website, and this to your dependencies block in build.gradle:
 
 ```groovy
-include modImplementation("com.github.0x3C50:Renderer:rewrite-SNAPSHOT")
+include modImplementation("com.github.0x3C50:Renderer:master-SNAPSHOT")
 ```
 This will use the latest commit as build target, but will cache that build target every time. Use the latest short commit hash found on [Jitpack](https://jitpack.io/#0x3C50/Renderer) (example: `d2cc995ff4`) as the version, to get that release instead.
 
@@ -21,7 +18,7 @@ The api has an extensive javadoc, which explains almost anything. The wiki also 
 Renderer2d draws in 2 dimensions, on the hud. Renderer3d draws in 3 dimensions, in the world.
 
 # Events
-This library has its own event system, which broadcasts some basic rendering events (hud render, world render, etc). You can find more information on the wiki (soon:tm:)
+This library has its own event system, which broadcasts some basic rendering events (hud render, world render, etc). You can find more information on the wiki
 
 # Suggestions
 You can leave suggestions in the issues section
