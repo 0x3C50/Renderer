@@ -113,11 +113,6 @@ class GlyphMap {
             glyphs.put(glyph.repr(), glyph);
         }
         RendererUtils.registerBufferedImageTexture(bindToTexture, bi);
-        //        try { // debug - dumps the map out to a file
-        //            ImageIO.write(bi, "png", new File("cock"+Math.random()+".png"));
-        //        } catch (Throwable t) {
-        //            t.printStackTrace();
-        //        }
         generated = true;
     }
 }

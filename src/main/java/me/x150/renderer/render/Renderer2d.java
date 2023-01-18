@@ -3,10 +3,8 @@ package me.x150.renderer.render;
 import com.mojang.blaze3d.systems.RenderSystem;
 import me.x150.renderer.util.BufferUtils;
 import me.x150.renderer.util.Colors;
-import me.x150.renderer.util.Rectangle;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.render.BufferBuilder;
-import net.minecraft.client.render.BufferRenderer;
 import net.minecraft.client.render.GameRenderer;
 import net.minecraft.client.render.Tessellator;
 import net.minecraft.client.render.VertexFormat;
@@ -34,16 +32,6 @@ public class Renderer2d {
     private static final MinecraftClient client = MinecraftClient.getInstance();
     private static final float[][] roundedCache = new float[][] { new float[3], new float[3], new float[3], new float[3], };
 
-    /**
-     * <p>Begins scissoring the selected area</p>
-     * <p>Only pixels in this area will be rendered, until {@link #endScissor()} is called</p>
-     * <strong>Do not call directly unless you have a good reason to, use {@link ClipStack#addWindow(MatrixStack, Rectangle)} instead</strong>
-     *
-     * @param x    The start X coordinate
-     * @param y    The start Y coordinate
-     * @param endX The end X coordinate
-     * @param endY The end Y coordinate
-     */
     static void beginScissor(double x, double y, double endX, double endY) {
         double width = endX - x;
         double height = endY - y;
@@ -54,11 +42,6 @@ public class Renderer2d {
         RenderSystem.enableScissor((int) (x * d), ay, (int) (width * d), (int) (height * d));
     }
 
-    /**
-     * <p>Ends the scissor context</p>
-     * <p>Always call when you used {@link #beginScissor(double, double, double, double)} before, unless you want to break something</p>
-     * <strong>Do not call directly unless you have a good reason to, use {@link ClipStack#popWindow()} instead</strong>
-     */
     static void endScissor() {
         RenderSystem.disableScissor();
     }
@@ -227,7 +210,7 @@ public class Renderer2d {
                 bufferBuilder.vertex(matrix, current[0] + sin, current[1] + cos, 0.0F).color(cr, cg, cb, ca).next();
             }
         }
-        BufferRenderer.drawWithGlobalProgram(bufferBuilder.end());
+        BufferUtils.draw(bufferBuilder);
     }
 
     /**
@@ -307,7 +290,7 @@ public class Renderer2d {
         float rad = current[2];
         bufferBuilder.vertex(matrix, current[0], current[1] + rad, 0.0F).color(cr, cg, cb, ca).next();
         bufferBuilder.vertex(matrix, current[0], current[1] + rad + width, 0.0F).color(cr, cg, cb, ca).next();
-        BufferRenderer.drawWithGlobalProgram(bufferBuilder.end());
+        BufferUtils.draw(bufferBuilder);
     }
 
     /**

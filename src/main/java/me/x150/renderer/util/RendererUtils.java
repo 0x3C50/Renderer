@@ -25,11 +25,11 @@ import java.nio.ByteBuffer;
  * <p>Utils for rendering in minecraft</p>
  */
 public class RendererUtils {
+    public static final Matrix4f lastProjMat = new Matrix4f();
+    public static final Matrix4f lastModMat = new Matrix4f();
+    public static final Matrix4f lastWorldSpaceMatrix = new Matrix4f();
     private static final MatrixStack empty = new MatrixStack();
     private static final MinecraftClient client = MinecraftClient.getInstance();
-    public static Matrix4f lastProjMat = new Matrix4f();
-    public static Matrix4f lastModMat = new Matrix4f();
-    public static Matrix4f lastWorldSpaceMatrix = new Matrix4f();
 
     /**
      * <p>Sets up rendering and resets everything that should be reset</p>

@@ -41,12 +41,12 @@ public class ObjFile {
     /**
      * All objects in this .obj
      */
-    public Stack<ObjObject> objects = new Stack<>();
-    List<Vertex> vertices = new ArrayList<>();
-    List<Normal> normals = new ArrayList<>();
-    List<Tex> texes = new ArrayList<>();
+    public final Stack<ObjObject> objects = new Stack<>();
+    final List<Vertex> vertices = new ArrayList<>();
+    final List<Normal> normals = new ArrayList<>();
+    final List<Tex> texes = new ArrayList<>();
+    final List<MtlFile> mtlFiles = new ArrayList<>();
     ObjReader content;
-    List<MtlFile> mtlFiles = new ArrayList<>();
     @Getter
     boolean initialized = false;
 

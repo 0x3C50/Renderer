@@ -16,8 +16,8 @@ import java.util.Stack;
  * A .mtl file
  */
 public class MtlFile {
+    final Stack<Material> materialStack = new Stack<>();
     ObjReader r;
-    Stack<Material> materialStack = new Stack<>();
     boolean inited = false;
 
     /**

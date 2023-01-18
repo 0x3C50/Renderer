@@ -5,10 +5,10 @@ import com.mojang.blaze3d.systems.RenderSystem;
 import it.unimi.dsi.fastutil.chars.Char2IntArrayMap;
 import it.unimi.dsi.fastutil.chars.Char2ObjectArrayMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectArrayMap;
+import me.x150.renderer.util.BufferUtils;
 import me.x150.renderer.util.Colors;
 import me.x150.renderer.util.RendererUtils;
 import net.minecraft.client.render.BufferBuilder;
-import net.minecraft.client.render.BufferRenderer;
 import net.minecraft.client.render.GameRenderer;
 import net.minecraft.client.render.Tessellator;
 import net.minecraft.client.render.VertexFormat;
@@ -198,7 +198,7 @@ public class FontRenderer {
                 bb.vertex(mat, w + xo, 0, 0).texture(u2, v1).color(cr, cg, cb, a).next();
                 bb.vertex(mat, xo, 0, 0).texture(u1, v1).color(cr, cg, cb, a).next();
             }
-            BufferRenderer.drawWithGlobalProgram(bb.end());
+            BufferUtils.draw(bb);
         }
 
         stack.pop();

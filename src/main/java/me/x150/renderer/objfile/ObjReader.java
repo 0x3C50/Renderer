@@ -4,7 +4,7 @@ import java.io.IOException;
 import java.io.Reader;
 
 class ObjReader {
-    Reader parent;
+    final Reader parent;
     int next;
 
     public ObjReader(Reader parent) throws IOException {

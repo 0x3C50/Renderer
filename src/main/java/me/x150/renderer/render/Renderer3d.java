@@ -4,10 +4,10 @@ import com.mojang.blaze3d.systems.RenderSystem;
 import me.x150.renderer.client.RendererClient;
 import me.x150.renderer.objfile.ObjFile;
 import me.x150.renderer.util.AlphaOverride;
+import me.x150.renderer.util.BufferUtils;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gl.ShaderProgram;
 import net.minecraft.client.render.BufferBuilder;
-import net.minecraft.client.render.BufferRenderer;
 import net.minecraft.client.render.Camera;
 import net.minecraft.client.render.GameRenderer;
 import net.minecraft.client.render.Tessellator;
@@ -131,7 +131,7 @@ public class Renderer3d {
 
         setupRender();
         RenderSystem.setShader(shader);
-        BufferRenderer.drawWithGlobalProgram(bb.end());
+        BufferUtils.draw(bb);
         endRender();
     }
 
@@ -215,9 +215,7 @@ public class Renderer3d {
         VertexFormat vf = (oo.getMaterial() != null && oo.getMaterial()
             .getDiffuseTextureMap() != null) ? VertexFormats.POSITION_TEXTURE_COLOR_NORMAL : VertexFormats.POSITION_COLOR;
         Supplier<ShaderProgram> sp = vf == VertexFormats.POSITION_TEXTURE_COLOR_NORMAL ? GameRenderer::getPositionTexColorNormalProgram : GameRenderer::getPositionColorProgram;
-        useBuffer(VertexFormat.DrawMode.TRIANGLES, vf, sp, bufferBuilder -> {
-            ObjFile.drawObject(oo, bufferBuilder, mat, origin, scaleX, scaleY, scaleZ);
-        });
+        useBuffer(VertexFormat.DrawMode.TRIANGLES, vf, sp, bufferBuilder -> ObjFile.drawObject(oo, bufferBuilder, mat, origin, scaleX, scaleY, scaleZ));
     }
 
 

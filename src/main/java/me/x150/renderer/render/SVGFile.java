@@ -29,10 +29,11 @@ import java.io.StringReader;
  * }</pre>
  */
 public class SVGFile implements Closeable {
+    final String svgSource;
+    final int originalWidth;
+    final int originalHeight;
     int memoizedGuiScale = -1; // default of -1 means that the svg will get redrawn the first time when render() is called, no matter what
     Identifier ident;
-    String svgSource;
-    int originalWidth, originalHeight;
 
     /**
      * Creates a new SVG file. The SVG is only parsed when {@link #render(MatrixStack, double, double, float, float)} is called.

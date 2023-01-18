@@ -8,8 +8,8 @@ import java.util.concurrent.ConcurrentHashMap;
  * A render profiler
  */
 public class RenderProfiler {
-    static Stack<Entry> s = new Stack<>();
-    static Map<String, Entry> latestTickTimes = new ConcurrentHashMap<>();
+    static final Stack<Entry> s = new Stack<>();
+    static final Map<String, Entry> latestTickTimes = new ConcurrentHashMap<>();
 
     /**
      * Adds a new element to the profiler
