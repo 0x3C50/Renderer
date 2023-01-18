@@ -36,6 +36,12 @@ dependencies {
     compileOnly 'org.projectlombok:lombok:1.18.24'
     annotationProcessor 'org.projectlombok:lombok:1.18.24'
 
+    include(implementation(group: 'org.apache.xmlgraphics', name: 'batik-transcoder', version: '1.16') {
+        exclude group: "xml-apis", module: "xml-apis"
+    })
+    include(implementation(group: 'org.apache.xmlgraphics', name: 'batik-codec', version: '1.16') {
+        exclude group: "xml-apis", module: "xml-apis"
+    })
     include(implementation(files("lib/jMessenger-1.0.jar")))
 
     configurations.modImpl.dependencies.each {

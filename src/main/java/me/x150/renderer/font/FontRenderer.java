@@ -6,7 +6,7 @@ import it.unimi.dsi.fastutil.chars.Char2IntArrayMap;
 import it.unimi.dsi.fastutil.chars.Char2ObjectArrayMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectArrayMap;
 import me.x150.renderer.util.Colors;
-import net.minecraft.client.MinecraftClient;
+import me.x150.renderer.util.RendererUtils;
 import net.minecraft.client.render.BufferBuilder;
 import net.minecraft.client.render.BufferRenderer;
 import net.minecraft.client.render.GameRenderer;
@@ -75,7 +75,7 @@ public class FontRenderer {
     }
 
     private void sizeCheck() {
-        int gs = MinecraftClient.getInstance().options.getGuiScale().getValue();
+        int gs = RendererUtils.getGuiScale();
         if (gs != this.previousGameScale) {
             destroy();
             init(this.font, this.originalSize); // reinit
@@ -83,7 +83,7 @@ public class FontRenderer {
     }
 
     private void init(Font[] fonts, float sizePx) {
-        this.previousGameScale = MinecraftClient.getInstance().options.getGuiScale().getValue();
+        this.previousGameScale = RendererUtils.getGuiScale();
         this.scaleMul = this.previousGameScale;
         this.font = new Font[fonts.length];
         for (int i = 0; i < fonts.length; i++) {

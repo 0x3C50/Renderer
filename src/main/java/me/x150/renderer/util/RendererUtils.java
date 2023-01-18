@@ -264,4 +264,8 @@ public class RendererUtils {
 
         return new Vec3d(target.x, target.y, target.z).add(camera.getPos());
     }
+
+    public static int getGuiScale() {
+        return (int) MinecraftClient.getInstance().getWindow().getScaleFactor();
+    }
 }
