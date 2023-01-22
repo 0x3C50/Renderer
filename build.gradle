@@ -39,9 +39,11 @@ dependencies {
 
     libImpl(group: 'org.apache.xmlgraphics', name: 'batik-transcoder', version: '1.16') {
         exclude group: "xml-apis", module: "xml-apis"
+        exclude group: "commons-io", module: "commons-io"
     }
     libImpl(group: 'org.apache.xmlgraphics', name: 'batik-codec', version: '1.16') {
         exclude group: "xml-apis", module: "xml-apis"
+        exclude group: "commons-io", module: "commons-io"
     }
     libImpl(files("lib/jMessenger-1.0.jar"))
 
