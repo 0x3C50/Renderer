@@ -22,6 +22,9 @@ import org.lwjgl.opengl.GL11;
 import java.awt.Font;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 /**
  * A font renderer
@@ -66,8 +69,16 @@ public class FontRenderer {
         init(fonts, sizePx);
     }
 
+    private static final char start = 'a';
+    private static final char end = 'z';
+    private static final Random rnd = new Random();
+
+    private static String randomString(int length) {
+        return IntStream.range(0, length).mapToObj(operand -> String.valueOf((char) rnd.nextInt(start, end+1))).collect(Collectors.joining());
+    }
+
     private static Identifier randomIdent() {
-        return new Identifier("renderer", "font/gp_" + RandomStringUtils.randomAlphabetic(32).toLowerCase());
+        return new Identifier("renderer", "font/gp_" + randomString(32));
     }
 
     private static int floorNearestMulN(int x, int n) {
