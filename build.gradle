@@ -12,8 +12,6 @@ repositories {
     // Loom adds the essential maven repositories to download Minecraft and libraries from automatically.
     // See https://docs.gradle.org/current/userguide/declaring_repositories.html
     // for more information about repositories.
-
-    maven { url "https://maven.terraformersmc.com/releases/" }
 }
 
 configurations {
@@ -35,8 +33,6 @@ dependencies {
     apiModules.forEach {
         modImpl(fabricApi.module(it, project.fabric_version))
     }
-
-    modImpl("com.terraformersmc:modmenu:5.0.2")
 
     compileOnly 'org.projectlombok:lombok:1.18.24'
     annotationProcessor 'org.projectlombok:lombok:1.18.24'
