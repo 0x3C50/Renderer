@@ -1,6 +1,6 @@
 package me.x150.renderer.render;
 
-import me.x150.renderer.client.RendererClient;
+import me.x150.renderer.client.RendererMain;
 import me.x150.renderer.util.RendererUtils;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.texture.NativeImage;
@@ -65,7 +65,7 @@ public class SVGFile implements Closeable {
             NativeImageBackedTexture tex = new NativeImageBackedTexture(NativeImage.read(new ByteArrayInputStream(t)));
             MinecraftClient.getInstance().execute(() -> MinecraftClient.getInstance().getTextureManager().registerTexture(this.ident, tex));
         } catch (Throwable t) {
-            RendererClient.logger.error("Failed to render SVG", t);
+            RendererMain.LOGGER.error("Failed to render SVG", t);
             this.ident = new Identifier("missingno"); // yes, this is real. this points to the "missing" texture
         }
     }

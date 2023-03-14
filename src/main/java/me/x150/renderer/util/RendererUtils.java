@@ -196,7 +196,6 @@ public class RendererUtils {
      */
     public static Vec3d worldSpaceToScreenSpace(Vec3d pos) {
         Camera camera = client.getEntityRenderDispatcher().camera;
-        Matrix4f matrix = lastWorldSpaceMatrix;
         int displayHeight = client.getWindow().getHeight();
         int[] viewport = new int[4];
         GL11.glGetIntegerv(GL11.GL_VIEWPORT, viewport);
@@ -206,7 +205,7 @@ public class RendererUtils {
         double deltaY = pos.y - camera.getPos().y;
         double deltaZ = pos.z - camera.getPos().z;
 
-        Vector4f transformedCoordinates = new Vector4f((float) deltaX, (float) deltaY, (float) deltaZ, 1.f).mul(matrix);
+        Vector4f transformedCoordinates = new Vector4f((float) deltaX, (float) deltaY, (float) deltaZ, 1.f).mul(lastWorldSpaceMatrix);
 
         Matrix4f matrixProj = new Matrix4f(lastProjMat);
         Matrix4f matrixModel = new Matrix4f(lastModMat);

@@ -1,0 +1,29 @@
+{
+  "schemaVersion": 1,
+  "id": "test-mod",
+  "version": "${version}",
+  "name": "TestMod",
+  "description": "Test mod for the renderer library",
+  "authors": [
+    "0x150"
+  ],
+  "contact": {},
+  "license": "All-Rights-Reserved",
+  "icon": "assets/TestMod/icon.png",
+  "environment": "client",
+  "entrypoints": {
+    "client": [
+      "me.x150.testmod.client.TestModClient"
+    ],
+    "main": [
+      "me.x150.testmod.TestMod"
+    ]
+  },
+  "mixins": [
+    "TestMod.mixins.json"
+  ],
+  "depends": {
+    "fabricloader": "*",
+    "minecraft": "1.19.3"
+  }
+}

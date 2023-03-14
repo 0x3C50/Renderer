@@ -31,7 +31,7 @@ public class BufferUtils {
     }
 
     /**
-     * Uplodads this buffer to a VBO
+     * Uploads this buffer to a VBO
      *
      * @param builder The buffer to upload
      * @param buffer  The VBO to upload to

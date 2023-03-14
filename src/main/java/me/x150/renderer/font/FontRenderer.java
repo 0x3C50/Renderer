@@ -15,11 +15,11 @@ import net.minecraft.client.render.VertexFormat;
 import net.minecraft.client.render.VertexFormats;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.util.Identifier;
-import org.apache.commons.lang3.RandomStringUtils;
 import org.joml.Matrix4f;
 import org.lwjgl.opengl.GL11;
 
 import java.awt.Font;
+import java.io.Closeable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
@@ -29,7 +29,7 @@ import java.util.stream.IntStream;
 /**
  * A font renderer
  */
-public class FontRenderer {
+public class FontRenderer implements Closeable {
     private static final Char2IntArrayMap colorCodes = new Char2IntArrayMap() {{
         put('0', 0x000000);
         put('1', 0x0000AA);
@@ -49,12 +49,15 @@ public class FontRenderer {
         put('F', 0xFFFFFF);
     }};
     private static final int BLOCK_SIZE = 256;
-    private static final Object2ObjectArrayMap<Identifier, List<Object[]>> oe = new Object2ObjectArrayMap<>();
+    private static final Object2ObjectArrayMap<Identifier, List<Object[]>> GLYPH_PAGE_CACHE = new Object2ObjectArrayMap<>();
+    private static final char RND_START = 'a';
+    private static final char RND_END = 'z';
+    private static final Random RND = new Random();
     private final float originalSize;
     private final List<GlyphMap> maps = new ArrayList<>();
     private final Char2ObjectArrayMap<Glyph> allGlyphs = new Char2ObjectArrayMap<>();
     private int scaleMul = 0;
-    private Font[] font;
+    private Font[] fonts;
     private int previousGameScale = -1;
 
     /**
@@ -69,41 +72,58 @@ public class FontRenderer {
         init(fonts, sizePx);
     }
 
-    private static final char start = 'a';
-    private static final char end = 'z';
-    private static final Random rnd = new Random();
-
     private static String randomString(int length) {
-        return IntStream.range(0, length).mapToObj(operand -> String.valueOf((char) rnd.nextInt(start, end+1))).collect(Collectors.joining());
+        return IntStream.range(0, length).mapToObj(operand -> String.valueOf((char) RND.nextInt(RND_START, RND_END + 1))).collect(Collectors.joining());
     }
 
     private static Identifier randomIdent() {
-        return new Identifier("renderer", "font/gp_" + randomString(32));
+        return new Identifier("renderer", "font/tmp_" + randomString(32));
     }
 
     private static int floorNearestMulN(int x, int n) {
         return n * ((int) Math.floor((double) x / (double) n));
     }
 
+    /**
+     * Strips all characters prefixed with a § from the given string
+     *
+     * @param text The string to strip
+     *
+     * @return The stripped string
+     */
+    public static String stripControlCodes(String text) {
+        char[] chars = text.toCharArray();
+        StringBuilder f = new StringBuilder();
+        for (int i = 0; i < chars.length; i++) {
+            char c = chars[i];
+            if (c == '§') {
+                i++;
+                continue;
+            }
+            f.append(c);
+        }
+        return f.toString();
+    }
+
     private void sizeCheck() {
         int gs = RendererUtils.getGuiScale();
         if (gs != this.previousGameScale) {
-            destroy();
-            init(this.font, this.originalSize); // reinit
+            close(); // delete glyphs and cache
+            init(this.fonts, this.originalSize); // reinit
         }
     }
 
     private void init(Font[] fonts, float sizePx) {
         this.previousGameScale = RendererUtils.getGuiScale();
         this.scaleMul = this.previousGameScale;
-        this.font = new Font[fonts.length];
+        this.fonts = new Font[fonts.length];
         for (int i = 0; i < fonts.length; i++) {
-            this.font[i] = fonts[i].deriveFont(sizePx * this.scaleMul);
+            this.fonts[i] = fonts[i].deriveFont(sizePx * this.scaleMul);
         }
     }
 
     private GlyphMap generateMap(char from, char to) {
-        GlyphMap gm = new GlyphMap(from, to, this.font, randomIdent());
+        GlyphMap gm = new GlyphMap(from, to, this.fonts, randomIdent());
         maps.add(gm);
         return gm;
     }
@@ -180,13 +200,13 @@ public class FontRenderer {
             if (glyph.repr() != ' ') { // we only need to really draw the glyph if its not blank, otherwise we can just skip its width and that'll be it
                 Identifier i1 = glyph.owner().bindToTexture;
                 Object[] entry = new Object[] { xp, r2, g2, b2, glyph };
-                oe.computeIfAbsent(i1, integer -> new ArrayList<>()).add(entry);
+                GLYPH_PAGE_CACHE.computeIfAbsent(i1, integer -> new ArrayList<>()).add(entry);
             }
             xp += glyph.width();
         }
-        for (Identifier identifier : oe.keySet()) {
+        for (Identifier identifier : GLYPH_PAGE_CACHE.keySet()) {
             RenderSystem.setShaderTexture(0, identifier);
-            List<Object[]> objects = oe.get(identifier);
+            List<Object[]> objects = GLYPH_PAGE_CACHE.get(identifier);
 
             bb.begin(VertexFormat.DrawMode.QUADS, VertexFormats.POSITION_TEXTURE_COLOR);
 
@@ -213,7 +233,7 @@ public class FontRenderer {
         }
 
         stack.pop();
-        oe.clear();
+        GLYPH_PAGE_CACHE.clear();
     }
 
     /**
@@ -230,27 +250,6 @@ public class FontRenderer {
      */
     public void drawCenteredString(MatrixStack stack, String s, float x, float y, float r, float g, float b, float a) {
         drawString(stack, s, x - getStringWidth(s) / 2f, y, r, g, b, a);
-    }
-
-    /**
-     * Strips all characters prefixed with a § from the given string
-     *
-     * @param text The string to strip
-     *
-     * @return The stripped string
-     */
-    public String stripControlCodes(String text) {
-        char[] chars = text.toCharArray();
-        StringBuilder f = new StringBuilder();
-        for (int i = 0; i < chars.length; i++) {
-            char c = chars[i];
-            if (c == '§') {
-                i++;
-                continue;
-            }
-            f.append(c);
-        }
-        return f.toString();
     }
 
     /**
@@ -290,7 +289,8 @@ public class FontRenderer {
     /**
      * Clears all glyph maps, and unlinks them. The font can continue to be used, but it will have to regenerate the maps.
      */
-    public void destroy() {
+    @Override
+    public void close() {
         for (GlyphMap map : maps) {
             map.destroy();
         }

@@ -52,6 +52,16 @@ class ObjReader {
         return s.toString();
     }
 
+    public String readRemainingLine() throws IOException {
+        int r;
+        StringBuilder sb = new StringBuilder();
+        while ((r = peek()) != -1 && r != '\n') {
+            sb.append((char) read());
+        }
+        skipWhitespace();
+        return sb.toString();
+    }
+
     public boolean hasNextOnLine() throws IOException {
         skipWhitespace();
         return peek() != '\n' && peek() != '#';

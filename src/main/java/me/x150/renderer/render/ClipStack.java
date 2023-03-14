@@ -13,8 +13,7 @@ import java.util.Stack;
  * A class used for defining clipping rectangles
  */
 public class ClipStack {
-    public static final ClipStack globalInstance = new ClipStack();
-    final Stack<Rectangle> clipStack = new Stack<>();
+    static final Stack<Rectangle> clipStack = new Stack<>();
 
     /**
      * <p>Adds a clipping window to the stack</p>
@@ -24,7 +23,7 @@ public class ClipStack {
      * @param stack The context MatrixStack
      * @param r1    The new clipping rectangle to enlist
      */
-    public void addWindow(MatrixStack stack, Rectangle r1) {
+    public static void addWindow(MatrixStack stack, Rectangle r1) {
         Matrix4f matrix = stack.peek().getPositionMatrix();
         Vector4f coord = new Vector4f((float) r1.getX(), (float) r1.getY(), 0, 1);
         Vector4f end = new Vector4f((float) r1.getX1(), (float) r1.getY1(), 0, 1);
@@ -62,7 +61,7 @@ public class ClipStack {
      * @param clippingRect The clipping rectangle that should be applied to the renderAction
      * @param renderAction The actual render method, that renders the content
      */
-    public void use(MatrixStack stack, Rectangle clippingRect, Runnable renderAction) {
+    public static void use(MatrixStack stack, Rectangle clippingRect, Runnable renderAction) {
         addWindow(stack, clippingRect);
         renderAction.run();
         popWindow();
@@ -71,7 +70,7 @@ public class ClipStack {
     /**
      * <p>Pops the latest added window from the stack</p>
      */
-    public void popWindow() {
+    public static void popWindow() {
         clipStack.pop();
         if (clipStack.empty()) {
             Renderer2d.endScissor();
@@ -87,7 +86,7 @@ public class ClipStack {
      *
      * @param e The runnable to run outside the clip stack
      */
-    public void renderOutsideClipStack(Runnable e) {
+    public static void renderOutsideClipStack(Runnable e) {
         if (clipStack.empty()) {
             e.run();
         } else {

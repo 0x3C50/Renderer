@@ -18,7 +18,7 @@ import java.util.Stack;
 public class MtlFile {
     final Stack<Material> materialStack = new Stack<>();
     ObjReader r;
-    boolean inited = false;
+    boolean initialized = false;
 
     /**
      * Creates a new mtl file parser from the Reader
@@ -37,10 +37,10 @@ public class MtlFile {
      * @throws IOException When something goes wrong
      */
     public void read() throws IOException {
-        if (inited) {
-            throw new IllegalStateException("Already read");
+        if (initialized) {
+            throw new IllegalStateException("Already initialized");
         }
-        this.inited = true;
+        this.initialized = true;
         while (r.peek() != -1) {
             String s = r.readStr();
             switch (s) {
@@ -63,7 +63,9 @@ public class MtlFile {
                     peek.dissolve = v;
                 }
                 case "map_Kd" -> {
-                    BufferedImage read = ImageIO.read(new File(r.readStr()));
+                    File input = new File(r.readRemainingLine());
+                    System.out.println("reading " + input.getAbsolutePath());
+                    BufferedImage read = ImageIO.read(input);
                     Identifier tex = new Identifier("renderer", "dyntex-" + String.valueOf(Math.random()).hashCode());
                     materialStack.peek().diffuseTextureMap = tex;
                     RendererUtils.registerBufferedImageTexture(tex, read);
@@ -86,14 +88,15 @@ public class MtlFile {
         /**
          * Diffuse red
          */
-        float diffuseR, /**
+        float diffuseR;
+        /**
          * Diffuse green
          */
-        diffuseG, /**
+        float diffuseG;
+        /**
          * Diffuse blue
          */
-        diffuseB;
-        //        float diffuseR, diffuseG, diffuseB;
+        float diffuseB;
         /**
          * "Dissolve", aka the alpha
          */

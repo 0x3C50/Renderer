@@ -15,7 +15,7 @@
   "environment": "client",
   "entrypoints": {
     "client": [
-      "me.x150.renderer.client.RendererClient"
+      "me.x150.renderer.client.RendererMain"
     ],
     "main": [
       "me.x150.renderer.Renderer"

@@ -1,0 +1,43 @@
+archives_base_name = "TestMod"
+
+configurations {
+    modImpl
+    libImpl
+}
+
+dependencies {
+    minecraft "com.mojang:minecraft:${project.minecraft_version}"
+    mappings "net.fabricmc:yarn:${project.yarn_mappings}:v2"
+
+    Set<String> apiModules = [
+            "fabric-api-base",
+            "fabric-resource-loader-v0"
+    ]
+    // Add each module we need
+    apiModules.forEach {
+        modImpl(fabricApi.module(it, project.fabric_version))
+    }
+
+    compileOnly 'org.projectlombok:lombok:1.18.24'
+    annotationProcessor 'org.projectlombok:lombok:1.18.24'
+
+    libImpl(group: 'org.apache.xmlgraphics', name: 'batik-transcoder', version: '1.16') {
+        exclude group: "xml-apis", module: "xml-apis"
+        exclude group: "commons-io", module: "commons-io"
+    }
+    libImpl(group: 'org.apache.xmlgraphics', name: 'batik-codec', version: '1.16') {
+        exclude group: "xml-apis", module: "xml-apis"
+        exclude group: "commons-io", module: "commons-io"
+    }
+    libImpl(files("../lib/jMessenger-1.0.jar"))
+    libImpl(group: 'org.orbisgis', name: 'poly2tri-core', version: '0.1.2')
+
+    configurations.modImpl.dependencies.each {
+        modImplementation(it)
+    }
+
+    configurations.libImpl.dependencies.each {
+        implementation(it)
+//		include(it)
+    }
+}

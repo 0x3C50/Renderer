@@ -7,3 +7,7 @@ pluginManagement {
         gradlePluginPortal()
     }
 }
+
+rootProject.name = "renderer"
+
+include("TestMod")

@@ -1,16 +1,19 @@
 package me.x150.renderer.render;
 
 import com.mojang.blaze3d.systems.RenderSystem;
-import me.x150.renderer.client.RendererClient;
+import me.x150.renderer.client.RendererMain;
+import me.x150.renderer.objfile.MtlFile;
 import me.x150.renderer.objfile.ObjFile;
 import me.x150.renderer.util.AlphaOverride;
 import me.x150.renderer.util.BufferUtils;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gl.ShaderProgram;
+import net.minecraft.client.gl.VertexBuffer;
 import net.minecraft.client.render.BufferBuilder;
 import net.minecraft.client.render.Camera;
 import net.minecraft.client.render.GameRenderer;
 import net.minecraft.client.render.Tessellator;
+import net.minecraft.client.render.VertexConsumer;
 import net.minecraft.client.render.VertexFormat;
 import net.minecraft.client.render.VertexFormats;
 import net.minecraft.client.util.math.MatrixStack;
@@ -200,24 +203,131 @@ public class Renderer3d {
         Vec3d vec3d = transformVec3d(origin);
         if (!objFile.isInitialized()) {
             try {
-                RendererClient.logger.warn("Trying to render uninitialized ObjFile, initializing manually..");
+                RendererMain.LOGGER.warn("Trying to render uninitialized ObjFile, initializing manually");
                 objFile.read();
             } catch (Throwable t) {
-                RendererClient.logger.error("Failed to initialize ObjFile", t);
+                RendererMain.LOGGER.error("Failed to initialize ObjFile", t);
             }
         }
         for (ObjFile.ObjObject object : objFile.objects) {
-            renderObj(object, matrix, vec3d, scaleX, scaleY, scaleZ);
+            renderObjObject(object, matrix, vec3d, scaleX, scaleY, scaleZ);
         }
     }
 
-    private static void renderObj(ObjFile.ObjObject oo, Matrix4f mat, Vec3d origin, float scaleX, float scaleY, float scaleZ) {
+    /**
+     * Renders an obj object
+     *
+     * @param oo     Object to draw
+     * @param mat    Matrix
+     * @param origin Origin vec3
+     * @param scaleX Scale X
+     * @param scaleY Scale Y
+     * @param scaleZ Scale Z
+     *
+     * @deprecated For internal use only
+     */
+    @Deprecated
+    public static void renderObjObject(ObjFile.ObjObject oo, Matrix4f mat, Vec3d origin, float scaleX, float scaleY, float scaleZ) {
+        if (oo.getBuffer() == null) {
+            oo.bake();
+        }
         VertexFormat vf = (oo.getMaterial() != null && oo.getMaterial()
             .getDiffuseTextureMap() != null) ? VertexFormats.POSITION_TEXTURE_COLOR_NORMAL : VertexFormats.POSITION_COLOR;
         Supplier<ShaderProgram> sp = vf == VertexFormats.POSITION_TEXTURE_COLOR_NORMAL ? GameRenderer::getPositionTexColorNormalProgram : GameRenderer::getPositionColorProgram;
-        useBuffer(VertexFormat.DrawMode.TRIANGLES, vf, sp, bufferBuilder -> ObjFile.drawObject(oo, bufferBuilder, mat, origin, scaleX, scaleY, scaleZ));
+        if (oo.getParent().hasFlag(ObjFile.Flags.RENDER_WIREFRAME)) {
+            sp = GameRenderer::getPositionColorProgram;
+
+        }
+        setupRender();
+
+        //        RenderSystem.setShader(sp);
+        Matrix4f m4f = new Matrix4f(mat);
+        m4f.translate((float) origin.x, (float) origin.y, (float) origin.z);
+        m4f.scale(scaleX, scaleY, scaleZ);
+        //        m4f.mul(mat);
+        MtlFile.Material material = oo.getMaterial();
+        if (material != null && material.getDiffuseTextureMap() != null) {
+            RenderSystem.setShaderTexture(0, material.getDiffuseTextureMap());
+        }
+        oo.getBuffer().bind();
+        oo.getBuffer().draw(m4f, RenderSystem.getProjectionMatrix(), sp.get());
+        VertexBuffer.unbind();
+        endRender();
     }
 
+
+    /**
+     * Draws an obj object to a buffer
+     *
+     * @param object Object to draw
+     * @param bb     Buffer to draw to
+     * @param mat    Matrix
+     * @param origin Origin vec3
+     * @param scaleX Scale X
+     * @param scaleY Scale Y
+     * @param scaleZ Scale z
+     *
+     * @deprecated For internal use only
+     */
+    @Deprecated
+    public static void drawObjObject(ObjFile.ObjObject object, BufferBuilder bb, Matrix4f mat, Vec3d origin, float scaleX, float scaleY, float scaleZ) {
+        MtlFile.Material material = object.getMaterial();
+
+        for (ObjFile.Face face : object.getFaces()) {
+            for (ObjFile.VertexBundle vertex : face.getVertices()) {
+                ObjFile.Vertex vert = vertex.getVert();
+                ObjFile.Tex tex = vertex.getTex();
+
+                ObjFile.Normal normal = vertex.getNormal();
+                VertexConsumer vertex1 = bb.vertex(mat,
+                    (float) (origin.x + vert.getX() * scaleX),
+                    (float) (origin.y + vert.getY() * scaleY),
+                    (float) (origin.z + vert.getZ() * scaleZ));
+                if (material != null && material.getDiffuseTextureMap() != null) {
+                    vertex1.texture(tex.getX(), tex.getY());
+                }
+                if (material != null) {
+                    vertex1.color(material.getDiffuseR(), material.getDiffuseG(), material.getDiffuseB(), material.getDissolve());
+                } else {
+                    vertex1.color(1f, 1f, 1f, 1f);
+                }
+                if (material != null && material.getDiffuseTextureMap() != null) {
+                    vertex1.normal(normal.getX(), normal.getY(), normal.getZ());
+                }
+                vertex1.next();
+            }
+        }
+    }
+
+    /**
+     * Draws an obj object to a buffer as wireframe
+     *
+     * @param object Object to draw
+     * @param bb     Buffer to draw to
+     * @param mat    Matrix
+     * @param origin Origin vec3
+     * @param scaleX Scale X
+     * @param scaleY Scale Y
+     * @param scaleZ Scale z
+     *
+     * @deprecated For internal use only
+     */
+    @Deprecated
+    public static void drawObjObjectWireframe(ObjFile.ObjObject object, BufferBuilder bb, Matrix4f mat, Vec3d origin, float scaleX, float scaleY, float scaleZ) {
+        for (ObjFile.Face face : object.getFaces()) {
+            ObjFile.VertexBundle[] vertices = face.getVertices();
+            for (int i = 1; i < vertices.length; i++) {
+                ObjFile.Vertex prev = vertices[i - 1].getVert();
+                ObjFile.Vertex vert = vertices[i].getVert();
+                bb.vertex(mat, (float) (origin.x + prev.getX() * scaleX), (float) (origin.y + prev.getY() * scaleY), (float) (origin.z + prev.getZ() * scaleZ))
+                    .color(1f, 1f, 1f, 1f)
+                    .next();
+                bb.vertex(mat, (float) (origin.x + vert.getX() * scaleX), (float) (origin.y + vert.getY() * scaleY), (float) (origin.z + vert.getZ() * scaleZ))
+                    .color(1f, 1f, 1f, 1f)
+                    .next();
+            }
+        }
+    }
 
     /**
      * Renders both a filled and outlined block
