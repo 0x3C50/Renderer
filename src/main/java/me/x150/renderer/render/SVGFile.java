@@ -52,7 +52,7 @@ public class SVGFile implements Closeable {
         if (this.ident != null) {
             close(); // destroy texture
         }
-        this.ident = new Identifier("renderer", "dyntex-svg-" + String.valueOf(Math.random()).hashCode());
+        this.ident = RendererUtils.randomIdentifier();
         PNGTranscoder transcoder = new PNGTranscoder();
         transcoder.addTranscodingHint(PNGTranscoder.KEY_WIDTH, width);
         transcoder.addTranscodingHint(PNGTranscoder.KEY_HEIGHT, height);

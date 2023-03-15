@@ -20,6 +20,9 @@ import java.awt.Color;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.nio.ByteBuffer;
+import java.util.Random;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 /**
  * <p>Utils for rendering in minecraft</p>
@@ -30,6 +33,9 @@ public class RendererUtils {
     public static final Matrix4f lastWorldSpaceMatrix = new Matrix4f();
     private static final MatrixStack empty = new MatrixStack();
     private static final MinecraftClient client = MinecraftClient.getInstance();
+    private static final char RND_START = 'a';
+    private static final char RND_END = 'z';
+    private static final Random RND = new Random();
 
     /**
      * <p>Sets up rendering and resets everything that should be reset</p>
@@ -264,7 +270,25 @@ public class RendererUtils {
         return new Vec3d(target.x, target.y, target.z).add(camera.getPos());
     }
 
+    /**
+     * Returns the GUI scale of the current window
+     *
+     * @return The GUI scale of the current window
+     */
     public static int getGuiScale() {
         return (int) MinecraftClient.getInstance().getWindow().getScaleFactor();
+    }
+
+    private static String randomString(int length) {
+        return IntStream.range(0, length).mapToObj(operand -> String.valueOf((char) RND.nextInt(RND_START, RND_END + 1))).collect(Collectors.joining());
+    }
+
+    /**
+     * Returns an identifier in the renderer namespace, with a random id
+     *
+     * @return The identifier
+     */
+    public static Identifier randomIdentifier() {
+        return new Identifier("renderer", "temp/" + randomString(32));
     }
 }

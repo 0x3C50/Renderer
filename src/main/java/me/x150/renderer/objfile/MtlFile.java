@@ -15,7 +15,7 @@ import java.util.Stack;
 /**
  * A .mtl file
  */
-public class MtlFile {
+public final class MtlFile {
     final Stack<Material> materialStack = new Stack<>();
     ObjReader r;
     boolean initialized = false;
@@ -64,9 +64,9 @@ public class MtlFile {
                 }
                 case "map_Kd" -> {
                     File input = new File(r.readRemainingLine());
-                    System.out.println("reading " + input.getAbsolutePath());
                     BufferedImage read = ImageIO.read(input);
-                    Identifier tex = new Identifier("renderer", "dyntex-" + String.valueOf(Math.random()).hashCode());
+
+                    Identifier tex = RendererUtils.randomIdentifier();
                     materialStack.peek().diffuseTextureMap = tex;
                     RendererUtils.registerBufferedImageTexture(tex, read);
                 }

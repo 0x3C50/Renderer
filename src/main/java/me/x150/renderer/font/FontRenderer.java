@@ -22,9 +22,6 @@ import java.awt.Font;
 import java.io.Closeable;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Random;
-import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 
 /**
  * A font renderer
@@ -50,9 +47,6 @@ public class FontRenderer implements Closeable {
     }};
     private static final int BLOCK_SIZE = 256;
     private static final Object2ObjectArrayMap<Identifier, List<Object[]>> GLYPH_PAGE_CACHE = new Object2ObjectArrayMap<>();
-    private static final char RND_START = 'a';
-    private static final char RND_END = 'z';
-    private static final Random RND = new Random();
     private final float originalSize;
     private final List<GlyphMap> maps = new ArrayList<>();
     private final Char2ObjectArrayMap<Glyph> allGlyphs = new Char2ObjectArrayMap<>();
@@ -70,14 +64,6 @@ public class FontRenderer implements Closeable {
         Preconditions.checkArgument(fonts.length > 0, "fonts.length == 0");
         this.originalSize = sizePx;
         init(fonts, sizePx);
-    }
-
-    private static String randomString(int length) {
-        return IntStream.range(0, length).mapToObj(operand -> String.valueOf((char) RND.nextInt(RND_START, RND_END + 1))).collect(Collectors.joining());
-    }
-
-    private static Identifier randomIdent() {
-        return new Identifier("renderer", "font/tmp_" + randomString(32));
     }
 
     private static int floorNearestMulN(int x, int n) {
@@ -123,7 +109,7 @@ public class FontRenderer implements Closeable {
     }
 
     private GlyphMap generateMap(char from, char to) {
-        GlyphMap gm = new GlyphMap(from, to, this.fonts, randomIdent());
+        GlyphMap gm = new GlyphMap(from, to, this.fonts, RendererUtils.randomIdentifier());
         maps.add(gm);
         return gm;
     }

@@ -31,6 +31,7 @@ dependencies {
     }
     libImpl(files("../lib/jMessenger-1.0.jar"))
     libImpl(group: 'org.orbisgis', name: 'poly2tri-core', version: '0.1.2')
+    modImpl(files("rt-mods/render-explorer-1.0.0.jar"))
 
     configurations.modImpl.dependencies.each {
         modImplementation(it)
