@@ -7,7 +7,10 @@ import me.x150.renderer.objfile.ObjFile;
 import me.x150.renderer.render.MSAAFramebuffer;
 import me.x150.renderer.render.Renderer2d;
 import me.x150.renderer.render.Renderer3d;
+import net.minecraft.client.util.math.MatrixStack;
+import net.minecraft.util.math.RotationAxis;
 import net.minecraft.util.math.Vec3d;
+import org.joml.Matrix4f;
 
 import java.awt.Color;
 import java.awt.Font;
@@ -27,7 +30,13 @@ public class Handler {
             of.linkMaterialFile(new File("untitled.mtl"));
             of.read();
         }
-        Renderer3d.renderObjFile(wr.getMatrixStack(), of, new Vec3d(0, 100, 0), 1f, 1f, 1f);
+        MatrixStack matrixStack = wr.getMatrixStack();
+//        matrixStack.push();
+        Matrix4f viewMat = new Matrix4f();
+        float d = (System.currentTimeMillis() % 2000) / 2000f * 360f;
+        viewMat.rotateY((float) Math.toRadians(d));
+        Renderer3d.renderObjFile(matrixStack, viewMat, of, new Vec3d(0, 100, 0));
+//        matrixStack.pop();
     }
 
     @MessageSubscription

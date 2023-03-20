@@ -95,7 +95,9 @@ public class Renderer3d {
      * Renders all fading blocks. Automatically called by the library.
      *
      * @param stack The MatrixStack
+     * @deprecated For internal use only
      */
+    @Deprecated
     public static void renderFadingBlocks(MatrixStack stack) {
         fades.removeIf(FadingBlock::isDead);
         for (FadingBlock fade : fades) {
@@ -192,13 +194,11 @@ public class Renderer3d {
      * Renders an {@link me.x150.renderer.objfile.ObjFile}, initializing it if not already initialized.
      *
      * @param stack   MatrixStack
+     * @param viewMatrix View matrix, applied to the rendered object in relative coordinate space
      * @param objFile {@link ObjFile} to render
      * @param origin  Origin in world space
-     * @param scaleX  X scale
-     * @param scaleY  Y scale
-     * @param scaleZ  Z scale
      */
-    public static void renderObjFile(MatrixStack stack, ObjFile objFile, Vec3d origin, float scaleX, float scaleY, float scaleZ) {
+    public static void renderObjFile(MatrixStack stack, Matrix4f viewMatrix, ObjFile objFile, Vec3d origin) {
         Matrix4f matrix = stack.peek().getPositionMatrix();
         Vec3d vec3d = transformVec3d(origin);
         if (!objFile.isInitialized()) {
@@ -210,7 +210,7 @@ public class Renderer3d {
             }
         }
         for (ObjFile.ObjObject object : objFile.objects) {
-            renderObjObject(object, matrix, vec3d, scaleX, scaleY, scaleZ);
+            renderObjObject(object, matrix, viewMatrix, vec3d);
         }
     }
 
@@ -219,15 +219,13 @@ public class Renderer3d {
      *
      * @param oo     Object to draw
      * @param mat    Matrix
+     * @param viewMat View matrix
      * @param origin Origin vec3
-     * @param scaleX Scale X
-     * @param scaleY Scale Y
-     * @param scaleZ Scale Z
      *
      * @deprecated For internal use only
      */
     @Deprecated
-    public static void renderObjObject(ObjFile.ObjObject oo, Matrix4f mat, Vec3d origin, float scaleX, float scaleY, float scaleZ) {
+    public static void renderObjObject(ObjFile.ObjObject oo, Matrix4f mat, Matrix4f viewMat, Vec3d origin) {
         if (oo.getBuffer() == null) {
             oo.bake();
         }
@@ -243,7 +241,7 @@ public class Renderer3d {
         //        RenderSystem.setShader(sp);
         Matrix4f m4f = new Matrix4f(mat);
         m4f.translate((float) origin.x, (float) origin.y, (float) origin.z);
-        m4f.scale(scaleX, scaleY, scaleZ);
+        m4f.mul(viewMat);
         //        m4f.mul(mat);
         MtlFile.Material material = oo.getMaterial();
         if (material != null && material.getDiffuseTextureMap() != null) {
