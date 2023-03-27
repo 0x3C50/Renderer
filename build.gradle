@@ -87,16 +87,17 @@ dependencies {
     compileOnly 'org.projectlombok:lombok:1.18.24'
     annotationProcessor 'org.projectlombok:lombok:1.18.24'
 
-    libImpl(group: 'org.apache.xmlgraphics', name: 'batik-transcoder', version: '1.16') {
+    api(group: 'org.apache.xmlgraphics', name: 'batik-transcoder', version: '1.16') {
         exclude group: "xml-apis", module: "xml-apis"
         exclude group: "commons-io", module: "commons-io"
     }
-    libImpl(group: 'org.apache.xmlgraphics', name: 'batik-codec', version: '1.16') {
+    api(group: 'org.apache.xmlgraphics', name: 'batik-codec', version: '1.16') {
         exclude group: "xml-apis", module: "xml-apis"
         exclude group: "commons-io", module: "commons-io"
     }
+    api(group: 'org.orbisgis', name: 'poly2tri-core', version: '0.1.2')
+
     libImpl(files("lib/jMessenger-1.0.jar"))
-    libImpl(group: 'org.orbisgis', name: 'poly2tri-core', version: '0.1.2')
 
     configurations.modImpl.dependencies.each {
         modImplementation(it)
@@ -151,21 +152,4 @@ jar {
         configurations.libImpl.collect { it.isDirectory() ? it : zipTree(it) }
     }
     duplicatesStrategy(DuplicatesStrategy.EXCLUDE)
-}
-
-// configure the maven publication
-publishing {
-    publications {
-        mavenJava(MavenPublication) {
-            from components.java
-        }
-    }
-
-    // See https://docs.gradle.org/current/userguide/publishing_maven.html for information on how to set up publishing.
-    repositories {
-        // Add repositories to publish to here.
-        // Notice: This block does NOT have the same function as the block in the top level.
-        // The repositories here will be used for publishing your artifact, not for
-        // retrieving dependencies.
-    }
 }

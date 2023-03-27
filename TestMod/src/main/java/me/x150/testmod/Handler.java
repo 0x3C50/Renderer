@@ -1,5 +1,6 @@
 package me.x150.testmod;
 
+import com.mojang.blaze3d.systems.RenderSystem;
 import me.x150.MessageSubscription;
 import me.x150.renderer.event.RenderEvent;
 import me.x150.renderer.font.FontRenderer;
@@ -7,8 +8,8 @@ import me.x150.renderer.objfile.ObjFile;
 import me.x150.renderer.render.MSAAFramebuffer;
 import me.x150.renderer.render.Renderer2d;
 import me.x150.renderer.render.Renderer3d;
+import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.util.math.MatrixStack;
-import net.minecraft.util.math.RotationAxis;
 import net.minecraft.util.math.Vec3d;
 import org.joml.Matrix4f;
 
@@ -20,23 +21,22 @@ import java.io.IOException;
 
 public class Handler {
 
-    ObjFile of;
+    ObjFile objFile;
     FontRenderer fr;
 
     @MessageSubscription
-    void real(RenderEvent.World wr) throws IOException {
-        if (of == null) {
-            of = new ObjFile(new FileReader("untitled.obj"));
-            of.linkMaterialFile(new File("untitled.mtl"));
-            of.read();
+    void onWorld(RenderEvent.World wr) throws IOException {
+        if (objFile == null) {
+            objFile = new ObjFile(new FileReader("untitled.obj"));
+            objFile.linkMaterialFile(new File("untitled.mtl"));
+            objFile.read();
         }
         MatrixStack matrixStack = wr.getMatrixStack();
-//        matrixStack.push();
         Matrix4f viewMat = new Matrix4f();
-        float d = (System.currentTimeMillis() % 2000) / 2000f * 360f;
-        viewMat.rotateY((float) Math.toRadians(d));
-        Renderer3d.renderObjFile(matrixStack, viewMat, of, new Vec3d(0, 100, 0));
-//        matrixStack.pop();
+//        float yaw = MinecraftClient.getInstance().gameRenderer.getCamera().getYaw();
+//        viewMat.rotateY((float) -Math.toRadians(yaw+180));
+        Renderer3d.renderObjFile(matrixStack, viewMat, objFile, new Vec3d(37,71,4));
+//        RenderSystem.setShaderTexture(0, 1);
     }
 
     @MessageSubscription

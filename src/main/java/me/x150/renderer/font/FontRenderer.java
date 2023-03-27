@@ -24,7 +24,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * A font renderer
+ * A simple font renderer. Supports multiple fonts, passed in as {@link java.awt.Font} instances.
+ * <h2>Constructor</h2>
+ * {@link FontRenderer#FontRenderer(Font[], float)} takes in a {@link java.awt.Font} array with the fonts to use. All fonts in this array will be asked, in order,
+ * if they have a glyph corresponding to the one being drawn. If none of them have it, the missing "square" is drawn.
  */
 public class FontRenderer implements Closeable {
     private static final Char2IntArrayMap colorCodes = new Char2IntArrayMap() {{

@@ -48,16 +48,16 @@ public final class MtlFile {
                     Material item = new Material(r.readStr(), 1f, 1f, 1f, 1f, null);
                     materialStack.push(item);
                 }
-                case "Kd" -> {
+                case "Kd" -> { // diffuse
                     Material peek = materialStack.peek();
                     peek.diffuseR = r.readFloat();
                     peek.diffuseG = r.readFloat();
                     peek.diffuseB = r.readFloat();
                 }
-                case "d", "Tr" -> {
+                case "d", "Tr" -> { // transparency
                     Material peek = materialStack.peek();
                     float v = r.readFloat();
-                    if (s.equals("Tr")) {
+                    if (s.equals("Tr")) { // Tr is inverted
                         v = 1 - v;
                     }
                     peek.dissolve = v;
