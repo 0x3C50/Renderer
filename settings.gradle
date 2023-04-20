@@ -8,6 +8,4 @@ pluginManagement {
     }
 }
 
-rootProject.name = "renderer"
-
 include("TestMod")

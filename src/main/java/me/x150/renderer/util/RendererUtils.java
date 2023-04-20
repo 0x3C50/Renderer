@@ -260,8 +260,8 @@ public class RendererUtils {
         GL11.glGetIntegerv(GL11.GL_VIEWPORT, viewport);
         Vector3f target = new Vector3f();
 
-        Matrix4f matrixProj = new Matrix4f(RenderSystem.getProjectionMatrix());
-        Matrix4f matrixModel = new Matrix4f(RenderSystem.getModelViewMatrix());
+        Matrix4f matrixProj = new Matrix4f(lastProjMat);
+        Matrix4f matrixModel = new Matrix4f(lastModMat);
 
         matrixProj.mul(matrixModel)
             .mul(lastWorldSpaceMatrix)

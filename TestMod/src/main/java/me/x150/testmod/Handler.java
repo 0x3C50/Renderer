@@ -1,6 +1,5 @@
 package me.x150.testmod;
 
-import com.mojang.blaze3d.systems.RenderSystem;
 import me.x150.MessageSubscription;
 import me.x150.renderer.event.RenderEvent;
 import me.x150.renderer.font.FontRenderer;
@@ -8,8 +7,10 @@ import me.x150.renderer.objfile.ObjFile;
 import me.x150.renderer.render.MSAAFramebuffer;
 import me.x150.renderer.render.Renderer2d;
 import me.x150.renderer.render.Renderer3d;
+import me.x150.renderer.util.RendererUtils;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.util.math.MatrixStack;
+import net.minecraft.entity.Entity;
 import net.minecraft.util.math.Vec3d;
 import org.joml.Matrix4f;
 
@@ -44,7 +45,7 @@ public class Handler {
         if (fr == null) {
             fr = new FontRenderer(new Font[] {
                 new Font("Ubuntu", Font.PLAIN, 8)
-            }, 18f);
+            }, 12f);
         }
         String text = "Hello world 123 +- 100;:- %$ äöü # ^° µ€@«amongus»";
         float width = fr.getStringWidth(text);
@@ -52,6 +53,13 @@ public class Handler {
         MSAAFramebuffer.use(8, () -> {
             Renderer2d.renderRoundedQuad(hud.getMatrixStack(), new Color(20, 20, 20, 100), 5, 5, 5+width+5, 5+height+5, 5, 10);
             fr.drawString(hud.getMatrixStack(), text, 5+2.5f, 5+2.5f, 1f, 1f, 1f, 1f);
+            for (Entity entity : MinecraftClient.getInstance().world.getEntities()) {
+                Vec3d vec3d = RendererUtils.worldSpaceToScreenSpace(entity.getPos());
+                if (RendererUtils.screenSpaceCoordinateIsVisible(vec3d)) {
+                    Renderer2d.renderLine(hud.getMatrixStack(), Color.RED, vec3d.x, vec3d.y-20, vec3d.x, vec3d.y+20);
+//                    Renderer2d.renderRoundedOutline(hud.getMatrixStack(), Color.RED, vec3d.x-20, vec3d.y-20, vec3d.x+20, vec3d.y+20, 5, 1, 5);
+                }
+            }
         });
     }
 }
