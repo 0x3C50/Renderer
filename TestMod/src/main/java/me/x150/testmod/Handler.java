@@ -3,49 +3,29 @@ package me.x150.testmod;
 import me.x150.MessageSubscription;
 import me.x150.renderer.event.RenderEvent;
 import me.x150.renderer.font.FontRenderer;
-import me.x150.renderer.objfile.ObjFile;
 import me.x150.renderer.render.MSAAFramebuffer;
 import me.x150.renderer.render.Renderer2d;
-import me.x150.renderer.render.Renderer3d;
 import me.x150.renderer.util.RendererUtils;
 import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.util.math.MatrixStack;
-import net.minecraft.entity.Entity;
+import net.minecraft.client.Mouse;
+import net.minecraft.client.util.Window;
 import net.minecraft.util.math.Vec3d;
-import org.joml.Matrix4f;
+import net.minecraft.world.RaycastContext;
 
 import java.awt.Color;
 import java.awt.Font;
-import java.io.File;
-import java.io.FileReader;
-import java.io.IOException;
+import java.util.Locale;
 
 public class Handler {
 
-    ObjFile objFile;
     FontRenderer fr;
-
-    @MessageSubscription
-    void onWorld(RenderEvent.World wr) throws IOException {
-        if (objFile == null) {
-            objFile = new ObjFile(new FileReader("untitled.obj"));
-            objFile.linkMaterialFile(new File("untitled.mtl"));
-            objFile.read();
-        }
-        MatrixStack matrixStack = wr.getMatrixStack();
-        Matrix4f viewMat = new Matrix4f();
-//        float yaw = MinecraftClient.getInstance().gameRenderer.getCamera().getYaw();
-//        viewMat.rotateY((float) -Math.toRadians(yaw+180));
-        Renderer3d.renderObjFile(matrixStack, viewMat, objFile, new Vec3d(37,71,4));
-//        RenderSystem.setShaderTexture(0, 1);
-    }
 
     @MessageSubscription
     void hud(RenderEvent.Hud hud) {
         if (fr == null) {
             fr = new FontRenderer(new Font[] {
                 new Font("Ubuntu", Font.PLAIN, 8)
-            }, 12f);
+            }, 9f);
         }
         String text = "Hello world 123 +- 100;:- %$ äöü # ^° µ€@«amongus»";
         float width = fr.getStringWidth(text);
@@ -53,13 +33,18 @@ public class Handler {
         MSAAFramebuffer.use(8, () -> {
             Renderer2d.renderRoundedQuad(hud.getMatrixStack(), new Color(20, 20, 20, 100), 5, 5, 5+width+5, 5+height+5, 5, 10);
             fr.drawString(hud.getMatrixStack(), text, 5+2.5f, 5+2.5f, 1f, 1f, 1f, 1f);
-            for (Entity entity : MinecraftClient.getInstance().world.getEntities()) {
-                Vec3d vec3d = RendererUtils.worldSpaceToScreenSpace(entity.getPos());
-                if (RendererUtils.screenSpaceCoordinateIsVisible(vec3d)) {
-                    Renderer2d.renderLine(hud.getMatrixStack(), Color.RED, vec3d.x, vec3d.y-20, vec3d.x, vec3d.y+20);
-//                    Renderer2d.renderRoundedOutline(hud.getMatrixStack(), Color.RED, vec3d.x-20, vec3d.y-20, vec3d.x+20, vec3d.y+20, 5, 1, 5);
-                }
-            }
         });
+
+        MinecraftClient instance = MinecraftClient.getInstance();
+        Mouse m = instance.mouse;
+        Window w = instance.getWindow();
+        double x = m.getX() / w.getFramebufferWidth() * w.getScaledWidth();
+        double y = m.getY() / w.getFramebufferHeight() * w.getScaledHeight();
+        Vec3d close = RendererUtils.screenSpaceToWorldSpace(x, y, 0);
+        Vec3d far = RendererUtils.screenSpaceToWorldSpace(x, y, 1);
+        RaycastContext rc = new RaycastContext(close, far, RaycastContext.ShapeType.VISUAL, RaycastContext.FluidHandling.NONE, instance.player);
+        Vec3d pos = instance.world.raycast(rc).getPos();
+        String format = String.format(Locale.ENGLISH, "%.2f %.2f %.2f", pos.x, pos.y, pos.z);
+        fr.drawCenteredString(hud.getMatrixStack(), format, (float) x, (float) y-fr.getStringHeight(format)-2, 1f, 1f, 1f, 1f);
     }
 }

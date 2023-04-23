@@ -1,6 +1,7 @@
 package me.x150.renderer.util;
 
 import com.mojang.blaze3d.systems.RenderSystem;
+import lombok.NonNull;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.render.Camera;
 import net.minecraft.client.texture.NativeImage;
@@ -9,6 +10,7 @@ import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec3d;
+import org.jetbrains.annotations.Contract;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
 import org.joml.Vector4f;
@@ -91,7 +93,8 @@ public class RendererUtils {
      *
      * @return The interpolated color
      */
-    public static Color lerp(Color a, Color b, double c) {
+    @Contract(value = "_, _, _ -> new", pure = true)
+    public static Color lerp(@NonNull Color a, @NonNull Color b, double c) {
         return new Color(lerp(a.getRed(), b.getRed(), c), lerp(a.getGreen(), b.getGreen(), c), lerp(a.getBlue(), b.getBlue(), c), lerp(a.getAlpha(), b.getAlpha(), c));
     }
 
@@ -107,7 +110,8 @@ public class RendererUtils {
      *
      * @return The new color
      */
-    public static Color modify(Color original, int redOverwrite, int greenOverwrite, int blueOverwrite, int alphaOverwrite) {
+    @Contract(value = "_, _, _, _, _ -> new", pure = true)
+    public static Color modify(@NonNull Color original, int redOverwrite, int greenOverwrite, int blueOverwrite, int alphaOverwrite) {
         return new Color(redOverwrite == -1 ? original.getRed() : redOverwrite,
             greenOverwrite == -1 ? original.getGreen() : greenOverwrite,
             blueOverwrite == -1 ? original.getBlue() : blueOverwrite,
@@ -122,7 +126,8 @@ public class RendererUtils {
      *
      * @return The translated Vec3d
      */
-    public static Vec3d translateVec3dWithMatrixStack(MatrixStack stack, Vec3d in) {
+    @Contract(value = "_, _ -> new", pure = true)
+    public static Vec3d translateVec3dWithMatrixStack(@NonNull MatrixStack stack, @NonNull Vec3d in) {
         Matrix4f matrix = stack.peek().getPositionMatrix();
         Vector4f parsedVecf = new Vector4f((float) in.x, (float) in.y, (float) in.z, 1);
         parsedVecf.mul(matrix);
@@ -137,7 +142,7 @@ public class RendererUtils {
      * @param i  The identifier to register the texture under
      * @param bi The BufferedImage holding the texture
      */
-    public static void registerBufferedImageTexture(Identifier i, BufferedImage bi) {
+    public static void registerBufferedImageTexture(@NonNull Identifier i, @NonNull BufferedImage bi) {
         try {
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
             ImageIO.write(bi, "png", baos);
@@ -167,6 +172,7 @@ public class RendererUtils {
      *
      * @return The position of the crosshair of the player, transformed into world space
      */
+    @Contract("-> new")
     public static Vec3d getCrosshairVector() {
         Camera camera = client.gameRenderer.getCamera();
 
@@ -183,7 +189,6 @@ public class RendererUtils {
 
     /**
      * Transforms an input position into a (x, y, d) coordinate, transformed to screen space. d specifies the far plane of the position, and can be used to check if the position is on screen. Use {@link #screenSpaceCoordinateIsVisible(Vec3d)}.
-     * <b>Only works in the hud render event.</b>
      * Example:
      * <pre>
      * {@code
@@ -199,8 +204,10 @@ public class RendererUtils {
      * @param pos The world space coordinates to translate
      *
      * @return The (x, y, d) coordinates
+     * @throws NullPointerException If {@code pos} is null
      */
-    public static Vec3d worldSpaceToScreenSpace(Vec3d pos) {
+    @Contract(value = "_ -> new", pure = true)
+    public static Vec3d worldSpaceToScreenSpace(@NonNull Vec3d pos) {
         Camera camera = client.getEntityRenderDispatcher().camera;
         int displayHeight = client.getWindow().getHeight();
         int[] viewport = new int[4];
@@ -233,7 +240,7 @@ public class RendererUtils {
     }
 
     /**
-     * Converts a (x, y, d) screen space coordinate back into a world space coordinate. <b>Only works in the world render event.</b> Example:
+     * Converts a (x, y, d) screen space coordinate back into a world space coordinate. Example:
      * <pre>
      * {@code
      * // World render event
@@ -249,11 +256,9 @@ public class RendererUtils {
      *
      * @return The world space coordinate
      */
+    @Contract(value = "_,_,_ -> new", pure = true)
     public static Vec3d screenSpaceToWorldSpace(double x, double y, double d) {
         Camera camera = client.getEntityRenderDispatcher().camera;
-        if (camera == null) {
-            return null;
-        }
         int displayHeight = client.getWindow().getScaledHeight();
         int displayWidth = client.getWindow().getScaledWidth();
         int[] viewport = new int[4];
@@ -288,6 +293,7 @@ public class RendererUtils {
      *
      * @return The identifier
      */
+    @Contract(value = "-> new", pure = true)
     public static Identifier randomIdentifier() {
         return new Identifier("renderer", "temp/" + randomString(32));
     }

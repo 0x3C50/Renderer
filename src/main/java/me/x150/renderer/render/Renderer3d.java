@@ -95,6 +95,7 @@ public class Renderer3d {
      * Renders all fading blocks. Automatically called by the library.
      *
      * @param stack The MatrixStack
+     *
      * @deprecated For internal use only
      */
     @Deprecated
@@ -193,10 +194,10 @@ public class Renderer3d {
     /**
      * Renders an {@link me.x150.renderer.objfile.ObjFile}, initializing it if not already initialized.
      *
-     * @param stack   MatrixStack
+     * @param stack      MatrixStack
      * @param viewMatrix View matrix, applied to the rendered object in relative coordinate space
-     * @param objFile {@link ObjFile} to render
-     * @param origin  Origin in world space
+     * @param objFile    {@link ObjFile} to render
+     * @param origin     Origin in world space
      */
     public static void renderObjFile(MatrixStack stack, Matrix4f viewMatrix, ObjFile objFile, Vec3d origin) {
         Matrix4f matrix = stack.peek().getPositionMatrix();
@@ -217,10 +218,10 @@ public class Renderer3d {
     /**
      * Renders an obj object
      *
-     * @param oo     Object to draw
-     * @param mat    Matrix
+     * @param oo      Object to draw
+     * @param mat     Matrix
      * @param viewMat View matrix
-     * @param origin Origin vec3
+     * @param origin  Origin vec3
      *
      * @deprecated For internal use only
      */
