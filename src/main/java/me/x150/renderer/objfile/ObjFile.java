@@ -13,6 +13,7 @@ import net.minecraft.client.render.VertexFormat;
 import net.minecraft.client.render.VertexFormats;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.util.math.Vec3d;
+import org.jetbrains.annotations.ApiStatus;
 import org.joml.Matrix4f;
 import org.poly2tri.Poly2Tri;
 import org.poly2tri.geometry.polygon.Polygon;
@@ -55,7 +56,7 @@ import java.util.Stack;
  *     <li>Initialize a new {@link ObjFile}</li>
  *     <li>Add all desired .mtl files using {@link ObjFile#linkMaterialFile(File)}</li>
  *     <li>Load the file with {@link ObjFile#read()}</li>
- *     <li>Render the objects with {@link Renderer3d#renderObjFile(MatrixStack, ObjFile, Vec3d, float, float, float)}</li>
+ *     <li>Render the objects with {@link Renderer3d#renderObjFile(MatrixStack, Matrix4f, ObjFile, Vec3d)}</li>
  * </ol>
  */
 public class ObjFile implements Closeable {
@@ -232,6 +233,8 @@ public class ObjFile implements Closeable {
                         throw new IllegalStateException("Expected at least 3 elements in face, got " + parsedVTs.size());
                     }
                     List<VertexBundle> bundles = new ArrayList<>();
+                    // we close this later on, no worries idea
+                    //noinspection resource
                     ObjObject peek = objects.peek();
                     for (String parsedVT : parsedVTs) {
                         String[] split = parsedVT.trim().split("/");
@@ -315,12 +318,14 @@ public class ObjFile implements Closeable {
                                 RendererMain.LOGGER.warn("Tried to resolve material " + st + ", but was not found");
                             }
                         } else {
+                            // we close this later on, no worries idea
+                            //noinspection resource
                             objects.peek().setMaterial(material);
                         }
                     }
                     content.skipLine();
                 }
-                default -> content.skipLine(); // dont know this one
+                default -> content.skipLine(); // don't know this one
             }
         }
     }
@@ -332,6 +337,7 @@ public class ObjFile implements Closeable {
             object.close();
         }
         content.close();
+        closed = true;
     }
 
     /**
@@ -456,6 +462,7 @@ public class ObjFile implements Closeable {
     @Data
     @AllArgsConstructor
     public static class ObjObject implements Closeable {
+        private final Matrix4f EMPTY_MAT = new Matrix4f();
         /**
          * The name of this object
          */
@@ -486,11 +493,10 @@ public class ObjFile implements Closeable {
         }
 
         /**
-         * Bakes this object into its {@link #buffer}. Called by {@link Renderer3d#renderObjObject(ObjObject, Matrix4f, Vec3d, float, float, float)}
-         *
-         * @deprecated For internal use only
+         * Bakes this object into its {@link #buffer}. Called by {@link Renderer3d#renderObjFile(MatrixStack, Matrix4f, ObjFile, Vec3d)}.
+         * <b>For internal use only. You should have a good reason to call this yourself (don't).</b>
          */
-        @Deprecated
+        @ApiStatus.Internal
         public void bake() {
             if (buffer != null) {
                 buffer.close();
@@ -502,7 +508,7 @@ public class ObjFile implements Closeable {
 
                 bb.begin(VertexFormat.DrawMode.DEBUG_LINES, vf);
 
-                Renderer3d.drawObjObjectWireframe(this, bb, new Matrix4f(), Vec3d.ZERO, 1, 1, 1);
+                Renderer3d.drawObjObjectWireframe(this, bb, EMPTY_MAT, Vec3d.ZERO);
 
                 BufferBuilder.BuiltBuffer end = bb.end();
                 buffer = BufferUtils.createVbo(end);
@@ -514,7 +520,7 @@ public class ObjFile implements Closeable {
 
                 bb.begin(VertexFormat.DrawMode.TRIANGLES, vf);
 
-                Renderer3d.drawObjObject(this, bb, new Matrix4f(), Vec3d.ZERO, 1, 1, 1);
+                Renderer3d.drawObjObject(this, bb, EMPTY_MAT, Vec3d.ZERO);
 
                 BufferBuilder.BuiltBuffer end = bb.end();
                 buffer = BufferUtils.createVbo(end);

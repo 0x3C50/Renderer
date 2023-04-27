@@ -1,5 +1,5 @@
 # Renderer
-An easy to use rendering library for modern fabric
+An easy-to-use rendering library for modern fabric
 
 # Installing
 You can install this library using [Jitpack](https://jitpack.io/)
@@ -18,7 +18,7 @@ The api has an extensive javadoc, which explains almost anything. The wiki also 
 Renderer2d draws in 2 dimensions, on the hud. Renderer3d draws in 3 dimensions, in the world.
 
 # Events
-This library has its own event system, which broadcasts some basic rendering events (hud render, world render, etc). You can find more information on the wiki
+This library has its own event system, which broadcasts some basic rendering events (hud render, world render, etc.). You can find more information on the wiki
 
 # Suggestions
 You can leave suggestions in the issues section

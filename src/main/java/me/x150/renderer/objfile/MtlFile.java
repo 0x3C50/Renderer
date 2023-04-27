@@ -57,7 +57,7 @@ public final class MtlFile {
                 case "d", "Tr" -> { // transparency
                     Material peek = materialStack.peek();
                     float v = r.readFloat();
-                    if (s.equals("Tr")) { // Tr is inverted
+                    if (s.equals("Tr")) { // "Tr" is inverted
                         v = 1 - v;
                     }
                     peek.dissolve = v;

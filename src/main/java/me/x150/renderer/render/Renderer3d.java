@@ -19,6 +19,7 @@ import net.minecraft.client.render.VertexFormats;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec3d;
+import org.jetbrains.annotations.ApiStatus;
 import org.joml.Matrix4f;
 import org.lwjgl.opengl.GL11;
 
@@ -92,13 +93,11 @@ public class Renderer3d {
     }
 
     /**
-     * Renders all fading blocks. Automatically called by the library.
+     * Renders all fading blocks. <b>For internal use only. You should have a good reason to call this yourself (don't).</b>
      *
      * @param stack The MatrixStack
-     *
-     * @deprecated For internal use only
      */
-    @Deprecated
+    @ApiStatus.Internal
     public static void renderFadingBlocks(MatrixStack stack) {
         fades.removeIf(FadingBlock::isDead);
         for (FadingBlock fade : fades) {
@@ -216,16 +215,14 @@ public class Renderer3d {
     }
 
     /**
-     * Renders an obj object
+     * Renders an obj object. <b>For internal use only. You should have a good reason to call this yourself (don't).</b>
      *
      * @param oo      Object to draw
      * @param mat     Matrix
      * @param viewMat View matrix
      * @param origin  Origin vec3
-     *
-     * @deprecated For internal use only
      */
-    @Deprecated
+    @ApiStatus.Internal
     public static void renderObjObject(ObjFile.ObjObject oo, Matrix4f mat, Matrix4f viewMat, Vec3d origin) {
         if (oo.getBuffer() == null) {
             oo.bake();
@@ -256,20 +253,15 @@ public class Renderer3d {
 
 
     /**
-     * Draws an obj object to a buffer
+     * Draws an obj object to a buffer. <b>For internal use only. You should have a good reason to call this yourself (don't).</b>
      *
      * @param object Object to draw
      * @param bb     Buffer to draw to
      * @param mat    Matrix
      * @param origin Origin vec3
-     * @param scaleX Scale X
-     * @param scaleY Scale Y
-     * @param scaleZ Scale z
-     *
-     * @deprecated For internal use only
      */
-    @Deprecated
-    public static void drawObjObject(ObjFile.ObjObject object, BufferBuilder bb, Matrix4f mat, Vec3d origin, float scaleX, float scaleY, float scaleZ) {
+    @ApiStatus.Internal
+    public static void drawObjObject(ObjFile.ObjObject object, BufferBuilder bb, Matrix4f mat, Vec3d origin) {
         MtlFile.Material material = object.getMaterial();
 
         for (ObjFile.Face face : object.getFaces()) {
@@ -279,9 +271,9 @@ public class Renderer3d {
 
                 ObjFile.Normal normal = vertex.getNormal();
                 VertexConsumer vertex1 = bb.vertex(mat,
-                    (float) (origin.x + vert.getX() * scaleX),
-                    (float) (origin.y + vert.getY() * scaleY),
-                    (float) (origin.z + vert.getZ() * scaleZ));
+                    (float) (origin.x + vert.getX()),
+                    (float) (origin.y + vert.getY()),
+                    (float) (origin.z + vert.getZ()));
                 if (material != null && material.getDiffuseTextureMap() != null) {
                     vertex1.texture(tex.getX(), tex.getY());
                 }
@@ -299,29 +291,24 @@ public class Renderer3d {
     }
 
     /**
-     * Draws an obj object to a buffer as wireframe
+     * Draws an obj object to a buffer as a wireframe. <b>For internal use only. You should have a good reason to call this yourself (don't).</b>
      *
      * @param object Object to draw
      * @param bb     Buffer to draw to
      * @param mat    Matrix
      * @param origin Origin vec3
-     * @param scaleX Scale X
-     * @param scaleY Scale Y
-     * @param scaleZ Scale z
-     *
-     * @deprecated For internal use only
      */
-    @Deprecated
-    public static void drawObjObjectWireframe(ObjFile.ObjObject object, BufferBuilder bb, Matrix4f mat, Vec3d origin, float scaleX, float scaleY, float scaleZ) {
+    @ApiStatus.Internal
+    public static void drawObjObjectWireframe(ObjFile.ObjObject object, BufferBuilder bb, Matrix4f mat, Vec3d origin) {
         for (ObjFile.Face face : object.getFaces()) {
             ObjFile.VertexBundle[] vertices = face.getVertices();
             for (int i = 1; i < vertices.length; i++) {
                 ObjFile.Vertex prev = vertices[i - 1].getVert();
                 ObjFile.Vertex vert = vertices[i].getVert();
-                bb.vertex(mat, (float) (origin.x + prev.getX() * scaleX), (float) (origin.y + prev.getY() * scaleY), (float) (origin.z + prev.getZ() * scaleZ))
+                bb.vertex(mat, (float) (origin.x + prev.getX()), (float) (origin.y + prev.getY()), (float) (origin.z + prev.getZ()))
                     .color(1f, 1f, 1f, 1f)
                     .next();
-                bb.vertex(mat, (float) (origin.x + vert.getX() * scaleX), (float) (origin.y + vert.getY() * scaleY), (float) (origin.z + vert.getZ() * scaleZ))
+                bb.vertex(mat, (float) (origin.x + vert.getX()), (float) (origin.y + vert.getY()), (float) (origin.z + vert.getZ()))
                     .color(1f, 1f, 1f, 1f)
                     .next();
             }

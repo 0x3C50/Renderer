@@ -88,7 +88,7 @@ class GlyphMap {
                 charNX = 0;
                 currentRowMaxY = 0;
             }
-            currentRowMaxY = Math.max(currentRowMaxY, height); // calculate highest glyph in this row
+            currentRowMaxY = Math.max(currentRowMaxY, height); // calculate the highest glyph in this row
             glyphs1.add(new Glyph(currentX, currentY, width, height, currentChar, this));
             currentX += width + PADDING;
             charNX++;

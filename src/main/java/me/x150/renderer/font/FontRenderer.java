@@ -5,6 +5,8 @@ import com.mojang.blaze3d.systems.RenderSystem;
 import it.unimi.dsi.fastutil.chars.Char2IntArrayMap;
 import it.unimi.dsi.fastutil.chars.Char2ObjectArrayMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectArrayMap;
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
+import it.unimi.dsi.fastutil.objects.ObjectList;
 import me.x150.renderer.util.BufferUtils;
 import me.x150.renderer.util.Colors;
 import me.x150.renderer.util.RendererUtils;
@@ -20,7 +22,6 @@ import org.lwjgl.opengl.GL11;
 
 import java.awt.Font;
 import java.io.Closeable;
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -30,6 +31,7 @@ import java.util.List;
  * if they have a glyph corresponding to the one being drawn. If none of them have it, the missing "square" is drawn.
  */
 public class FontRenderer implements Closeable {
+    record DrawEntry(float atX, float atY, float r, float g, float b, Glyph toDraw) {}
     private static final Char2IntArrayMap colorCodes = new Char2IntArrayMap() {{
         put('0', 0x000000);
         put('1', 0x0000AA);
@@ -49,9 +51,9 @@ public class FontRenderer implements Closeable {
         put('F', 0xFFFFFF);
     }};
     private static final int BLOCK_SIZE = 256;
-    private static final Object2ObjectArrayMap<Identifier, List<Object[]>> GLYPH_PAGE_CACHE = new Object2ObjectArrayMap<>();
+    private static final Object2ObjectArrayMap<Identifier, ObjectList<DrawEntry>> GLYPH_PAGE_CACHE = new Object2ObjectArrayMap<>();
     private final float originalSize;
-    private final List<GlyphMap> maps = new ArrayList<>();
+    private final ObjectList<GlyphMap> maps = new ObjectArrayList<>();
     private final Char2ObjectArrayMap<Glyph> allGlyphs = new Char2ObjectArrayMap<>();
     private int scaleMul = 0;
     private Font[] fonts;
@@ -61,7 +63,7 @@ public class FontRenderer implements Closeable {
      * Initializes a new FontRenderer with the specified fonts
      *
      * @param fonts  The fonts to use. The font renderer will go over each font in this array, search for the glyph, and render it if found. If no font has the specified glyph, it will draw the missing font symbol.
-     * @param sizePx The size of the font in minecraft pixel units. One pixel unit = guiScale pixels
+     * @param sizePx The size of the font in minecraft pixel units. One pixel unit = `guiScale` pixels
      */
     public FontRenderer(Font[] fonts, float sizePx) {
         Preconditions.checkArgument(fonts.length > 0, "fonts.length == 0");
@@ -144,7 +146,7 @@ public class FontRenderer implements Closeable {
      * @param b     Blue color component of the text to draw
      * @param a     Alpha color component of the text to draw
      */
-    public synchronized void drawString(MatrixStack stack, String s, float x, float y, float r, float g, float b, float a) {
+    public void drawString(MatrixStack stack, String s, float x, float y, float r, float g, float b, float a) {
         sizeCheck();
         float r2 = r, g2 = g, b2 = b;
         stack.push();
@@ -161,9 +163,12 @@ public class FontRenderer implements Closeable {
         BufferBuilder bb = Tessellator.getInstance().getBuffer();
         Matrix4f mat = stack.peek().getPositionMatrix();
         char[] chars = s.toCharArray();
-        float xp = 0;
+        float xOffset = 0;
+        float yOffset = 0;
         boolean inSel = false;
-        for (char c : chars) {
+        int lineStart = 0;
+        for (int i = 0; i < chars.length; i++) {
+            char c = chars[i];
             if (inSel) {
                 inSel = false;
                 char c1 = Character.toUpperCase(c);
@@ -183,27 +188,33 @@ public class FontRenderer implements Closeable {
             if (c == '§') {
                 inSel = true;
                 continue;
+            } else if (c == '\n') {
+                yOffset += getStringHeight(s.substring(lineStart, i)) * scaleMul;
+                xOffset = 0;
+                lineStart = i+1;
+                continue;
             }
             Glyph glyph = locateGlyph1(c);
-            if (glyph.repr() != ' ') { // we only need to really draw the glyph if its not blank, otherwise we can just skip its width and that'll be it
+            if (glyph.repr() != ' ') { // we only need to really draw the glyph if it's not blank, otherwise we can just skip its width and that'll be it
                 Identifier i1 = glyph.owner().bindToTexture;
-                Object[] entry = new Object[] { xp, r2, g2, b2, glyph };
-                GLYPH_PAGE_CACHE.computeIfAbsent(i1, integer -> new ArrayList<>()).add(entry);
+                DrawEntry entry = new DrawEntry(xOffset, yOffset, r2, g2, b2, glyph);
+                GLYPH_PAGE_CACHE.computeIfAbsent(i1, integer -> new ObjectArrayList<>()).add(entry);
             }
-            xp += glyph.width();
+            xOffset += glyph.width();
         }
         for (Identifier identifier : GLYPH_PAGE_CACHE.keySet()) {
             RenderSystem.setShaderTexture(0, identifier);
-            List<Object[]> objects = GLYPH_PAGE_CACHE.get(identifier);
+            List<DrawEntry> objects = GLYPH_PAGE_CACHE.get(identifier);
 
             bb.begin(VertexFormat.DrawMode.QUADS, VertexFormats.POSITION_TEXTURE_COLOR);
 
-            for (Object[] object : objects) {
-                float xo = (float) object[0];
-                float cr = (float) object[1];
-                float cg = (float) object[2];
-                float cb = (float) object[3];
-                Glyph glyph = (Glyph) object[4];
+            for (DrawEntry object : objects) {
+                float xo = object.atX;
+                float yo = object.atY;
+                float cr = object.r;
+                float cg = object.g;
+                float cb = object.b;
+                Glyph glyph = object.toDraw;
                 GlyphMap owner = glyph.owner();
                 float w = glyph.width();
                 float h = glyph.height();
@@ -212,10 +223,10 @@ public class FontRenderer implements Closeable {
                 float u2 = (float) (glyph.u() + glyph.width()) / owner.width;
                 float v2 = (float) (glyph.v() + glyph.height()) / owner.height;
 
-                bb.vertex(mat, xo, h, 0).texture(u1, v2).color(cr, cg, cb, a).next();
-                bb.vertex(mat, w + xo, h, 0).texture(u2, v2).color(cr, cg, cb, a).next();
-                bb.vertex(mat, w + xo, 0, 0).texture(u2, v1).color(cr, cg, cb, a).next();
-                bb.vertex(mat, xo, 0, 0).texture(u1, v1).color(cr, cg, cb, a).next();
+                bb.vertex(mat, xo + 0, yo + h, 0).texture(u1, v2).color(cr, cg, cb, a).next();
+                bb.vertex(mat, xo + w, yo + h, 0).texture(u2, v2).color(cr, cg, cb, a).next();
+                bb.vertex(mat, xo + w, yo + 0, 0).texture(u2, v1).color(cr, cg, cb, a).next();
+                bb.vertex(mat, xo + 0, yo + 0, 0).texture(u1, v1).color(cr, cg, cb, a).next();
             }
             BufferUtils.draw(bb);
         }
@@ -249,12 +260,18 @@ public class FontRenderer implements Closeable {
      */
     public float getStringWidth(String text) {
         char[] c = stripControlCodes(text).toCharArray();
-        float total = 0;
+        float currentLine = 0;
+        float maxPreviousLines = 0;
         for (char c1 : c) {
+            if (c1 == '\n') {
+                maxPreviousLines = Math.max(currentLine, maxPreviousLines);
+                currentLine = 0;
+                continue;
+            }
             Glyph glyph = locateGlyph1(c1);
-            total += glyph.width() / (float) this.scaleMul;
+            currentLine += glyph.width() / (float) this.scaleMul;
         }
-        return total;
+        return Math.max(currentLine, maxPreviousLines);
     }
 
     /**
@@ -266,12 +283,23 @@ public class FontRenderer implements Closeable {
      */
     public float getStringHeight(String text) {
         char[] c = stripControlCodes(text).toCharArray();
-        float total = 0;
+        if (c.length == 0) c = new char[] { ' ' };
+        float currentLine = 0;
+        float previous = 0;
         for (char c1 : c) {
+            if (c1 == '\n') {
+                if (currentLine == 0) {
+                    // empty line, assume space
+                    currentLine = locateGlyph1(' ').height() / (float) this.scaleMul;
+                }
+                previous += currentLine;
+                currentLine = 0;
+                continue;
+            }
             Glyph glyph = locateGlyph1(c1);
-            total = Math.max(glyph.height() / (float) this.scaleMul, total);
+            currentLine = Math.max(glyph.height() / (float) this.scaleMul, currentLine);
         }
-        return total;
+        return currentLine+previous;
     }
 
     /**

@@ -11,7 +11,7 @@ public class RenderEvent {
     /**
      * The MatrixStack used to render the element
      */
-    MatrixStack matrixStack;
+    final MatrixStack matrixStack;
 
     /**
      * Constructs a new RenderEvent

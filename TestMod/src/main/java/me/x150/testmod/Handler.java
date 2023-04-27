@@ -15,6 +15,7 @@ import net.minecraft.world.RaycastContext;
 import java.awt.Color;
 import java.awt.Font;
 import java.util.Locale;
+import java.util.Objects;
 
 public class Handler {
 
@@ -27,7 +28,7 @@ public class Handler {
                 new Font("Ubuntu", Font.PLAIN, 8)
             }, 9f);
         }
-        String text = "Hello world 123 +- 100;:- %$ äöü # ^° µ€@«amongus»";
+        String text = "Newline test\nabcdefg\n\nactually kinda sick";
         float width = fr.getStringWidth(text);
         float height = fr.getStringHeight(text);
         MSAAFramebuffer.use(8, () -> {
@@ -42,8 +43,8 @@ public class Handler {
         double y = m.getY() / w.getFramebufferHeight() * w.getScaledHeight();
         Vec3d close = RendererUtils.screenSpaceToWorldSpace(x, y, 0);
         Vec3d far = RendererUtils.screenSpaceToWorldSpace(x, y, 1);
-        RaycastContext rc = new RaycastContext(close, far, RaycastContext.ShapeType.VISUAL, RaycastContext.FluidHandling.NONE, instance.player);
-        Vec3d pos = instance.world.raycast(rc).getPos();
+        RaycastContext rc = new RaycastContext(close, far, RaycastContext.ShapeType.VISUAL, RaycastContext.FluidHandling.NONE, Objects.requireNonNull(instance.player));
+        Vec3d pos = Objects.requireNonNull(instance.world).raycast(rc).getPos();
         String format = String.format(Locale.ENGLISH, "%.2f %.2f %.2f", pos.x, pos.y, pos.z);
         fr.drawCenteredString(hud.getMatrixStack(), format, (float) x, (float) y-fr.getStringHeight(format)-2, 1f, 1f, 1f, 1f);
     }
