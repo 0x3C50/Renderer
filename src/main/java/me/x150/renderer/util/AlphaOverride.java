@@ -38,5 +38,4 @@ public class AlphaOverride {
         }
         return alpha;
     }
-
 }

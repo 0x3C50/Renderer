@@ -31,7 +31,6 @@ import java.util.List;
  * if they have a glyph corresponding to the one being drawn. If none of them have it, the missing "square" is drawn.
  */
 public class FontRenderer implements Closeable {
-    record DrawEntry(float atX, float atY, float r, float g, float b, Glyph toDraw) {}
     private static final Char2IntArrayMap colorCodes = new Char2IntArrayMap() {{
         put('0', 0x000000);
         put('1', 0x0000AA);
@@ -191,7 +190,7 @@ public class FontRenderer implements Closeable {
             } else if (c == '\n') {
                 yOffset += getStringHeight(s.substring(lineStart, i)) * scaleMul;
                 xOffset = 0;
-                lineStart = i+1;
+                lineStart = i + 1;
                 continue;
             }
             Glyph glyph = locateGlyph1(c);
@@ -283,7 +282,9 @@ public class FontRenderer implements Closeable {
      */
     public float getStringHeight(String text) {
         char[] c = stripControlCodes(text).toCharArray();
-        if (c.length == 0) c = new char[] { ' ' };
+        if (c.length == 0) {
+            c = new char[] { ' ' };
+        }
         float currentLine = 0;
         float previous = 0;
         for (char c1 : c) {
@@ -299,7 +300,7 @@ public class FontRenderer implements Closeable {
             Glyph glyph = locateGlyph1(c1);
             currentLine = Math.max(glyph.height() / (float) this.scaleMul, currentLine);
         }
-        return currentLine+previous;
+        return currentLine + previous;
     }
 
     /**
@@ -312,5 +313,8 @@ public class FontRenderer implements Closeable {
         }
         maps.clear();
         allGlyphs.clear();
+    }
+
+    record DrawEntry(float atX, float atY, float r, float g, float b, Glyph toDraw) {
     }
 }

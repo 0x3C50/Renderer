@@ -1,0 +1,15 @@
+{
+  "targets": [
+    "inp", "out"
+  ],
+  "passes": [
+    {
+      "name": "renderer:outline",
+      "intarget": "inp",
+      "outtarget": "out",
+      "uniforms": [
+
+      ]
+    }
+  ]
+}

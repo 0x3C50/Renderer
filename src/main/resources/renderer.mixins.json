@@ -8,7 +8,10 @@
   "client": [
     "DebugHudMixin",
     "GameRendererMixin",
-    "InGameHudMixin"
+    "InGameHudMixin",
+    "JsonEffectShaderProgramMixin",
+    "PostProcessShaderMixin",
+    "ShaderEffectMixin"
   ],
   "injectors": {
     "defaultRequire": 1

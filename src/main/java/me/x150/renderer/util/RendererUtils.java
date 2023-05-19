@@ -112,10 +112,12 @@ public class RendererUtils {
      */
     @Contract(value = "_, _, _, _, _ -> new", pure = true)
     public static Color modify(@NonNull Color original, int redOverwrite, int greenOverwrite, int blueOverwrite, int alphaOverwrite) {
-        return new Color(redOverwrite == -1 ? original.getRed() : redOverwrite,
+        return new Color(
+            redOverwrite == -1 ? original.getRed() : redOverwrite,
             greenOverwrite == -1 ? original.getGreen() : greenOverwrite,
             blueOverwrite == -1 ? original.getBlue() : blueOverwrite,
-            alphaOverwrite == -1 ? original.getAlpha() : alphaOverwrite);
+            alphaOverwrite == -1 ? original.getAlpha() : alphaOverwrite
+        );
     }
 
     /**

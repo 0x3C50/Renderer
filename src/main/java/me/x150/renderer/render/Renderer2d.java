@@ -62,11 +62,13 @@ public class Renderer2d {
      * @param textureWidth  The texture width (can be width)
      * @param textureHeight The texture height (can be height)
      */
-    public static void renderTexture(MatrixStack matrices, double x0, double y0, double width, double height, float u, float v, double regionWidth, double regionHeight, double textureWidth, double textureHeight) {
+    public static void renderTexture(MatrixStack matrices, double x0, double y0, double width, double height, float u, float v, double regionWidth, double regionHeight, double textureWidth,
+                                     double textureHeight) {
         double x1 = x0 + width;
         double y1 = y0 + height;
         double z = 0;
-        renderTexturedQuad(matrices.peek().getPositionMatrix(),
+        renderTexturedQuad(
+            matrices.peek().getPositionMatrix(),
             x0,
             x1,
             y0,
@@ -75,7 +77,8 @@ public class Renderer2d {
             (u + 0.0F) / (float) textureWidth,
             (u + (float) regionWidth) / (float) textureWidth,
             (v + 0.0F) / (float) textureHeight,
-            (v + (float) regionHeight) / (float) textureHeight);
+            (v + (float) regionHeight) / (float) textureHeight
+        );
     }
 
     private static void renderTexturedQuad(Matrix4f matrix, double x0, double x1, double y0, double y1, double z, float u0, float u1, float v0, float v1) {
@@ -191,7 +194,8 @@ public class Renderer2d {
         endRender();
     }
 
-    private static void renderRoundedQuadInternal(Matrix4f matrix, float cr, float cg, float cb, float ca, float fromX, float fromY, float toX, float toY, float radC1, float radC2, float radC3, float radC4, float samples) {
+    private static void renderRoundedQuadInternal(Matrix4f matrix, float cr, float cg, float cb, float ca, float fromX, float fromY, float toX, float toY, float radC1, float radC2, float radC3,
+                                                  float radC4, float samples) {
         BufferBuilder bufferBuilder = Tessellator.getInstance().getBuffer();
         bufferBuilder.begin(VertexFormat.DrawMode.TRIANGLE_FAN, VertexFormats.POSITION_COLOR);
 
@@ -264,7 +268,8 @@ public class Renderer2d {
         roundedCache[i][2] = c;
     }
 
-    private static void renderRoundedOutlineInternal(Matrix4f matrix, float cr, float cg, float cb, float ca, float fromX, float fromY, float toX, float toY, float radC1, float radC2, float radC3, float radC4, float width, float samples) {
+    private static void renderRoundedOutlineInternal(Matrix4f matrix, float cr, float cg, float cb, float ca, float fromX, float fromY, float toX, float toY, float radC1, float radC2, float radC3,
+                                                     float radC4, float width, float samples) {
         BufferBuilder bufferBuilder = Tessellator.getInstance().getBuffer();
         bufferBuilder.begin(VertexFormat.DrawMode.TRIANGLE_STRIP, VertexFormats.POSITION_COLOR);
 
@@ -309,7 +314,8 @@ public class Renderer2d {
      * @param outlineWidth Width of the outline
      * @param samples      Amount of samples to use per corner
      */
-    public static void renderRoundedOutline(MatrixStack matrices, Color c, double fromX, double fromY, double toX, double toY, float radTL, float radTR, float radBL, float radBR, float outlineWidth, float samples) {
+    public static void renderRoundedOutline(MatrixStack matrices, Color c, double fromX, double fromY, double toX, double toY, float radTL, float radTR, float radBL, float radBR, float outlineWidth,
+                                            float samples) {
         Matrix4f matrix = matrices.peek().getPositionMatrix();
         float[] color1 = getColor(c);
         float r = color1[0];

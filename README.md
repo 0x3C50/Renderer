@@ -11,6 +11,11 @@ include modImplementation("com.github.0x3C50:Renderer:master-SNAPSHOT")
 ```
 This will use the latest commit as build target, but will cache that build target every time. Use the latest short commit hash found on [Jitpack](https://jitpack.io/#0x3C50/Renderer) (example: `d2cc995ff4`) as the version, to get that release instead.
 
+## Caution
+It's important to use fabric's **`modImplementation`** instead of the regular `implementation`, since this is technically a mod that needs remapping. Using anything else except `modImplementation` will not remap the library, which causes invalid names to be present.
+
+Similarly, using fabric's **`include`** is also recommended over anything else, since it includes the whole jar as a Jar-In-Jar ("JIJ") dependency, which fabric can handle better than just copying the classes over. JIJing it this way will make it appear in the mod list, as well as making the license and credits visible, whereas copying the classes into the final jar will just keep the library and effectively strip the metadata.
+
 # Usage
 The api has an extensive javadoc, which explains almost anything. The wiki also has some more insights and examples.
 
@@ -30,7 +35,7 @@ More examples can be found in `RendererClient`.
 
 ```java
 class Listener {
-    void main() {
+    void entry() {
         Events.manager.registerSubscribers(this);
     }
     @MessageSubscription

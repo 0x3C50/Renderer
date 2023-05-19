@@ -150,7 +150,8 @@ public class Renderer3d {
      */
     public static void renderOutline(MatrixStack stack, Color color, Vec3d start, Vec3d dimensions) {
         Matrix4f m = stack.peek().getPositionMatrix();
-        genericAABBRender(VertexFormat.DrawMode.DEBUG_LINES,
+        genericAABBRender(
+            VertexFormat.DrawMode.DEBUG_LINES,
             VertexFormats.POSITION_COLOR,
             GameRenderer::getPositionColorProgram,
             m,
@@ -187,7 +188,8 @@ public class Renderer3d {
 
                 buffer.vertex(matrix, x1, y1, z2).color(red, green, blue, alpha).next();
                 buffer.vertex(matrix, x1, y2, z2).color(red, green, blue, alpha).next();
-            });
+            }
+        );
     }
 
     /**
@@ -270,10 +272,12 @@ public class Renderer3d {
                 ObjFile.Tex tex = vertex.getTex();
 
                 ObjFile.Normal normal = vertex.getNormal();
-                VertexConsumer vertex1 = bb.vertex(mat,
+                VertexConsumer vertex1 = bb.vertex(
+                    mat,
                     (float) (origin.x + vert.getX()),
                     (float) (origin.y + vert.getY()),
-                    (float) (origin.z + vert.getZ()));
+                    (float) (origin.z + vert.getZ())
+                );
                 if (material != null && material.getDiffuseTextureMap() != null) {
                     vertex1.texture(tex.getX(), tex.getY());
                 }
@@ -410,7 +414,8 @@ public class Renderer3d {
         });
     }
 
-    private static void genericAABBRender(VertexFormat.DrawMode mode, VertexFormat format, Supplier<ShaderProgram> shader, Matrix4f stack, Vec3d start, Vec3d dimensions, Color color, RenderAction action) {
+    private static void genericAABBRender(VertexFormat.DrawMode mode, VertexFormat format, Supplier<ShaderProgram> shader, Matrix4f stack, Vec3d start, Vec3d dimensions, Color color,
+                                          RenderAction action) {
         float red = color.getRed() / 255f;
         float green = color.getGreen() / 255f;
         float blue = color.getBlue() / 255f;
@@ -438,7 +443,8 @@ public class Renderer3d {
      */
     public static void renderFilled(MatrixStack stack, Color color, Vec3d start, Vec3d dimensions) {
         Matrix4f s = stack.peek().getPositionMatrix();
-        genericAABBRender(VertexFormat.DrawMode.QUADS,
+        genericAABBRender(
+            VertexFormat.DrawMode.QUADS,
             VertexFormats.POSITION_COLOR,
             GameRenderer::getPositionColorProgram,
             s,
@@ -475,7 +481,8 @@ public class Renderer3d {
                 buffer.vertex(matrix, x2, y1, z1).color(red, green, blue, alpha).next();
                 buffer.vertex(matrix, x2, y1, z2).color(red, green, blue, alpha).next();
                 buffer.vertex(matrix, x1, y1, z2).color(red, green, blue, alpha).next();
-            });
+            }
+        );
     }
 
     /**
@@ -488,7 +495,8 @@ public class Renderer3d {
      */
     public static void renderLine(MatrixStack matrices, Color color, Vec3d start, Vec3d end) {
         Matrix4f s = matrices.peek().getPositionMatrix();
-        genericAABBRender(VertexFormat.DrawMode.DEBUG_LINES,
+        genericAABBRender(
+            VertexFormat.DrawMode.DEBUG_LINES,
             VertexFormats.POSITION_COLOR,
             GameRenderer::getPositionColorProgram,
             s,
@@ -498,7 +506,8 @@ public class Renderer3d {
             (buffer, x, y, z, x1, y1, z1, red, green, blue, alpha, matrix) -> {
                 buffer.vertex(matrix, x, y, z).color(red, green, blue, alpha).next();
                 buffer.vertex(matrix, x1, y1, z1).color(red, green, blue, alpha).next();
-            });
+            }
+        );
     }
 
     /**
@@ -511,10 +520,12 @@ public class Renderer3d {
      * @return the modified color
      */
     public static Color modifyColor(Color original, int redOverwrite, int greenOverwrite, int blueOverwrite, int alphaOverwrite) {
-        return new Color(redOverwrite == -1 ? original.getRed() : redOverwrite,
+        return new Color(
+            redOverwrite == -1 ? original.getRed() : redOverwrite,
             greenOverwrite == -1 ? original.getGreen() : greenOverwrite,
             blueOverwrite == -1 ? original.getBlue() : blueOverwrite,
-            alphaOverwrite == -1 ? original.getAlpha() : alphaOverwrite);
+            alphaOverwrite == -1 ? original.getAlpha() : alphaOverwrite
+        );
     }
 
     interface RenderAction {
