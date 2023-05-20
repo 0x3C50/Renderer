@@ -23,7 +23,7 @@ public class Colors {
         Preconditions.checkArgument(validateColorRange(g), "Expected g to be 0-255, received " + g);
         Preconditions.checkArgument(validateColorRange(b), "Expected b to be 0-255, received " + b);
         Preconditions.checkArgument(validateColorRange(a), "Expected a to be 0-255, received " + a);
-        return a << (8 * 3) | r << (8 * 2) | g << (8) | b;
+        return a << 8 * 3 | r << 8 * 2 | g << 8 | b;
     }
 
     /**
@@ -42,7 +42,7 @@ public class Colors {
         Preconditions.checkArgument(validateColorRange(g), "Expected g to be 0-255, received " + g);
         Preconditions.checkArgument(validateColorRange(b), "Expected b to be 0-255, received " + b);
         Preconditions.checkArgument(validateColorRange(a), "Expected a to be 0-255, received " + a);
-        return r << (8 * 3) | g << (8 * 2) | b << 8 | a;
+        return r << 8 * 3 | g << 8 * 2 | b << 8 | a;
     }
 
     /**
@@ -53,9 +53,9 @@ public class Colors {
      * @return A length 4 array containing the R, G, B and A component of the color
      */
     public static int[] RGBAIntToRGBA(int in) {
-        int red = in >> (8 * 3) & 0xFF;
-        int green = in >> (8 * 2) & 0xFF;
-        int blue = in >> (8) & 0xFF;
+        int red = in >> 8 * 3 & 0xFF;
+        int green = in >> 8 * 2 & 0xFF;
+        int blue = in >> 8 & 0xFF;
         int alpha = in & 0xFF;
         return new int[] { red, green, blue, alpha };
     }
@@ -68,9 +68,9 @@ public class Colors {
      * @return A length 4 array containing the R, G, B and A component of the color
      */
     public static int[] ARGBIntToRGBA(int in) {
-        int alpha = in >> (8 * 3) & 0xFF;
-        int red = in >> (8 * 2) & 0xFF;
-        int green = in >> (8) & 0xFF;
+        int alpha = in >> 8 * 3 & 0xFF;
+        int red = in >> 8 * 2 & 0xFF;
+        int green = in >> 8 & 0xFF;
         int blue = in & 0xFF;
         return new int[] { red, green, blue, alpha };
     }
@@ -83,8 +83,8 @@ public class Colors {
      * @return A length 3 array containing the R, G and B component of the color
      */
     public static int[] RGBIntToRGB(int in) {
-        int red = in >> (8 * 2) & 0xFF;
-        int green = in >> (8) & 0xFF;
+        int red = in >> 8 * 2 & 0xFF;
+        int green = in >> 8 & 0xFF;
         int blue = in & 0xFF;
         return new int[] { red, green, blue };
     }

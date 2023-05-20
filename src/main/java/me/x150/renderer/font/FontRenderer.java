@@ -13,7 +13,7 @@ import me.x150.renderer.util.RendererUtils;
 import net.minecraft.client.render.BufferBuilder;
 import net.minecraft.client.render.GameRenderer;
 import net.minecraft.client.render.Tessellator;
-import net.minecraft.client.render.VertexFormat;
+import net.minecraft.client.render.VertexFormat.DrawMode;
 import net.minecraft.client.render.VertexFormats;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.util.Identifier;
@@ -25,9 +25,9 @@ import java.io.Closeable;
 import java.util.List;
 
 /**
- * A simple font renderer. Supports multiple fonts, passed in as {@link java.awt.Font} instances.
+ * A simple font renderer. Supports multiple fonts, passed in as {@link Font} instances.
  * <h2>Constructor</h2>
- * {@link FontRenderer#FontRenderer(Font[], float)} takes in a {@link java.awt.Font} array with the fonts to use. All fonts in this array will be asked, in order,
+ * {@link FontRenderer#FontRenderer(Font[], float)} takes in a {@link Font} array with the fonts to use. All fonts in this array will be asked, in order,
  * if they have a glyph corresponding to the one being drawn. If none of them have it, the missing "square" is drawn.
  */
 public class FontRenderer implements Closeable {
@@ -71,7 +71,7 @@ public class FontRenderer implements Closeable {
     }
 
     private static int floorNearestMulN(int x, int n) {
-        return n * ((int) Math.floor((double) x / (double) n));
+        return n * (int) Math.floor((double) x / (double) n);
     }
 
     /**
@@ -99,7 +99,7 @@ public class FontRenderer implements Closeable {
         int gs = RendererUtils.getGuiScale();
         if (gs != this.previousGameScale) {
             close(); // delete glyphs and cache
-            init(this.fonts, this.originalSize); // reinit
+            init(this.fonts, this.originalSize); // re-init
         }
     }
 
@@ -173,10 +173,10 @@ public class FontRenderer implements Closeable {
                 char c1 = Character.toUpperCase(c);
                 if (colorCodes.containsKey(c1)) {
                     int ii = colorCodes.get(c1);
-                    int[] ints = Colors.RGBIntToRGB(ii);
-                    r2 = ints[0] / 255f;
-                    g2 = ints[1] / 255f;
-                    b2 = ints[2] / 255f;
+                    int[] col = Colors.RGBIntToRGB(ii);
+                    r2 = col[0] / 255f;
+                    g2 = col[1] / 255f;
+                    b2 = col[2] / 255f;
                 } else if (c1 == 'R') {
                     r2 = r;
                     g2 = g;
@@ -194,7 +194,7 @@ public class FontRenderer implements Closeable {
                 continue;
             }
             Glyph glyph = locateGlyph1(c);
-            if (glyph.repr() != ' ') { // we only need to really draw the glyph if it's not blank, otherwise we can just skip its width and that'll be it
+            if (glyph.value() != ' ') { // we only need to really draw the glyph if it's not blank, otherwise we can just skip its width and that'll be it
                 Identifier i1 = glyph.owner().bindToTexture;
                 DrawEntry entry = new DrawEntry(xOffset, yOffset, r2, g2, b2, glyph);
                 GLYPH_PAGE_CACHE.computeIfAbsent(i1, integer -> new ObjectArrayList<>()).add(entry);
@@ -205,7 +205,7 @@ public class FontRenderer implements Closeable {
             RenderSystem.setShaderTexture(0, identifier);
             List<DrawEntry> objects = GLYPH_PAGE_CACHE.get(identifier);
 
-            bb.begin(VertexFormat.DrawMode.QUADS, VertexFormats.POSITION_TEXTURE_COLOR);
+            bb.begin(DrawMode.QUADS, VertexFormats.POSITION_TEXTURE_COLOR);
 
             for (DrawEntry object : objects) {
                 float xo = object.atX;

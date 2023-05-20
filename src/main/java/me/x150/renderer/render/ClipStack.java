@@ -21,34 +21,34 @@ public class ClipStack {
      * <strong>Always call {@link #popWindow()} after you're done rendering with this</strong>
      *
      * @param stack The context MatrixStack
-     * @param r1    The new clipping rectangle to enlist
+     * @param rect  The new clipping rectangle to enlist
      */
-    public static void addWindow(MatrixStack stack, Rectangle r1) {
+    public static void addWindow(MatrixStack stack, Rectangle rect) {
         Matrix4f matrix = stack.peek().getPositionMatrix();
-        Vector4f coord = new Vector4f((float) r1.getX(), (float) r1.getY(), 0, 1);
-        Vector4f end = new Vector4f((float) r1.getX1(), (float) r1.getY1(), 0, 1);
-        coord.mul(matrix);
+        Vector4f start = new Vector4f((float) rect.getX(), (float) rect.getY(), 0, 1);
+        Vector4f end = new Vector4f((float) rect.getX1(), (float) rect.getY1(), 0, 1);
+        start.mul(matrix);
         end.mul(matrix);
-        double x = coord.x();
-        double y = coord.y();
-        double endX = end.x();
-        double endY = end.y();
-        Rectangle r = new Rectangle(x, y, endX, endY);
+        double x0 = start.x();
+        double y0 = start.y();
+        double x1 = end.x();
+        double y1 = end.y();
+        Rectangle transformed = new Rectangle(x0, y0, x1, y1);
         if (clipStack.empty()) {
-            clipStack.push(r);
-            Renderer2d.beginScissor(r.getX(), r.getY(), r.getX1(), r.getY1());
+            clipStack.push(transformed);
+            Renderer2d.beginScissor(transformed.getX(), transformed.getY(), transformed.getX1(), transformed.getY1());
         } else {
             Rectangle lastClip = clipStack.peek();
-            double lsx = lastClip.getX();
-            double lsy = lastClip.getY();
-            double lstx = lastClip.getX1();
-            double lsty = lastClip.getY1();
-            double nsx = MathHelper.clamp(r.getX(), lsx, lstx);
-            double nsy = MathHelper.clamp(r.getY(), lsy, lsty);
-            double nstx = MathHelper.clamp(r.getX1(), nsx, lstx);
-            double nsty = MathHelper.clamp(r.getY1(), nsy, lsty); // totally intended varname
-            clipStack.push(new Rectangle(nsx, nsy, nstx, nsty));
-            Renderer2d.beginScissor(nsx, nsy, nstx, nsty);
+            double lx0 = lastClip.getX();
+            double ly0 = lastClip.getY();
+            double lx1 = lastClip.getX1();
+            double ly1 = lastClip.getY1();
+            double nx0 = MathHelper.clamp(transformed.getX(), lx0, lx1);
+            double ny0 = MathHelper.clamp(transformed.getY(), ly0, ly1);
+            double nx1 = MathHelper.clamp(transformed.getX1(), nx0, lx1);
+            double ny1 = MathHelper.clamp(transformed.getY1(), ny0, ly1);
+            clipStack.push(new Rectangle(nx0, ny0, nx1, ny1));
+            Renderer2d.beginScissor(nx0, ny0, nx1, ny1);
         }
     }
 
@@ -77,7 +77,6 @@ public class ClipStack {
         } else {
             Rectangle r = clipStack.peek();
             Renderer2d.beginScissor(r.getX(), r.getY(), r.getX1(), r.getY1());
-
         }
     }
 

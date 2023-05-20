@@ -29,8 +29,7 @@ dependencies {
         exclude group: "xml-apis", module: "xml-apis"
         exclude group: "commons-io", module: "commons-io"
     }
-    libImpl(files("../lib/jMessenger-1.0.jar"))
-    libImpl(group: 'org.orbisgis', name: 'poly2tri-core', version: '0.1.2')
+    api(group: "de.javagl", name: "obj", version: "0.4.0")
 //    modImpl(files("rt-mods/render-explorer-1.0.0.jar"))
 
     configurations.modImpl.dependencies.each {

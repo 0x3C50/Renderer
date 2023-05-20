@@ -1,7 +1,6 @@
 package me.x150.renderer.mixin;
 
-import me.x150.renderer.event.Events;
-import me.x150.renderer.event.RenderEvent;
+import me.x150.renderer.event.RenderEvents;
 import me.x150.renderer.util.RenderProfiler;
 import net.minecraft.client.gui.hud.InGameHud;
 import net.minecraft.client.util.math.MatrixStack;
@@ -15,7 +14,7 @@ public class InGameHudMixin {
     @Inject(method = "render", at = @At("RETURN"))
     void renderer_postHud(MatrixStack matrices, float tickDelta, CallbackInfo ci) {
         RenderProfiler.begin("Hud");
-        Events.manager.send(new RenderEvent.Hud(matrices));
+        RenderEvents.HUD.invoker().rendered(matrices);
         RenderProfiler.pop();
     }
 }

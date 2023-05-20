@@ -33,7 +33,7 @@ public class SVGFile implements Closeable {
     final int originalWidth;
     final int originalHeight;
     int memoizedGuiScale = -1; // default of -1 means that the svg will get redrawn the first time when render() is called, no matter what
-    Identifier ident;
+    Identifier id;
 
     /**
      * Creates a new SVG file. The SVG is only parsed when {@link #render(MatrixStack, double, double, float, float)} is called.
@@ -49,10 +49,10 @@ public class SVGFile implements Closeable {
     }
 
     private void _redraw(float width, float height) {
-        if (this.ident != null) {
+        if (this.id != null) {
             close(); // destroy texture
         }
-        this.ident = RendererUtils.randomIdentifier();
+        this.id = RendererUtils.randomIdentifier();
         PNGTranscoder transcoder = new PNGTranscoder();
         transcoder.addTranscodingHint(PNGTranscoder.KEY_WIDTH, width);
         transcoder.addTranscodingHint(PNGTranscoder.KEY_HEIGHT, height);
@@ -63,10 +63,11 @@ public class SVGFile implements Closeable {
             transcoder.transcode(transcoderInput, transcoderOutput);
             byte[] t = out.toByteArray();
             NativeImageBackedTexture tex = new NativeImageBackedTexture(NativeImage.read(new ByteArrayInputStream(t)));
-            MinecraftClient.getInstance().execute(() -> MinecraftClient.getInstance().getTextureManager().registerTexture(this.ident, tex));
+            MinecraftClient.getInstance().execute(() -> MinecraftClient.getInstance().getTextureManager().registerTexture(this.id, tex));
         } catch (Throwable t) {
             RendererMain.LOGGER.error("Failed to render SVG", t);
-            this.ident = new Identifier("missingno"); // yes, this is real. this points to the "missing" texture
+            //noinspection SpellCheckingInspection
+            this.id = new Identifier("missingno"); // yes, this is real. this points to the "missing" texture
         }
     }
 
@@ -81,11 +82,11 @@ public class SVGFile implements Closeable {
      */
     public void render(MatrixStack stack, double x, double y, float renderWidth, float renderHeight) {
         int guiScale = RendererUtils.getGuiScale();
-        if (this.memoizedGuiScale != guiScale || this.ident == null) { // need to remake the texture
+        if (this.memoizedGuiScale != guiScale || this.id == null) { // need to remake the texture
             this.memoizedGuiScale = guiScale;
             _redraw(this.originalWidth * this.memoizedGuiScale, this.originalHeight * this.memoizedGuiScale);
         }
-        Renderer2d.renderTexture(stack, this.ident, x, y, renderWidth, renderHeight);
+        Renderer2d.renderTexture(stack, this.id, x, y, renderWidth, renderHeight);
     }
 
     /**
@@ -93,15 +94,16 @@ public class SVGFile implements Closeable {
      *
      * @throws IllegalStateException When the texture is already freed
      */
+    @SuppressWarnings("SpellCheckingInspection")
     @Override
     public void close() {
-        if (this.ident == null) {
+        if (this.id == null) {
             throw new IllegalStateException("Already closed");
         }
-        if (this.ident.getNamespace().equals("renderer")) {
-            // this might be minecraft's missingno texture, we don't want to free that.
-            MinecraftClient.getInstance().getTextureManager().destroyTexture(this.ident);
+        if (this.id.getNamespace().equals("renderer")) {
+            // this might be minecraft's "missingno" texture, we don't want to free that.
+            MinecraftClient.getInstance().getTextureManager().destroyTexture(this.id);
         }
-        this.ident = null;
+        this.id = null;
     }
 }

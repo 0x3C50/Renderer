@@ -59,7 +59,7 @@ public class RendererUtils {
     }
 
     /**
-     * <p>Linear interpolation between two ints</p>
+     * <p>Linear interpolation between two integers</p>
      *
      * @param from  Range from
      * @param to    Range to
@@ -81,7 +81,7 @@ public class RendererUtils {
      * @return The interpolated value between from and to
      */
     public static double lerp(double from, double to, double delta) {
-        return (from + (to - from) * MathHelper.clamp(delta, 0, 1));
+        return from + (to - from) * MathHelper.clamp(delta, 0, 1);
     }
 
     /**
@@ -131,9 +131,9 @@ public class RendererUtils {
     @Contract(value = "_, _ -> new", pure = true)
     public static Vec3d translateVec3dWithMatrixStack(@NonNull MatrixStack stack, @NonNull Vec3d in) {
         Matrix4f matrix = stack.peek().getPositionMatrix();
-        Vector4f parsedVecf = new Vector4f((float) in.x, (float) in.y, (float) in.z, 1);
-        parsedVecf.mul(matrix);
-        return new Vec3d(parsedVecf.x(), parsedVecf.y(), parsedVecf.z());
+        Vector4f vec = new Vector4f((float) in.x, (float) in.y, (float) in.z, 1);
+        vec.mul(matrix);
+        return new Vec3d(vec.x(), vec.y(), vec.z());
     }
 
     /**
@@ -146,9 +146,9 @@ public class RendererUtils {
      */
     public static void registerBufferedImageTexture(@NonNull Identifier i, @NonNull BufferedImage bi) {
         try {
-            ByteArrayOutputStream baos = new ByteArrayOutputStream();
-            ImageIO.write(bi, "png", baos);
-            byte[] bytes = baos.toByteArray();
+            ByteArrayOutputStream out = new ByteArrayOutputStream();
+            ImageIO.write(bi, "png", out);
+            byte[] bytes = out.toByteArray();
 
             ByteBuffer data = BufferUtils.createByteBuffer(bytes.length).put(bytes);
             data.flip();
@@ -238,7 +238,7 @@ public class RendererUtils {
      * @return True if the coordinates are visible
      */
     public static boolean screenSpaceCoordinateIsVisible(Vec3d pos) {
-        return pos != null && (pos.z > -1 && pos.z < 1);
+        return pos != null && pos.z > -1 && pos.z < 1;
     }
 
     /**

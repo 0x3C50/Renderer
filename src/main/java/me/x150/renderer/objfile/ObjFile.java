@@ -1,41 +1,48 @@
 package me.x150.renderer.objfile;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.Getter;
-import me.x150.renderer.client.RendererMain;
-import me.x150.renderer.render.Renderer3d;
+import com.mojang.blaze3d.systems.RenderSystem;
+import de.javagl.obj.FloatTuple;
+import de.javagl.obj.Mtl;
+import de.javagl.obj.MtlReader;
+import de.javagl.obj.Obj;
+import de.javagl.obj.ObjFace;
+import de.javagl.obj.ObjReader;
+import de.javagl.obj.ObjSplitting;
+import de.javagl.obj.ObjUtils;
 import me.x150.renderer.util.BufferUtils;
+import me.x150.renderer.util.RendererUtils;
+import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.gl.ShaderProgram;
 import net.minecraft.client.gl.VertexBuffer;
 import net.minecraft.client.render.BufferBuilder;
+import net.minecraft.client.render.Camera;
+import net.minecraft.client.render.GameRenderer;
 import net.minecraft.client.render.Tessellator;
+import net.minecraft.client.render.VertexConsumer;
 import net.minecraft.client.render.VertexFormat;
 import net.minecraft.client.render.VertexFormats;
 import net.minecraft.client.util.math.MatrixStack;
+import net.minecraft.util.Identifier;
 import net.minecraft.util.math.Vec3d;
-import org.jetbrains.annotations.ApiStatus;
 import org.joml.Matrix4f;
-import org.poly2tri.Poly2Tri;
-import org.poly2tri.geometry.polygon.Polygon;
-import org.poly2tri.geometry.polygon.PolygonPoint;
-import org.poly2tri.triangulation.TriangulationPoint;
-import org.poly2tri.triangulation.delaunay.DelaunayTriangle;
 
+import javax.imageio.ImageIO;
+import java.awt.image.BufferedImage;
 import java.io.Closeable;
-import java.io.File;
-import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.Reader;
-import java.io.StringReader;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
-import java.util.Optional;
-import java.util.Stack;
+import java.util.Map;
+import java.util.Objects;
+import java.util.function.Supplier;
 
 /**
- * An OBJ file parser.
+ * A wavefront obj file parser.
+ * <h2>General Info</h2>
  * This implementation has been tested and optimized to work well with blender exported OBJs. OBJs exported from other sources may not work as well.<br>
  * When exporting a model in blender (for use with this library), make sure the following options are set:
  * <ul>
@@ -47,484 +54,215 @@ import java.util.Stack;
  * </ul>
  * <b>Highlighted options</b> are especially important.<br><br>
  * *: Non-triangulated meshes may not work, triangulation may fail.<br><br>
- * <h3>Known issues</h3>
- * <ul>
- *     <li>The format is not fully implemented</li>
- * </ul>
- * <h3>Usage</h3>
- * <ol type="1">
- *     <li>Initialize a new {@link ObjFile}</li>
- *     <li>Add all desired .mtl files using {@link ObjFile#linkMaterialFile(File)}</li>
- *     <li>Load the file with {@link ObjFile#read()}</li>
- *     <li>Render the objects with {@link Renderer3d#renderObjFile(MatrixStack, Matrix4f, ObjFile, Vec3d)}</li>
- * </ol>
+ * <h2>Parsing</h2>
+ * This class uses {@link ObjReader} to read and parse .obj files. .mtl files are also handled by said library.
+ * File access is managed by the {@link ResourceProvider} interface, which has the job of mapping a file name into a readable file.
+ * <h2>Rendering</h2>
+ * To render a loaded ObjFile, call {@link #draw(MatrixStack, Matrix4f, Vec3d)}.
  */
 public class ObjFile implements Closeable {
-    /**
-     * All objects in this .obj
-     */
-    public final Stack<ObjObject> objects = new Stack<>();
-    final List<Vertex> vertices = new ArrayList<>();
-    final List<Normal> normals = new ArrayList<>();
-    final List<Tex> texes = new ArrayList<>();
-    final List<MtlFile> mtlFiles = new ArrayList<>();
-    ObjReader content;
-    @Getter
-    boolean initialized = false;
-    @Getter
-    boolean closed = false;
-    private int flags = 0;
+    private final ResourceProvider provider;
+    private final String name;
+    Map<Obj, VertexBuffer> buffers = new HashMap<>();
+    Map<String, Identifier> boundTextures = new HashMap<>();
+    Map<String, Obj> materialNameObjMap;
+    private List<Mtl> allMaterials;
+    private boolean baked = false;
+    private boolean closed = false;
 
     /**
-     * Creates a new .obj file parser from the given string contents
+     * Creates a new ObjFile
      *
-     * @param content The .obj content
+     * @param name     Filename of the target .obj, resolved by the {@link ResourceProvider} {@code provider}
+     * @param provider The resource provider to use
      *
-     * @throws IOException When something goes wrong
+     * @throws IOException When reading the .obj fails
      */
-    public ObjFile(String content) throws IOException {
-        this(new StringReader(content));
+    public ObjFile(String name, ResourceProvider provider) throws IOException {
+        this.name = name;
+        this.provider = provider;
+        read();
     }
 
-    /**
-     * Creates a new .obj file parser from the given input stream
-     *
-     * @param content The .obj content stream
-     *
-     * @throws IOException When something goes wrong
-     */
-    public ObjFile(InputStream content) throws IOException {
-        this(new InputStreamReader(content));
+    private static Vec3d transformVec3d(Vec3d in) {
+        Camera camera = MinecraftClient.getInstance().gameRenderer.getCamera();
+        Vec3d camPos = camera.getPos();
+        return in.subtract(camPos);
     }
 
-    /**
-     * Creates a new .obj file parser from the given reader
-     *
-     * @param r The .obj content reader
-     *
-     * @throws IOException When something goes wrong
-     */
-    public ObjFile(Reader r) throws IOException {
-        this.content = new ObjReader(r);
-    }
-
-    private void assertOpen() {
-        if (closed) {
-            throw new IllegalStateException("ObjFile is closed");
-        }
-    }
-
-    /**
-     * Sets the provided flag to true or false
-     *
-     * @param flag  Flag to set
-     * @param state New state to set to
-     *
-     * @return this
-     */
-    public ObjFile withFlag(Flags flag, boolean state) {
-        assertOpen();
-        if (initialized) {
-            throw new IllegalStateException("Flags must be set before initializing");
-        }
-        if (!state) {
-            flags = flags & ~(1 << flag.pos);
-        } else {
-            flags = flags | (1 << flag.pos);
-        }
-        return this;
-    }
-
-    /**
-     * Returns true if the specified flag is set to true
-     *
-     * @param flag Flag to check
-     *
-     * @return {@code true} if the flag is set, {@code false} otherwise
-     */
-    public boolean hasFlag(Flags flag) {
-        assertOpen();
-        return (flags & (1 << flag.pos)) != 0;
-    }
-
-    /**
-     * Links a separate .mtl file to this .obj file. Call before {@link #read()}.
-     *
-     * @param mtlFile The path to the .mtl file
-     *
-     * @throws IOException When something goes wrong
-     */
-    public void linkMaterialFile(File mtlFile) throws IOException {
-        assertOpen();
-        if (this.initialized) {
-            throw new IllegalStateException("Already initialized the obj");
-        }
-        if (!mtlFile.exists() || !mtlFile.isFile()) {
-            throw new IllegalArgumentException("mtlFile does not exist or is not a file");
-        }
-        MtlFile e = new MtlFile(new FileReader(mtlFile));
-        e.read();
-        mtlFiles.add(e);
-    }
-
-    private MtlFile.Material resolveMat(String name) {
-        assertOpen();
-        for (MtlFile mtlFile : mtlFiles) {
-            for (MtlFile.Material material : mtlFile.materialStack) {
-                if (material.name.equals(name)) {
-                    return material;
+    private void read() throws IOException {
+        try (InputStream reader = provider.open(name)) {
+            Obj r = ObjUtils.convertToRenderable(ObjReader.read(reader));
+            allMaterials = new ArrayList<>();
+            for (String mtlFileName : r.getMtlFileNames()) {
+                try (InputStream openReaderTo = provider.open(mtlFileName)) {
+                    List<Mtl> read = MtlReader.read(openReaderTo);
+                    allMaterials.addAll(read);
                 }
             }
+            materialNameObjMap = ObjSplitting.splitByMaterialGroups(r);
+
         }
-        return null;
     }
 
-    /**
-     * Reads and parses this .obj file. Will resolve all materials based on {@link #mtlFiles}, which can be modified using {@link #linkMaterialFile(File)}. Call {@link #linkMaterialFile(File)} <b>BEFORE</b> calling this method.
-     *
-     * @throws IOException When something goes wrong
-     */
-    public void read() throws IOException {
-        assertOpen();
-        if (this.initialized) {
-            throw new IllegalStateException("Already initialized");
+    private Identifier createTex0(String s) {
+        try (InputStream reader = this.provider.open(s)) {
+            Identifier identifier = RendererUtils.randomIdentifier();
+            BufferedImage read1 = ImageIO.read(reader);
+            RendererUtils.registerBufferedImageTexture(identifier, read1);
+            return identifier;
+        } catch (IOException e) {
+            throw new RuntimeException(e);
         }
-        this.initialized = true;
-        while (content.peek() != -1) {
-            String s = content.readStr();
-            switch (s) {
-                case "o" -> { // add object
-                    objects.push(new ObjObject(content.readStr(), null, new ArrayList<>(), null, this));
-                    content.skipLine();
-                }
-                case "v" -> { // vertex
-                    float x = content.readFloat();
-                    float y = content.readFloat();
-                    float z = content.readFloat();
-                    float w = content.hasNextOnLine() ? content.readFloat() : 1f;
-                    Vertex vt = new Vertex(x, y, z, w);
-                    vertices.add(vt);
-                    content.skipLine();
-                }
-                case "vt" -> { // vertex texture
-                    float u = content.readFloat();
-                    float v = content.hasNextOnLine() ? content.readFloat() : 0f;
-                    float w = content.hasNextOnLine() ? content.readFloat() : 0f;
-                    texes.add(new Tex(u, 1 - v, w));
-                    content.skipLine();
-                }
-                case "vn" -> { // vertex normal
-                    float x = content.readFloat();
-                    float y = content.readFloat();
-                    float z = content.readFloat();
-                    normals.add(new Normal(x, y, z));
-                    content.skipLine();
-                }
-                case "f" -> { // face
-                    List<String> parsedVTs = new ArrayList<>();
-                    while (content.hasNextOnLine()) {
-                        String s1 = content.readStr().trim();
-                        if (!s1.isEmpty()) {
-                            parsedVTs.add(s1);
-                        }
-                        content.skipWhitespace();
-                    }
-                    if (parsedVTs.size() < 3) {
-                        throw new IllegalStateException("Expected at least 3 elements in face, got " + parsedVTs.size());
-                    }
-                    List<VertexBundle> bundles = new ArrayList<>();
-                    // we close this later on, no worries idea
-                    //noinspection resource
-                    ObjObject peek = objects.peek();
-                    for (String parsedVT : parsedVTs) {
-                        String[] split = parsedVT.trim().split("/");
-                        VertexBundle vb = new VertexBundle(null, null, null);
-                        {
-                            int vPtr = Integer.parseInt(split[0]);
-                            if (vPtr < 0) {
-                                vPtr = vertices.size() + vPtr; // vPtr is negative, points to size - abs value
-                            } else {
-                                vPtr = vPtr - 1; // starts counting at 1, offset one down
-                            }
-                            Vertex vertex = vertices.get(vPtr);
-                            vb.setVert(vertex);
-                        }
-                        if (split.length >= 2 && !split[1].isEmpty()) { // texture index, can be empty (vptr/<empty txptr>/nrmptr)
-                            int txPtr = Integer.parseInt(split[1]);
-                            if (txPtr < 0) {
-                                txPtr = texes.size() + txPtr; // txPtr is negative, points to size - abs value
-                            } else {
-                                txPtr = txPtr - 1; // starts counting at 1, offset one down
-                            }
-                            Tex tex = texes.get(txPtr);
-                            vb.setTex(tex);
-                        }
-                        if (split.length >= 3) { // normal index
-                            int nrmPtr = Integer.parseInt(split[2]);
-                            if (nrmPtr < 0) {
-                                nrmPtr = normals.size() + nrmPtr; // nrmPtr is negative, points to size - abs value
-                            } else {
-                                nrmPtr = nrmPtr - 1; // starts counting at 1, offset one down
-                            }
-                            Normal normal = normals.get(nrmPtr);
-                            vb.setNormal(normal);
-                        }
-                        bundles.add(vb);
-                    }
+    }
 
-                    int n = bundles.size();
-                    if (n == 4) {
-                        peek.faces.add(new Face(new VertexBundle[] { bundles.get(0), bundles.get(1), bundles.get(2) })); // first tri
-                        peek.faces.add(new Face(new VertexBundle[] { bundles.get(0), bundles.get(2), bundles.get(3) })); // second tri
-                    } else if (n == 3) { // nothing to do, we already have dorito shaped vertices
-                        peek.faces.add(new Face(bundles.toArray(VertexBundle[]::new)));
-                    } else if (!hasFlag(Flags.NO_TRIANGULATION)) {
-                        List<PolygonPoint> polygonPoints = new ArrayList<>(bundles.stream()
-                            .map(vertexBundle -> new PolygonPoint(vertexBundle.vert.x, vertexBundle.vert.y, vertexBundle.vert.z))
-                            .toList());
-                        Polygon polygon = new Polygon(polygonPoints);
-
-                        RendererMain.LOGGER.debug("Triangulating polygon " + polygon.getPoints());
-                        Poly2Tri.triangulate(polygon);
-                        List<DelaunayTriangle> triangles = polygon.getTriangles();
-                        for (DelaunayTriangle triangle : triangles) {
-                            TriangulationPoint[] points = triangle.points;
-                            VertexBundle[] vb = new VertexBundle[points.length];
-                            for (int i = 0; i < points.length; i++) {
-                                TriangulationPoint point = points[i];
-                                Optional<VertexBundle> first = bundles.stream()
-                                    .filter(vertexBundle -> vertexBundle.vert.x == point.getX() && vertexBundle.vert.y == point.getY() && vertexBundle.vert.z == point.getZ())
-                                    .findFirst();
-                                Normal nrm = first.map(vertexBundle -> vertexBundle.normal).orElse(null);
-                                Tex tex = first.map(vertexBundle -> vertexBundle.tex).orElse(null);
-                                vb[i] = new VertexBundle(new Vertex((float) point.getX(), (float) point.getY(), (float) point.getZ(), 0), nrm, tex);
-                            }
-                            peek.faces.add(new Face(vb));
+    private void bake() {
+        BufferBuilder b = Tessellator.getInstance().getBuffer();
+        for (Map.Entry<String, Obj> stringObjEntry : materialNameObjMap.entrySet()) {
+            String materialName = stringObjEntry.getKey();
+            Obj objToDraw = stringObjEntry.getValue();
+            Mtl material = allMaterials.stream().filter(f -> f.getName().equals(materialName)).findFirst().orElse(null);
+            boolean hasTexture = material != null && material.getMapKd() != null;
+            if (hasTexture) {
+                String mapKd = material.getMapKd();
+                System.out.println(mapKd);
+                boundTextures.computeIfAbsent(mapKd, this::createTex0);
+            }
+            VertexFormat vmf;
+            if (material != null) {
+                vmf = hasTexture ? VertexFormats.POSITION_TEXTURE_COLOR_NORMAL : VertexFormats.POSITION_COLOR;
+            } else {
+                vmf = VertexFormats.POSITION;
+            }
+            b.begin(VertexFormat.DrawMode.TRIANGLES, vmf);
+            for (int i = 0; i < objToDraw.getNumFaces(); i++) {
+                ObjFace face = objToDraw.getFace(i);
+                boolean hasNormals = face.containsNormalIndices();
+                boolean hasUV = face.containsTexCoordIndices();
+                for (int i1 = 0; i1 < face.getNumVertices(); i1++) {
+                    FloatTuple xyz = objToDraw.getVertex(face.getVertexIndex(i1));
+                    VertexConsumer vertex = b.vertex(xyz.getX(), xyz.getY(), xyz.getZ());
+                    if (vmf == VertexFormats.POSITION_TEXTURE_COLOR_NORMAL) {
+                        if (!hasUV) {
+                            throw new IllegalStateException("Diffuse texture present, vertex doesn't have UV coordinates. File corrupted?");
                         }
-                    } else {
-                        throw new IllegalStateException("Don't know how to handle " + n + "-sized polygon");
+                        if (!hasNormals) {
+                            throw new IllegalStateException("Diffuse texture present, vertex doesn't have normal coordinates. File corrupted?");
+                        }
+                        FloatTuple uvs = objToDraw.getTexCoord(face.getTexCoordIndex(i1));
+                        vertex.texture(uvs.getX(), 1 - uvs.getY());
                     }
-
-                    content.skipLine();
-                }
-                case "usemtl" -> {
-                    String st = content.readStr();
-                    if (!st.isBlank()) {
-                        MtlFile.Material material = resolveMat(st);
-                        if (material == null) {
-                            if (!hasFlag(Flags.IGNORE_MISSING_MATERIALS)) {
-                                throw new IllegalStateException("Tried to resolve material " + st + ", but was not found");
-                            } else {
-                                RendererMain.LOGGER.warn("Tried to resolve material " + st + ", but was not found");
-                            }
+                    if (vmf == VertexFormats.POSITION_TEXTURE_COLOR_NORMAL || vmf == VertexFormats.POSITION_COLOR) {
+                        Objects.requireNonNull(material);
+                        FloatTuple kd = material.getKd();
+                        if (kd != null) {
+                            vertex.color(kd.getX(), kd.getY(), kd.getZ(), 1f);
                         } else {
-                            // we close this later on, no worries idea
-                            //noinspection resource
-                            objects.peek().setMaterial(material);
+                            vertex.color(1f, 1f, 1f, 1f);
                         }
                     }
-                    content.skipLine();
+                    if (vmf == VertexFormats.POSITION_TEXTURE_COLOR_NORMAL) {
+                        FloatTuple normals = objToDraw.getNormal(face.getNormalIndex(i1));
+                        vertex.normal(normals.getX(), normals.getY(), normals.getZ());
+                    }
+                    vertex.next();
                 }
-                default -> content.skipLine(); // don't know this one
             }
+            BufferBuilder.BuiltBuffer end = b.end();
+            buffers.put(objToDraw, BufferUtils.createVbo(end));
         }
+        baked = true;
     }
 
-    @Override
-    public void close() throws IOException {
-        assertOpen();
-        for (ObjObject object : this.objects) {
-            object.close();
+    /**
+     * Draws this ObjFile. Calls {@link #bake()} if necessary.
+     *
+     * @param stack      MatrixStack
+     * @param viewMatrix View matrix to apply to this ObjFile, independent of any other matrix.
+     * @param origin     Origin point to draw at
+     */
+    public void draw(MatrixStack stack, Matrix4f viewMatrix, Vec3d origin) {
+        if (closed) {
+            throw new IllegalStateException("Closed");
         }
-        content.close();
+        if (!baked) {
+            bake();
+        }
+        Vec3d o = transformVec3d(origin);
+        Matrix4f projectionMatrix = RenderSystem.getProjectionMatrix();
+        Matrix4f m4f = new Matrix4f(stack.peek().getPositionMatrix());
+        m4f.translate((float) o.x, (float) o.y, (float) o.z);
+        m4f.mul(viewMatrix);
+
+        RendererUtils.setupRender();
+        RenderSystem.enableCull();
+        for (Map.Entry<String, Obj> stringObjEntry : materialNameObjMap.entrySet()) {
+            String materialName = stringObjEntry.getKey();
+            Obj obj = stringObjEntry.getValue();
+            Mtl material = allMaterials.stream().filter(f -> f.getName().equals(materialName)).findFirst().orElse(null);
+            boolean hasTexture = material != null && material.getMapKd() != null;
+            if (hasTexture) {
+                String mapKd = material.getMapKd();
+                Identifier identifier = boundTextures.get(mapKd);
+                RenderSystem.setShaderTexture(0, identifier);
+            }
+            Supplier<ShaderProgram> shader;
+            if (material != null) {
+                shader = hasTexture ? GameRenderer::getPositionTexColorNormalProgram : GameRenderer::getPositionColorProgram;
+            } else {
+                shader = GameRenderer::getPositionProgram;
+            }
+            VertexBuffer vertexBuffer = buffers.get(obj);
+            vertexBuffer.bind();
+            vertexBuffer.draw(m4f, projectionMatrix, shader.get());
+        }
+        VertexBuffer.unbind();
+        RendererUtils.endRender();
+    }
+
+    /**
+     * Clears all associated VertexBuffers, removes every linked texture and closes this ObjFile. All subsequent calls to any method will fail.
+     */
+    @Override
+    public void close() {
+        for (VertexBuffer buffer : buffers.values()) {
+            buffer.close();
+        }
+        buffers.clear();
+        for (Identifier value : boundTextures.values()) {
+            MinecraftClient.getInstance().getTextureManager().destroyTexture(value);
+        }
+        boundTextures.clear();
+        allMaterials.clear();
         closed = true;
     }
 
     /**
-     * Flags for the obj file
+     * A function, which maps a resource name found in an .obj file to an InputStream
      */
-    @AllArgsConstructor
-    public enum Flags {
+    @FunctionalInterface
+    public interface ResourceProvider {
         /**
-         * Instead of throwing when encountering missing materials, do nothing with them
+         * Appends the filename to read to a Path, then tries to load the resulting file.
+         *
+         * @param parent Parent path of all files
+         *
+         * @return New ResourceProvider
          */
-        IGNORE_MISSING_MATERIALS(0),
-        /**
-         * Render a wireframe of the obj's geometry instead of the obj itself
-         */
-        RENDER_WIREFRAME(1),
-        /**
-         * Do not perform triangulation when facing a polygon with more than 4 faces, throw instead
-         */
-        NO_TRIANGULATION(2);
-        final int pos;
-    }
-
-    /**
-     * A vertex
-     */
-    @Data
-    @AllArgsConstructor
-    public static class Vertex {
-        /**
-         * X coordinate
-         */
-        float x;
-        /**
-         * Y coordinate
-         */
-        float y;
-        /**
-         * Z coordinate
-         */
-        float z;
-        /**
-         * W coordinate
-         */
-        float w;
-    }
-
-    /**
-     * A normal direction
-     */
-    @Data
-    @AllArgsConstructor
-    public static class Normal {
-        /**
-         * Normal x
-         */
-        float x;
-        /**
-         * Normal Y
-         */
-        float y;
-        /**
-         * Normal Z
-         */
-        float z;
-    }
-
-    /**
-     * An UV coordinate
-     */
-    @Data
-    @AllArgsConstructor
-    public static class Tex {
-        /**
-         * U coordinate
-         */
-        float x;
-        /**
-         * V coordinate
-         */
-        float y;
-        /**
-         * W coordinate
-         */
-        float w;
-    }
-
-    /**
-     * A bundle of Vertex, Normal and UV coordinates
-     */
-    @Data
-    @AllArgsConstructor
-    public static class VertexBundle {
-        /**
-         * The vertex coordinate
-         */
-        Vertex vert;
-        /**
-         * The normal
-         */
-        Normal normal;
-        /**
-         * UV coordinates
-         */
-        Tex tex;
-    }
-
-    /**
-     * A face
-     */
-    @Data
-    @AllArgsConstructor
-    public static class Face {
-        /**
-         * The vertices of this face
-         */
-        VertexBundle[] vertices;
-    }
-
-    /**
-     * An .obj object
-     */
-    @Data
-    @AllArgsConstructor
-    public static class ObjObject implements Closeable {
-        private final Matrix4f EMPTY_MAT = new Matrix4f();
-        /**
-         * The name of this object
-         */
-        String name;
-        /**
-         * The linked material, or null
-         */
-        MtlFile.Material material;
-        /**
-         * The faces of this material
-         */
-        List<Face> faces;
-        /**
-         * A buffer holding the drawn representation of this object, after {@link #bake()} is called
-         */
-        VertexBuffer buffer;
-        /**
-         * The parent, which contains this object
-         */
-        ObjFile parent;
-
-        @Override
-        public void close() {
-            if (buffer != null) {
-                buffer.close();
-                buffer = null;
-            }
+        static ResourceProvider ofPath(Path parent) {
+            return name -> {
+                Path resolve = parent.resolve(name);
+                return Files.newInputStream(resolve);
+            };
         }
 
         /**
-         * Bakes this object into its {@link #buffer}. Called by {@link Renderer3d#renderObjFile(MatrixStack, Matrix4f, ObjFile, Vec3d)}.
-         * <b>For internal use only. You should have a good reason to call this yourself (don't).</b>
+         * Opens {@code name} as InputStream
+         *
+         * @param name Filename to open
+         *
+         * @return The opened InputStream. Closed by the library when done.
          */
-        @ApiStatus.Internal
-        public void bake() {
-            if (buffer != null) {
-                buffer.close();
-            }
-            if (parent.hasFlag(Flags.RENDER_WIREFRAME)) {
-                VertexFormat vf = VertexFormats.POSITION_COLOR;
-                Tessellator t = Tessellator.getInstance();
-                BufferBuilder bb = t.getBuffer();
-
-                bb.begin(VertexFormat.DrawMode.DEBUG_LINES, vf);
-
-                Renderer3d.drawObjObjectWireframe(this, bb, EMPTY_MAT, Vec3d.ZERO);
-
-                BufferBuilder.BuiltBuffer end = bb.end();
-                buffer = BufferUtils.createVbo(end);
-            } else {
-                VertexFormat vf = (this.getMaterial() != null && this.getMaterial()
-                    .getDiffuseTextureMap() != null) ? VertexFormats.POSITION_TEXTURE_COLOR_NORMAL : VertexFormats.POSITION_COLOR;
-                Tessellator t = Tessellator.getInstance();
-                BufferBuilder bb = t.getBuffer();
-
-                bb.begin(VertexFormat.DrawMode.TRIANGLES, vf);
-
-                Renderer3d.drawObjObject(this, bb, EMPTY_MAT, Vec3d.ZERO);
-
-                BufferBuilder.BuiltBuffer end = bb.end();
-                buffer = BufferUtils.createVbo(end);
-            }
-        }
+        InputStream open(String name) throws IOException;
     }
 }

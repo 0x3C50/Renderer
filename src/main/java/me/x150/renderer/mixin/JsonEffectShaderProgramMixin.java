@@ -1,7 +1,7 @@
 package me.x150.renderer.mixin;
 
 import net.minecraft.client.gl.JsonEffectShaderProgram;
-import net.minecraft.client.gl.ShaderStage;
+import net.minecraft.client.gl.ShaderStage.Type;
 import net.minecraft.resource.ResourceManager;
 import net.minecraft.util.Identifier;
 import org.spongepowered.asm.mixin.Mixin;
@@ -12,7 +12,7 @@ import org.spongepowered.asm.mixin.injection.Redirect;
 public abstract class JsonEffectShaderProgramMixin {
 
     @Redirect(at = @At(value = "NEW", target = "net/minecraft/util/Identifier", ordinal = 0), method = "loadEffect")
-    private static Identifier constructProgramIdentifier(String arg, ResourceManager unused, ShaderStage.Type shaderType, String id) {
+    private static Identifier constructProgramIdentifier(String arg, ResourceManager unused, Type shaderType, String id) {
         if (!arg.contains(":")) {
             return new Identifier(arg);
         }

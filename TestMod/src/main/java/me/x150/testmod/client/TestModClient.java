@@ -1,7 +1,7 @@
 package me.x150.testmod.client;
 
 
-import me.x150.renderer.event.Events;
+import me.x150.renderer.event.RenderEvents;
 import me.x150.testmod.Handler;
 import net.fabricmc.api.ClientModInitializer;
 
@@ -11,6 +11,7 @@ public class TestModClient implements ClientModInitializer {
      */
     @Override
     public void onInitializeClient() {
-        Events.manager.registerSubscribers(new Handler());
+        RenderEvents.HUD.register(Handler::hud);
+        RenderEvents.WORLD.register(Handler::world);
     }
 }

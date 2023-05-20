@@ -107,10 +107,10 @@ class GlyphMap {
         g2d.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
 
         for (Glyph glyph : glyphs1) {
-            g2d.setFont(getFontForGlyph(glyph.repr()));
+            g2d.setFont(getFontForGlyph(glyph.value()));
             FontMetrics fontMetrics = g2d.getFontMetrics();
-            g2d.drawString(String.valueOf(glyph.repr()), glyph.u(), glyph.v() + fontMetrics.getAscent());
-            glyphs.put(glyph.repr(), glyph);
+            g2d.drawString(String.valueOf(glyph.value()), glyph.u(), glyph.v() + fontMetrics.getAscent());
+            glyphs.put(glyph.value(), glyph);
         }
         RendererUtils.registerBufferedImageTexture(bindToTexture, bi);
         generated = true;

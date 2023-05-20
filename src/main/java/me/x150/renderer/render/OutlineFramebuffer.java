@@ -1,6 +1,8 @@
 package me.x150.renderer.render;
 
 import com.mojang.blaze3d.platform.GlStateManager;
+import com.mojang.blaze3d.platform.GlStateManager.DstFactor;
+import com.mojang.blaze3d.platform.GlStateManager.SrcFactor;
 import com.mojang.blaze3d.systems.RenderSystem;
 import me.x150.renderer.mixinUtil.ShaderEffectDuck;
 import me.x150.renderer.shader.ShaderManager;
@@ -81,7 +83,7 @@ public class OutlineFramebuffer extends Framebuffer {
         mainBuffer.beginWrite(false);
 
         RenderSystem.enableBlend();
-        RenderSystem.blendFuncSeparate(GlStateManager.SrcFactor.SRC_ALPHA, GlStateManager.DstFactor.ONE_MINUS_SRC_ALPHA, GlStateManager.SrcFactor.ZERO, GlStateManager.DstFactor.ONE);
+        RenderSystem.blendFuncSeparate(SrcFactor.SRC_ALPHA, DstFactor.ONE_MINUS_SRC_ALPHA, SrcFactor.ZERO, DstFactor.ONE);
         out.draw(out.textureWidth, out.textureHeight, false);
         RenderSystem.defaultBlendFunc();
     }

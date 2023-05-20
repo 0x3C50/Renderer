@@ -21,16 +21,15 @@ public class Shader {
     int previousWidth, previousHeight;
 
     @SneakyThrows
-    private Shader(Identifier ident, Consumer<Shader> init) {
+    private Shader(Identifier identifier, Consumer<Shader> init) {
         MinecraftClient client = MinecraftClient.getInstance();
-        //        this.effect = ShaderEffectManager.getInstance().manage(ident, init);
-        this.shader = new PostEffectProcessor(client.getTextureManager(), client.getResourceManager(), client.getFramebuffer(), ident);
+        this.shader = new PostEffectProcessor(client.getTextureManager(), client.getResourceManager(), client.getFramebuffer(), identifier);
         checkUpdateDimensions();
         init.accept(this);
     }
 
-    public static Shader create(String progName, Consumer<Shader> callback) {
-        return new Shader(new Identifier("renderer", String.format("shaders/post/%s.json", progName)), callback);
+    public static Shader createPost(String id, Consumer<Shader> callback) {
+        return new Shader(new Identifier("renderer", String.format("shaders/post/%s.json", id)), callback);
     }
 
     void checkUpdateDimensions() {

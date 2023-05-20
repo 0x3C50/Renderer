@@ -7,7 +7,7 @@ import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.render.BufferBuilder;
 import net.minecraft.client.render.GameRenderer;
 import net.minecraft.client.render.Tessellator;
-import net.minecraft.client.render.VertexFormat;
+import net.minecraft.client.render.VertexFormat.DrawMode;
 import net.minecraft.client.render.VertexFormats;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.util.Identifier;
@@ -83,7 +83,7 @@ public class Renderer2d {
 
     private static void renderTexturedQuad(Matrix4f matrix, double x0, double x1, double y0, double y1, double z, float u0, float u1, float v0, float v1) {
         BufferBuilder buffer = Tessellator.getInstance().getBuffer();
-        buffer.begin(VertexFormat.DrawMode.QUADS, VertexFormats.POSITION_TEXTURE);
+        buffer.begin(DrawMode.QUADS, VertexFormats.POSITION_TEXTURE);
         buffer.vertex(matrix, (float) x0, (float) y1, (float) z).texture(u0, v1).next();
         buffer.vertex(matrix, (float) x1, (float) y1, (float) z).texture(u1, v1).next();
         buffer.vertex(matrix, (float) x1, (float) y0, (float) z).texture(u1, v0).next();
@@ -142,8 +142,8 @@ public class Renderer2d {
         float[] colorFloat = getColor(circleColor);
 
         BufferBuilder buffer = Tessellator.getInstance().getBuffer();
-        buffer.begin(VertexFormat.DrawMode.TRIANGLE_FAN, VertexFormats.POSITION_COLOR);
-        for (int i = 0; i < 360; i += Math.min((360d / segments), 360 - i)) {
+        buffer.begin(DrawMode.TRIANGLE_FAN, VertexFormats.POSITION_COLOR);
+        for (int i = 0; i < 360; i += Math.min(360d / segments, 360 - i)) {
             double radians = Math.toRadians(i);
             double sin = Math.sin(radians) * rad;
             double cos = Math.cos(radians) * rad;
@@ -182,7 +182,7 @@ public class Renderer2d {
         float[] colorFloat = getColor(color);
 
         BufferBuilder buffer = Tessellator.getInstance().getBuffer();
-        buffer.begin(VertexFormat.DrawMode.QUADS, VertexFormats.POSITION_COLOR);
+        buffer.begin(DrawMode.QUADS, VertexFormats.POSITION_COLOR);
         buffer.vertex(matrix, (float) x1, (float) y2, 0.0F).color(colorFloat[0], colorFloat[1], colorFloat[2], colorFloat[3]).next();
         buffer.vertex(matrix, (float) x2, (float) y2, 0.0F).color(colorFloat[0], colorFloat[1], colorFloat[2], colorFloat[3]).next();
         buffer.vertex(matrix, (float) x2, (float) y1, 0.0F).color(colorFloat[0], colorFloat[1], colorFloat[2], colorFloat[3]).next();
@@ -197,7 +197,7 @@ public class Renderer2d {
     private static void renderRoundedQuadInternal(Matrix4f matrix, float cr, float cg, float cb, float ca, float fromX, float fromY, float toX, float toY, float radC1, float radC2, float radC3,
                                                   float radC4, float samples) {
         BufferBuilder bufferBuilder = Tessellator.getInstance().getBuffer();
-        bufferBuilder.begin(VertexFormat.DrawMode.TRIANGLE_FAN, VertexFormats.POSITION_COLOR);
+        bufferBuilder.begin(DrawMode.TRIANGLE_FAN, VertexFormats.POSITION_COLOR);
 
         _populateRC(toX - radC4, toY - radC4, radC4, 0);
         _populateRC(toX - radC2, fromY + radC2, radC2, 1);
@@ -206,7 +206,7 @@ public class Renderer2d {
         for (int i = 0; i < 4; i++) {
             float[] current = roundedCache[i];
             float rad = current[2];
-            for (float r = i * 90f; r <= (i + 1) * 90f; r += (90 / samples)) {
+            for (float r = i * 90f; r <= (i + 1) * 90f; r += 90 / samples) {
                 float rad1 = Math.toRadians(r);
                 float sin = Math.sin(rad1) * rad;
                 float cos = Math.cos(rad1) * rad;
@@ -271,7 +271,7 @@ public class Renderer2d {
     private static void renderRoundedOutlineInternal(Matrix4f matrix, float cr, float cg, float cb, float ca, float fromX, float fromY, float toX, float toY, float radC1, float radC2, float radC3,
                                                      float radC4, float width, float samples) {
         BufferBuilder bufferBuilder = Tessellator.getInstance().getBuffer();
-        bufferBuilder.begin(VertexFormat.DrawMode.TRIANGLE_STRIP, VertexFormats.POSITION_COLOR);
+        bufferBuilder.begin(DrawMode.TRIANGLE_STRIP, VertexFormats.POSITION_COLOR);
 
         _populateRC(toX - radC4, toY - radC4, radC4, 0);
         _populateRC(toX - radC2, fromY + radC2, radC2, 1);
@@ -280,7 +280,7 @@ public class Renderer2d {
         for (int i = 0; i < 4; i++) {
             float[] current = roundedCache[i];
             float rad = current[2];
-            for (float r = i * 90f; r <= (i + 1) * 90f; r += (90 / samples)) {
+            for (float r = i * 90f; r <= (i + 1) * 90f; r += 90 / samples) {
                 float rad1 = Math.toRadians(r);
                 float sin1 = Math.sin(rad1);
                 float sin = sin1 * rad;
@@ -361,7 +361,7 @@ public class Renderer2d {
         Matrix4f m = stack.peek().getPositionMatrix();
 
         BufferBuilder bufferBuilder = Tessellator.getInstance().getBuffer();
-        bufferBuilder.begin(VertexFormat.DrawMode.DEBUG_LINES, VertexFormats.POSITION_COLOR);
+        bufferBuilder.begin(DrawMode.DEBUG_LINES, VertexFormats.POSITION_COLOR);
         bufferBuilder.vertex(m, (float) x, (float) y, 0f).color(colorFloat[0], colorFloat[1], colorFloat[2], colorFloat[3]).next();
         bufferBuilder.vertex(m, (float) x1, (float) y1, 0f).color(colorFloat[0], colorFloat[1], colorFloat[2], colorFloat[3]).next();
 

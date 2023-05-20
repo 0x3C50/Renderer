@@ -3,6 +3,7 @@ package me.x150.renderer.util;
 import com.google.common.base.Preconditions;
 import net.minecraft.client.gl.VertexBuffer;
 import net.minecraft.client.render.BufferBuilder;
+import net.minecraft.client.render.BufferBuilder.BuiltBuffer;
 import net.minecraft.client.render.BufferRenderer;
 
 public class BufferUtils {
@@ -22,7 +23,7 @@ public class BufferUtils {
      *
      * @return The VBO
      */
-    public static VertexBuffer createVbo(BufferBuilder.BuiltBuffer builder) {
+    public static VertexBuffer createVbo(BuiltBuffer builder) {
         VertexBuffer buffer = new VertexBuffer();
         buffer.bind();
         buffer.upload(builder);
@@ -36,7 +37,7 @@ public class BufferUtils {
      * @param builder The buffer to upload
      * @param buffer  The VBO to upload to
      */
-    public static void uploadToVbo(BufferBuilder.BuiltBuffer builder, VertexBuffer buffer) {
+    public static void uploadToVbo(BuiltBuffer builder, VertexBuffer buffer) {
         Preconditions.checkArgument(!buffer.isClosed(), "VBO is closed");
         buffer.bind();
         buffer.upload(builder);
