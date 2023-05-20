@@ -84,8 +84,11 @@ public class OutlineFramebuffer extends Framebuffer {
 
         RenderSystem.enableBlend();
         RenderSystem.blendFuncSeparate(SrcFactor.SRC_ALPHA, DstFactor.ONE_MINUS_SRC_ALPHA, SrcFactor.ZERO, DstFactor.ONE);
+        RenderSystem.backupProjectionMatrix();
         out.draw(out.textureWidth, out.textureHeight, false);
+        RenderSystem.restoreProjectionMatrix();
         RenderSystem.defaultBlendFunc();
+        RenderSystem.disableBlend();
     }
 
     /**
