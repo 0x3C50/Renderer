@@ -29,6 +29,7 @@ import java.util.stream.IntStream;
 /**
  * <p>Utils for rendering in minecraft</p>
  */
+@SuppressWarnings("unused")
 public class RendererUtils {
     public static final Matrix4f lastProjMat = new Matrix4f();
     public static final Matrix4f lastModMat = new Matrix4f();

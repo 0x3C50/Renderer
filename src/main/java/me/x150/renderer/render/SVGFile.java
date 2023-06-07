@@ -28,6 +28,7 @@ import java.io.StringReader;
  * }
  * }</pre>
  */
+@SuppressWarnings("unused")
 public class SVGFile implements Closeable {
     final String svgSource;
     final int originalWidth;

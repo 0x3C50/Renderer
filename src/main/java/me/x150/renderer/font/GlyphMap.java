@@ -97,7 +97,6 @@ class GlyphMap {
         width = bi.getWidth();
         height = bi.getHeight();
         Graphics2D g2d = bi.createGraphics();
-        //        g2d.setFont(this.font);
         g2d.setColor(new Color(255, 255, 255, 0));
         g2d.fillRect(0, 0, width, height);
         g2d.setColor(Color.WHITE);

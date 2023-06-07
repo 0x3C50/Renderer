@@ -28,6 +28,7 @@ import java.util.function.Supplier;
 /**
  * Renderer in the world context
  */
+@SuppressWarnings("unused")
 public class Renderer3d {
     static final List<FadingBlock> fades = new CopyOnWriteArrayList<>();
     private static final MinecraftClient client = MinecraftClient.getInstance();

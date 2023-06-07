@@ -11,7 +11,7 @@ import org.spongepowered.asm.mixin.injection.Redirect;
 @Mixin(JsonEffectShaderProgram.class)
 public abstract class JsonEffectShaderProgramMixin {
 
-    @Redirect(at = @At(value = "NEW", target = "net/minecraft/util/Identifier", ordinal = 0), method = "loadEffect")
+    @Redirect(at = @At(value = "NEW", target = "(Ljava/lang/String;)Lnet/minecraft/util/Identifier;"), method = "loadEffect")
     private static Identifier constructProgramIdentifier(String arg, ResourceManager unused, Type shaderType, String id) {
         if (!arg.contains(":")) {
             return new Identifier(arg);
@@ -35,7 +35,7 @@ public abstract class JsonEffectShaderProgramMixin {
      *
      * @return a new Identifier
      */
-    @Redirect(at = @At(value = "NEW", target = "net/minecraft/util/Identifier", ordinal = 0), method = "<init>")
+    @Redirect(at = @At(value = "NEW", target = "(Ljava/lang/String;)Lnet/minecraft/util/Identifier;"), method = "<init>")
     Identifier constructProgramIdentifier(String arg, ResourceManager unused, String id) {
         if (!id.contains(":")) {
             return new Identifier(arg);

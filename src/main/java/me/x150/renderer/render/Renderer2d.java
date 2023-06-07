@@ -25,6 +25,7 @@ import static me.x150.renderer.util.RendererUtils.setupRender;
 /**
  * The rendering class for the 2nd dimension, used in the hud renderer or in screens
  */
+@SuppressWarnings("unused")
 public class Renderer2d {
     /**
      * Reference to the minecraft client

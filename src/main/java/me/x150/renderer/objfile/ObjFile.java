@@ -169,7 +169,7 @@ public class ObjFile implements Closeable {
                 }
             }
             BufferBuilder.BuiltBuffer end = b.end();
-            buffers.put(objToDraw, BufferUtils.createVbo(end));
+            buffers.put(objToDraw, BufferUtils.createVbo(end, VertexBuffer.Usage.STATIC));
         }
         baked = true;
     }
