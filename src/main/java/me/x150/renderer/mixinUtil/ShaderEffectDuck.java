@@ -6,7 +6,7 @@ import net.minecraft.client.gl.PostEffectPass;
 import java.util.List;
 
 public interface ShaderEffectDuck {
-    void addFakeTarget(String name, Framebuffer buffer);
+	void renderer$addFakeTarget(String name, Framebuffer buffer);
 
-    List<PostEffectPass> getPasses();
+	List<PostEffectPass> renderer$getPasses();
 }

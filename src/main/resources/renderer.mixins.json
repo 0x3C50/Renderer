@@ -9,9 +9,8 @@
     "DebugHudMixin",
     "GameRendererMixin",
     "InGameHudMixin",
-    "JsonEffectShaderProgramMixin",
-    "PostProcessShaderMixin",
-    "ShaderEffectMixin"
+    "PostEffectPassAccessor",
+    "PostEffectProcessorMixin"
   ],
   "injectors": {
     "defaultRequire": 1

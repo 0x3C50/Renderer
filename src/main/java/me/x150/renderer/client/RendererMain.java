@@ -8,9 +8,9 @@ import org.slf4j.LoggerFactory;
 
 @Environment(EnvType.CLIENT)
 public class RendererMain implements ClientModInitializer {
-    public static final Logger LOGGER = LoggerFactory.getLogger("Renderer");
+	public static final Logger LOGGER = LoggerFactory.getLogger("Renderer");
 
-    @Override
-    public void onInitializeClient() {
-    }
+	@Override
+	public void onInitializeClient() {
+	}
 }

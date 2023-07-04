@@ -5,6 +5,18 @@ configurations {
     libImpl
 }
 
+repositories {
+    maven {
+        name = 'Ladysnake Mods'
+        url = 'https://maven.ladysnake.org/releases'
+        content {
+            includeGroup 'io.github.ladysnake'
+            includeGroup 'org.ladysnake'
+            includeGroupByRegex 'dev\\.onyxstudios.*'
+        }
+    }
+}
+
 dependencies {
     minecraft "com.mojang:minecraft:${project.minecraft_version}"
     mappings "net.fabricmc:yarn:${project.yarn_mappings}:v2"
@@ -30,6 +42,7 @@ dependencies {
         exclude group: "commons-io", module: "commons-io"
     }
     api(group: "de.javagl", name: "obj", version: "0.4.0")
+    modImplementation "io.github.ladysnake:satin:1.13.0"
 //    modImpl(files("rt-mods/render-explorer-1.0.0.jar"))
 
     configurations.modImpl.dependencies.each {

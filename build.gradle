@@ -62,6 +62,15 @@ repositories {
     // Loom adds the essential maven repositories to download Minecraft and libraries from automatically.
     // See https://docs.gradle.org/current/userguide/declaring_repositories.html
     // for more information about repositories.
+    maven {
+        name = 'Ladysnake Mods'
+        url = 'https://maven.ladysnake.org/releases'
+        content {
+            includeGroup 'io.github.ladysnake'
+            includeGroup 'org.ladysnake'
+            includeGroupByRegex 'dev\\.onyxstudios.*'
+        }
+    }
 }
 
 configurations {
@@ -96,6 +105,8 @@ dependencies {
         exclude group: "commons-io", module: "commons-io"
     }
     api(group: "de.javagl", name: "obj", version: "0.4.0")
+
+    modImplementation "io.github.ladysnake:satin:1.13.0"
 
     configurations.modImpl.dependencies.each {
         modImplementation(it)
