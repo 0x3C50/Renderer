@@ -9,7 +9,6 @@ import me.x150.renderer.render.Renderer3d;
 import me.x150.renderer.util.RendererUtils;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.util.math.MatrixStack;
-import net.minecraft.util.math.RotationAxis;
 import net.minecraft.util.math.Vec3d;
 import org.joml.Matrix4f;
 
@@ -43,6 +42,8 @@ public class Handler {
 		}
 		MatrixStack fs = RendererUtils.getEmptyMatrixStack();
 		fs.push();
+		Renderer2d.renderEllipse(matrices.getMatrices(), Color.RED, 30, 120, 10, 15, 20);
+		Renderer2d.renderEllipseOutline(matrices.getMatrices(), Color.RED, 70, 120, 30, 15, 1+(System.currentTimeMillis() % 5000) / 5000d * 10, 1+(1- (System.currentTimeMillis() % 5000) / 5000d) * 10, 20);
 		String n = """
 				This is a rendering library.
 				It supports TTF font rendering.
@@ -51,8 +52,8 @@ public class Handler {
 				""".trim();
 		float stringWidth = fr.getStringWidth(n);
 		float stringHeight = fr.getStringHeight(n);
-		fs.multiply(RotationAxis.NEGATIVE_Z.rotationDegrees((System.currentTimeMillis() % 5000) / 5000f * 360f),
-				30 + (stringWidth + 5) / 2, 30 + (stringHeight + 5) / 2, 0);
+//		fs.multiply(RotationAxis.NEGATIVE_Z.rotationDegrees((System.currentTimeMillis() % 5000) / 5000f * 360f),
+//				30 + (stringWidth + 5) / 2, 30 + (stringHeight + 5) / 2, 0);
 		Renderer2d.renderRoundedQuad(fs, Color.BLACK, 30 - 5, 30 - 5, 30 + stringWidth + 5, 30 + stringHeight + 5, 5,
 				5);
 		fr.drawString(fs, n, 30, 30, 1f, 1f, 1f, 1f);

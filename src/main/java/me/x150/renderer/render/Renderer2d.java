@@ -125,30 +125,90 @@ public class Renderer2d {
 	}
 
 	/**
-	 * <p>Renders a circle</p>
+	 * <p>Renders a filled ellipse</p>
 	 * <p>Best used inside of {@link MSAAFramebuffer#use(int, Runnable)}</p>
 	 *
 	 * @param matrices    The context MatrixStack
-	 * @param circleColor The color of the circle
+	 * @param ellipseColor The color of the ellipse
 	 * @param originX     The <b>center</b> X coordinate
 	 * @param originY     The <b>center</b> Y coordinate
-	 * @param rad         The radius of the circle
-	 * @param segments    How many segments to use to render the circle (less = more performance, more = higher quality circle)
+	 * @param radX        Width of the ellipse
+	 * @param radY Height of the ellipse
+	 * @param segments    How many segments to use to render the ellipse (less = more performance, more = higher quality ellipse)
 	 */
-	public static void renderCircle(MatrixStack matrices, Color circleColor, double originX, double originY, double rad, @Range(from = 4, to = 360) int segments) {
+	public static void renderEllipse(MatrixStack matrices, Color ellipseColor, double originX, double originY, double radX, double radY, @Range(from = 4, to = 360) int segments) {
 		segments = MathHelper.clamp(segments, 4, 360);
 
 		Matrix4f matrix = matrices.peek().getPositionMatrix();
 
-		float[] colorFloat = getColor(circleColor);
+		float[] colorFloat = getColor(ellipseColor);
 
 		BufferBuilder buffer = Tessellator.getInstance().getBuffer();
 		buffer.begin(DrawMode.TRIANGLE_FAN, VertexFormats.POSITION_COLOR);
 		for (int i = 0; i < 360; i += Math.min(360d / segments, 360 - i)) {
 			double radians = Math.toRadians(i);
-			double sin = Math.sin(radians) * rad;
-			double cos = Math.cos(radians) * rad;
+			double sin = Math.sin(radians) * radX;
+			double cos = Math.cos(radians) * radY;
 			buffer.vertex(matrix, (float) (originX + sin), (float) (originY + cos), 0)
+					.color(colorFloat[0], colorFloat[1], colorFloat[2], colorFloat[3])
+					.next();
+		}
+		setupRender();
+		RenderSystem.setShader(GameRenderer::getPositionColorProgram);
+		BufferUtils.draw(buffer);
+		endRender();
+	}
+
+	/**
+	 * <p>Renders a filled circle</p>
+	 * <p>Best used inside of {@link MSAAFramebuffer#use(int, Runnable)}</p>
+	 *
+	 * @param matrices MatrixStack
+	 * @param circleColor Color of the circle
+	 * @param originX Center X coordinate
+	 * @param originY Center Y coordinate
+	 * @param rad Uniform radius of the circle
+	 * @param segments Number of segments that should be rendered. Increasing will decrease speed, decreasing with decrease quality
+	 */
+	public static void renderCircle(MatrixStack matrices, Color circleColor, double originX, double originY, double rad, @Range(from = 4, to = 360) int segments) {
+		renderEllipse(matrices, circleColor, originX, originY, rad, rad, segments);
+	}
+
+	/**
+	 * <p>Renders an ellipse's outline</p>
+	 * <p>Best used inside of {@link MSAAFramebuffer#use(int, Runnable)}</p>
+	 *
+	 * @param matrices MatrixStack
+	 * @param ellipseColor Color of the ellipse
+	 * @param originX Center X coordinate
+	 * @param originY Center Y coordinate
+	 * @param radX Horizontal radius of the ellipse
+	 * @param radY Vertical radius of the ellipse
+	 * @param width Width of the outline. Should usually be the same as height
+	 * @param height Height of the outline. Should usually be the same as width
+	 * @param segments Number of segments that should be rendered. Increasing will decrease speed, decreasing with decrease quality
+	 */
+	public static void renderEllipseOutline(MatrixStack matrices, Color ellipseColor, double originX, double originY, double radX, double radY, @Range(from = 0, to = Long.MAX_VALUE) double width, @Range(from = 0, to = Long.MAX_VALUE) double height, @Range(from=4,to=360) int segments) {
+		segments = MathHelper.clamp(segments, 4, 360);
+		width = MathHelper.clamp(width, 0, radX);
+		height = MathHelper.clamp(height, 0, radY);
+
+		Matrix4f matrix = matrices.peek().getPositionMatrix();
+
+		float[] colorFloat = getColor(ellipseColor);
+
+		BufferBuilder buffer = Tessellator.getInstance().getBuffer();
+		buffer.begin(DrawMode.TRIANGLE_STRIP, VertexFormats.POSITION_COLOR);
+		for (int i = 0; i <= segments; i++) {
+			double radians = Math.toRadians((double) i / segments * 360d);
+			double sin = Math.sin(radians) * (radX-width);
+			double cos = Math.cos(radians) * (radY-height);
+			double sin1 = Math.sin(radians) * radX;
+			double cos1 = Math.cos(radians) * radY;
+			buffer.vertex(matrix, (float) (originX + sin), (float) (originY + cos), 0)
+					.color(colorFloat[0], colorFloat[1], colorFloat[2], colorFloat[3])
+					.next();
+			buffer.vertex(matrix, (float) (originX + sin1), (float) (originY + cos1), 0)
 					.color(colorFloat[0], colorFloat[1], colorFloat[2], colorFloat[3])
 					.next();
 		}
