@@ -2,6 +2,7 @@ package me.x150.renderer.objfile;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 import de.javagl.obj.*;
+import me.x150.renderer.shader.ShaderManager;
 import me.x150.renderer.util.BufferUtils;
 import me.x150.renderer.util.RendererUtils;
 import net.minecraft.client.MinecraftClient;
@@ -191,7 +192,7 @@ public class ObjFile implements Closeable {
 			}
 			Supplier<ShaderProgram> shader;
 			if (material != null) {
-				shader = hasTexture ? GameRenderer::getPositionTexColorNormalProgram : GameRenderer::getPositionColorProgram;
+				shader = hasTexture ? ShaderManager.OBJ_SHADER::getProgram : GameRenderer::getPositionColorProgram;
 			} else {
 				shader = GameRenderer::getPositionProgram;
 			}
