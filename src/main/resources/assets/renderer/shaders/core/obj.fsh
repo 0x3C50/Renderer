@@ -8,6 +8,7 @@ uniform vec4 ColorModulator;
 uniform float FogStart;
 uniform float FogEnd;
 uniform vec4 FogColor;
+uniform float LightLevel;
 
 in vec2 texCoord0;
 in float vertexDistance;
@@ -21,5 +22,5 @@ void main() {
     if (color.a < 0.1) {
         discard;
     }
-    fragColor = linear_fog(color, vertexDistance, FogStart, FogEnd, FogColor);
+    fragColor = linear_fog(color * vec4(vec3(LightLevel),1.f), vertexDistance, FogStart, FogEnd, FogColor);
 }

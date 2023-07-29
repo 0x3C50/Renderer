@@ -5,13 +5,19 @@ import de.javagl.obj.*;
 import me.x150.renderer.shader.ShaderManager;
 import me.x150.renderer.util.BufferUtils;
 import me.x150.renderer.util.RendererUtils;
+import net.minecraft.block.Blocks;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gl.ShaderProgram;
 import net.minecraft.client.gl.VertexBuffer;
 import net.minecraft.client.render.*;
+import net.minecraft.client.render.block.BlockRenderManager;
 import net.minecraft.client.util.math.MatrixStack;
+import net.minecraft.entity.Entity;
 import net.minecraft.util.Identifier;
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec3d;
+import net.minecraft.world.LightType;
 import org.joml.Matrix4f;
 
 import javax.imageio.ImageIO;
@@ -166,6 +172,18 @@ public class ObjFile implements Closeable {
 	 * @param origin     Origin point to draw at
 	 */
 	public void draw(MatrixStack stack, Matrix4f viewMatrix, Vec3d origin) {
+		draw(stack, viewMatrix, origin, 1.f);
+	}
+
+	/**
+	 * Draws this ObjFile. Calls {@link #bake()} if necessary.
+	 *
+	 * @param stack      MatrixStack
+	 * @param viewMatrix View matrix to apply to this ObjFile, independent of any other matrix.
+	 * @param origin     Origin point to draw at
+	 * @param lightLevel Light level to render the ObjFile at
+	 */
+	public void draw(MatrixStack stack, Matrix4f viewMatrix, Vec3d origin, float lightLevel) {
 		if (closed) {
 			throw new IllegalStateException("Closed");
 		}
@@ -193,6 +211,8 @@ public class ObjFile implements Closeable {
 			Supplier<ShaderProgram> shader;
 			if (material != null) {
 				shader = hasTexture ? ShaderManager.OBJ_SHADER::getProgram : GameRenderer::getPositionColorProgram;
+				shader.get().bind();
+				ShaderManager.OBJ_SHADER.findUniform1f("LightLevel").set(lightLevel);
 			} else {
 				shader = GameRenderer::getPositionProgram;
 			}

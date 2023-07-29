@@ -42,7 +42,7 @@ public class TestModClient implements ClientModInitializer {
 
 				ObjFile.ResourceProvider provider = TestLocalResourceProvider.ofResourceManager(manager, basePath);
 				try {
-					testObj = new ObjFile("testsphere.obj", (ObjFile.ResourceProvider) provider);
+					testObj = new ObjFile("cubesphere.obj", (ObjFile.ResourceProvider) provider);
 				} catch (IOException e) {
 					throw new RuntimeException(e);
 				}
