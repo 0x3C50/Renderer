@@ -5,14 +5,12 @@ import de.javagl.obj.*;
 import me.x150.renderer.shader.ShaderManager;
 import me.x150.renderer.util.BufferUtils;
 import me.x150.renderer.util.RendererUtils;
-import net.minecraft.block.Blocks;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gl.ShaderProgram;
 import net.minecraft.client.gl.VertexBuffer;
 import net.minecraft.client.render.*;
-import net.minecraft.client.render.block.BlockRenderManager;
 import net.minecraft.client.util.math.MatrixStack;
-import net.minecraft.entity.Entity;
+import net.minecraft.client.world.ClientWorld;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
@@ -165,15 +163,55 @@ public class ObjFile implements Closeable {
 	}
 
 	/**
+	 * You can provide your own shader
+	 * Overridable, is called in draw()
+	 *
+	 * @return shader used in draw
+	 */
+	protected ShaderProgram getNormalLitShader()
+	{
+		return ShaderManager.OBJ_SHADER.getProgram();
+	}
+
+	/**
 	 * Draws this ObjFile. Calls {@link #bake()} if necessary.
+	 * Automatically calculates light level
 	 *
 	 * @param stack      MatrixStack
 	 * @param viewMatrix View matrix to apply to this ObjFile, independent of any other matrix.
 	 * @param origin     Origin point to draw at
 	 */
-	public void draw(MatrixStack stack, Matrix4f viewMatrix, Vec3d origin) {
-		draw(stack, viewMatrix, origin, 1.f);
+	public void draw(MatrixStack stack, Matrix4f viewMatrix, Vec3d origin)
+	{
+		BlockPos bp = BlockPos.ofFloored(origin);
+		MinecraftClient client = MinecraftClient.getInstance();
+		ClientWorld world = client.world;
+		if (world != null) {
+			// Compute celestial light based on time of day.
+			float celestialAngle = world.getSkyAngleRadians(1.0F);
+			float celestialLight = 1.0F - (MathHelper.cos(celestialAngle >= Math.PI ? (float)Math.PI * 2 - celestialAngle : celestialAngle) * 2.0F + 0.2F);
+			celestialLight = MathHelper.clamp(celestialLight, 0.0F, 1.0F);
+			celestialLight = 1.0F - celestialLight;
+			celestialLight = (float)((double)celestialLight * ((1.0D - (double)world.getRainGradient(1.0F) * 5.0F / 16.0D)));
+			celestialLight = (float)((double)celestialLight * ((1.0D - (double)world.getThunderGradient(1.0F) * 5.0F / 16.0D)));
+
+			// Compute sky light level.
+			int skyLightLevel = world.getLightLevel(LightType.SKY, bp);
+			float skyLight = skyLightLevel / 15.0F;
+
+			// Scale celestial light based on sky light.
+			float scaledCelestialLight = celestialLight * skyLight;
+
+			// Compute block light.
+			int blockLightLevel = world.getLightLevel(LightType.BLOCK, bp);
+			float blockLight = blockLightLevel / 15.0F;
+
+			// Combine scaled celestial light with block light.
+			float finalLight = Math.max(Math.max(scaledCelestialLight, blockLight), 0.2f);
+			draw(stack, viewMatrix, origin, finalLight);
+		}
 	}
+
 
 	/**
 	 * Draws this ObjFile. Calls {@link #bake()} if necessary.
@@ -181,7 +219,7 @@ public class ObjFile implements Closeable {
 	 * @param stack      MatrixStack
 	 * @param viewMatrix View matrix to apply to this ObjFile, independent of any other matrix.
 	 * @param origin     Origin point to draw at
-	 * @param lightLevel Light level to render the ObjFile at
+	 * @param lightLevel Light level to render the model at
 	 */
 	public void draw(MatrixStack stack, Matrix4f viewMatrix, Vec3d origin, float lightLevel) {
 		if (closed) {
@@ -210,7 +248,7 @@ public class ObjFile implements Closeable {
 			}
 			Supplier<ShaderProgram> shader;
 			if (material != null) {
-				shader = hasTexture ? ShaderManager.OBJ_SHADER::getProgram : GameRenderer::getPositionColorProgram;
+				shader = hasTexture ? this::getNormalLitShader : GameRenderer::getPositionColorProgram;
 				shader.get().bind();
 				ShaderManager.OBJ_SHADER.findUniform1f("LightLevel").set(lightLevel);
 			} else {
