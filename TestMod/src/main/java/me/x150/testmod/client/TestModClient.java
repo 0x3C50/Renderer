@@ -42,7 +42,7 @@ public class TestModClient implements ClientModInitializer {
 
 				ObjFile.ResourceProvider provider = TestLocalResourceProvider.ofResourceManager(manager, basePath);
 				try {
-					testObj = new ObjFile("cubesphere.obj", (ObjFile.ResourceProvider) provider);
+					testObj = new ObjFile("cubesphere.obj", provider);
 				} catch (IOException e) {
 					throw new RuntimeException(e);
 				}
@@ -50,8 +50,8 @@ public class TestModClient implements ClientModInitializer {
 		});
 	}
 
-	public interface TestLocalResourceProvider extends ObjFile.ResourceProvider {
-		static TestLocalResourceProvider ofResourceManager(ResourceManager resourceManager, Identifier basePath) {
+	public interface TestLocalResourceProvider {
+		static ObjFile.ResourceProvider ofResourceManager(ResourceManager resourceManager, Identifier basePath) {
 			return name -> {
 				Identifier resourceIdentifier = new Identifier(basePath.getNamespace(), basePath.getPath() + "/" + name);
 				Optional<Resource> resource;
@@ -59,7 +59,7 @@ public class TestModClient implements ClientModInitializer {
 				if (resource.isPresent()) {
 					return resource.get().getInputStream();
 				} else {
-					throw new IOException("Resource not found: " + resourceIdentifier.toString());
+					throw new IOException("Resource not found: " + resourceIdentifier);
 				}
 			};
 		}

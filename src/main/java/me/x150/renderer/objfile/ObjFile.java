@@ -194,7 +194,7 @@ public class ObjFile implements Closeable {
 
 	/**
 	 * Draws this ObjFile. Calls {@link #bake()} if necessary.
-	 * Automatically calculates light level
+	 * Automatically calculates light level at only the origin applied to the entire object.
 	 *
 	 * @param stack      MatrixStack
 	 * @param viewMatrix View matrix to apply to this ObjFile, independent of any other matrix.
