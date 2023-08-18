@@ -17,6 +17,7 @@ import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.LightType;
 import org.joml.Matrix4f;
+import org.joml.Vector3f;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
@@ -162,6 +163,24 @@ public class ObjFile implements Closeable {
 		baked = true;
 	}
 
+
+	protected Vector3f calculateSunPosition(long worldTime) {
+
+		double timeFraction = worldTime % 24000.0 / 24000.0;
+		double angle = ((timeFraction) * 2.0 * Math.PI);
+
+		// Calculate sun X and Y position using cosine and sine to create the unit circle.
+		// Reverse Y since in most systems, positive Y goes up.
+		float sunX = (float) Math.cos(angle);
+		float sunY = (float) Math.sin(angle);
+
+		// The sun doesn't move in the Z direction so Z is 0.
+		float sunZ = 0.0f;
+
+		return new Vector3f(sunX, sunY, sunZ);
+	}
+
+
 	/**
 	 * You can provide your own shader
 	 * Overridable, is called in draw()
@@ -208,10 +227,11 @@ public class ObjFile implements Closeable {
 
 			// Combine scaled celestial light with block light.
 			float finalLight = Math.max(Math.max(scaledCelestialLight, blockLight), 0.2f);
-			draw(stack, viewMatrix, origin, finalLight);
+			draw(stack, viewMatrix, origin, finalLight, calculateSunPosition(world.getTimeOfDay()));
 		}
 	}
 
+	private static final Matrix4f unmodified_matrix = new Matrix4f();
 
 	/**
 	 * Draws this ObjFile. Calls {@link #bake()} if necessary.
@@ -221,7 +241,7 @@ public class ObjFile implements Closeable {
 	 * @param origin     Origin point to draw at
 	 * @param lightLevel Light level to render the model at
 	 */
-	public void draw(MatrixStack stack, Matrix4f viewMatrix, Vec3d origin, float lightLevel) {
+	public void draw(MatrixStack stack, Matrix4f viewMatrix, Vec3d origin, float lightLevel, Vector3f lightPos) {
 		if (closed) {
 			throw new IllegalStateException("Closed");
 		}
@@ -251,6 +271,19 @@ public class ObjFile implements Closeable {
 				shader = hasTexture ? this::getNormalLitShader : GameRenderer::getPositionColorProgram;
 				shader.get().bind();
 				ShaderManager.OBJ_SHADER.findUniform1f("LightLevel").set(lightLevel);
+
+				if (!viewMatrix.equals(unmodified_matrix))
+				{
+					// this calculation is expensive.
+					Matrix4f invViewMatrix = new Matrix4f(viewMatrix);
+					invViewMatrix.invert();
+					lightPos = new Vector3f(
+							invViewMatrix.m00() * lightPos.x + invViewMatrix.m10() * lightPos.y + invViewMatrix.m20() * lightPos.z,
+							invViewMatrix.m01() * lightPos.x + invViewMatrix.m11() * lightPos.y + invViewMatrix.m21() * lightPos.z,
+							invViewMatrix.m02() * lightPos.x + invViewMatrix.m12() * lightPos.y + invViewMatrix.m22() * lightPos.z);
+				}
+
+				ShaderManager.OBJ_SHADER.findUniform3f("LightPosition").set(lightPos);
 			} else {
 				shader = GameRenderer::getPositionProgram;
 			}

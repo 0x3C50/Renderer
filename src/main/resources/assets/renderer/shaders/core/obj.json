@@ -4,7 +4,7 @@
         "srcrgb": "srcalpha",
         "dstrgb": "1-srcalpha"
     },
-    "vertex": "position_tex_color_normal",
+    "vertex": "renderer:obj",
     "fragment": "renderer:obj",
     "attributes": [
         "Position",
@@ -23,6 +23,8 @@
         { "name": "FogEnd", "type": "float", "count": 1, "values": [ 1.0 ] },
         { "name": "FogColor", "type": "float", "count": 4, "values": [ 0.0, 0.0, 0.0, 0.0 ] },
         { "name": "FogShape", "type": "int", "count": 1, "values": [ 0 ] },
-        { "name": "LightLevel", "type": "float", "count": 1, "values": [ 1.0 ] }
+        { "name": "LightLevel", "type": "float", "count": 1, "values": [ 1.0 ] },
+        { "name": "NormalMat", "type": "matrix4x4", "count": 16, "values": [ 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0 ] },
+        { "name": "LightPosition", "type": "float", "count": 3, "values": [ 0.0, 100.0, 0.0 ] }
     ]
 }
