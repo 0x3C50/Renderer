@@ -2,6 +2,7 @@ package me.x150.renderer.objfile;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 import de.javagl.obj.*;
+import me.x150.renderer.shader.ShaderManager;
 import me.x150.renderer.util.BufferUtils;
 import me.x150.renderer.util.RendererUtils;
 import net.minecraft.client.MinecraftClient;
@@ -9,9 +10,14 @@ import net.minecraft.client.gl.ShaderProgram;
 import net.minecraft.client.gl.VertexBuffer;
 import net.minecraft.client.render.*;
 import net.minecraft.client.util.math.MatrixStack;
+import net.minecraft.client.world.ClientWorld;
 import net.minecraft.util.Identifier;
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec3d;
+import net.minecraft.world.LightType;
 import org.joml.Matrix4f;
+import org.joml.Vector3f;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
@@ -157,14 +163,85 @@ public class ObjFile implements Closeable {
 		baked = true;
 	}
 
+
+	protected Vector3f calculateSunPosition(long worldTime) {
+
+		double timeFraction = worldTime % 24000.0 / 24000.0;
+		double angle = ((timeFraction) * 2.0 * Math.PI);
+
+		// Calculate sun X and Y position using cosine and sine to create the unit circle.
+		// Reverse Y since in most systems, positive Y goes up.
+		float sunX = (float) Math.cos(angle);
+		float sunY = (float) Math.sin(angle);
+
+		// The sun doesn't move in the Z direction so Z is 0.
+		float sunZ = 0.0f;
+
+		return new Vector3f(sunX, sunY, sunZ);
+	}
+
+
+	/**
+	 * You can provide your own shader
+	 * Overridable, is called in draw()
+	 *
+	 * @return shader used in draw
+	 */
+	protected ShaderProgram getNormalLitShader()
+	{
+		return ShaderManager.OBJ_SHADER.getProgram();
+	}
+
+	/**
+	 * Draws this ObjFile. Calls {@link #bake()} if necessary.
+	 * Automatically calculates light level at only the origin applied to the entire object.
+	 *
+	 * @param stack      MatrixStack
+	 * @param viewMatrix View matrix to apply to this ObjFile, independent of any other matrix.
+	 * @param origin     Origin point to draw at
+	 */
+	public void draw(MatrixStack stack, Matrix4f viewMatrix, Vec3d origin)
+	{
+		BlockPos bp = BlockPos.ofFloored(origin);
+		MinecraftClient client = MinecraftClient.getInstance();
+		ClientWorld world = client.world;
+		if (world != null) {
+			// Compute celestial light based on time of day.
+			float celestialAngle = world.getSkyAngleRadians(1.0F);
+			float celestialLight = 1.0F - (MathHelper.cos(celestialAngle >= Math.PI ? (float)Math.PI * 2 - celestialAngle : celestialAngle) * 2.0F + 0.2F);
+			celestialLight = MathHelper.clamp(celestialLight, 0.0F, 1.0F);
+			celestialLight = 1.0F - celestialLight;
+			celestialLight = (float)((double)celestialLight * ((1.0D - (double)world.getRainGradient(1.0F) * 5.0F / 16.0D)));
+			celestialLight = (float)((double)celestialLight * ((1.0D - (double)world.getThunderGradient(1.0F) * 5.0F / 16.0D)));
+
+			// Compute sky light level.
+			int skyLightLevel = world.getLightLevel(LightType.SKY, bp);
+			float skyLight = skyLightLevel / 15.0F;
+
+			// Scale celestial light based on sky light.
+			float scaledCelestialLight = celestialLight * skyLight;
+
+			// Compute block light.
+			int blockLightLevel = world.getLightLevel(LightType.BLOCK, bp);
+			float blockLight = blockLightLevel / 15.0F;
+
+			// Combine scaled celestial light with block light.
+			float finalLight = Math.max(Math.max(scaledCelestialLight, blockLight), 0.2f);
+			draw(stack, viewMatrix, origin, finalLight, calculateSunPosition(world.getTimeOfDay()));
+		}
+	}
+
+	private static final Matrix4f unmodified_matrix = new Matrix4f();
+
 	/**
 	 * Draws this ObjFile. Calls {@link #bake()} if necessary.
 	 *
 	 * @param stack      MatrixStack
 	 * @param viewMatrix View matrix to apply to this ObjFile, independent of any other matrix.
 	 * @param origin     Origin point to draw at
+	 * @param lightLevel Light level to render the model at
 	 */
-	public void draw(MatrixStack stack, Matrix4f viewMatrix, Vec3d origin) {
+	public void draw(MatrixStack stack, Matrix4f viewMatrix, Vec3d origin, float lightLevel, Vector3f lightPos) {
 		if (closed) {
 			throw new IllegalStateException("Closed");
 		}
@@ -191,7 +268,22 @@ public class ObjFile implements Closeable {
 			}
 			Supplier<ShaderProgram> shader;
 			if (material != null) {
-				shader = hasTexture ? GameRenderer::getPositionTexColorNormalProgram : GameRenderer::getPositionColorProgram;
+				shader = hasTexture ? this::getNormalLitShader : GameRenderer::getPositionColorProgram;
+				shader.get().bind();
+				ShaderManager.OBJ_SHADER.findUniform1f("LightLevel").set(lightLevel);
+
+				if (!viewMatrix.equals(unmodified_matrix))
+				{
+					// this calculation is expensive.
+					Matrix4f invViewMatrix = new Matrix4f(viewMatrix);
+					invViewMatrix.invert();
+					lightPos = new Vector3f(
+							invViewMatrix.m00() * lightPos.x + invViewMatrix.m10() * lightPos.y + invViewMatrix.m20() * lightPos.z,
+							invViewMatrix.m01() * lightPos.x + invViewMatrix.m11() * lightPos.y + invViewMatrix.m21() * lightPos.z,
+							invViewMatrix.m02() * lightPos.x + invViewMatrix.m12() * lightPos.y + invViewMatrix.m22() * lightPos.z);
+				}
+
+				ShaderManager.OBJ_SHADER.findUniform3f("LightPosition").set(lightPos);
 			} else {
 				shader = GameRenderer::getPositionProgram;
 			}

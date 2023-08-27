@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "id": "test-mod",
+  "id": "testmod",
   "version": "${version}",
   "name": "TestMod",
   "description": "Test mod for the renderer library",
@@ -9,7 +9,7 @@
   ],
   "contact": {},
   "license": "All-Rights-Reserved",
-  "icon": "assets/TestMod/icon.png",
+  "icon": "assets/testmod/icon.png",
   "environment": "client",
   "entrypoints": {
     "client": [
