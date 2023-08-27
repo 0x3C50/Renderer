@@ -4,12 +4,24 @@ An easy-to-use rendering library for modern fabric
 # Installing
 You can install this library using [Jitpack](https://jitpack.io/)
 
-To install the library, just add the jitpack repository to your repositories block as described on the website, and this to your dependencies block in build.gradle:
+To install this library, just add the jitpack repository to your `repositories` section as described on the jitpack website, and add the ladysnake repository (for gradle to find satin):
+```groovy
+maven {
+    name = 'Ladysnake Mods'
+    url = 'https://maven.ladysnake.org/releases'
+    content {
+        includeGroup 'io.github.ladysnake'
+        includeGroup 'org.ladysnake'
+        includeGroupByRegex 'dev\\.onyxstudios.*'
+    }
+}
+```
 
+Then add this to your dependencies block in `build.gradle`.
 ```groovy
 include modImplementation("com.github.0x3C50:Renderer:master-SNAPSHOT")
 ```
-This will use the latest commit as build target, but will cache that build target every time. Use the latest short commit hash found on [Jitpack](https://jitpack.io/#0x3C50/Renderer) (example: `d2cc995ff4`) as the version, to get that release instead.
+*This will use the latest commit as build target, but will cache that build target every time. Use the latest short commit hash found on [Jitpack](https://jitpack.io/#0x3C50/Renderer) (example: `d2cc995ff4`) as the version, to get that release instead.*  
 
 ## Caution
 It's important to use fabric's **`modImplementation`** instead of the regular `implementation`, since this is technically a mod that needs remapping. Using anything else except `modImplementation` will not remap the library, which causes invalid names to be present.
