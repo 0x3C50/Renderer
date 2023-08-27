@@ -106,7 +106,7 @@ dependencies {
     }
     api(group: "de.javagl", name: "obj", version: "0.4.0")
 
-    modImplementation "io.github.ladysnake:satin:1.13.0"
+    modImplementation "org.ladysnake:satin:1.14.0"
 
     configurations.modImpl.dependencies.each {
         modImplementation(it)
