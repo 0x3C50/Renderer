@@ -12,6 +12,6 @@ public class TestModClient implements ClientModInitializer {
 	@Override
 	public void onInitializeClient() {
 		RenderEvents.HUD.register(Handler::hud);
-		RenderEvents.WORLD.register(Handler::world);
+//		RenderEvents.WORLD.register(Handler::world);
 	}
 }

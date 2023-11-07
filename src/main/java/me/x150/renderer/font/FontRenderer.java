@@ -49,7 +49,7 @@ public class FontRenderer implements Closeable {
 		put('E', 0xFFFF55);
 		put('F', 0xFFFFFF);
 	}};
-	private static final int BLOCK_SIZE = 256;
+//	private static final int BLOCK_SIZE = 256;
 	private static final Object2ObjectArrayMap<Identifier, ObjectList<DrawEntry>> GLYPH_PAGE_CACHE = new Object2ObjectArrayMap<>();
 	private final float originalSize;
 	private final ObjectList<GlyphMap> maps = new ObjectArrayList<>();
@@ -57,17 +57,35 @@ public class FontRenderer implements Closeable {
 	private int scaleMul = 0;
 	private Font[] fonts;
 	private int previousGameScale = -1;
+	private final int charsPerPage;
+	private final int padding;
 
 	/**
 	 * Initializes a new FontRenderer with the specified fonts
 	 *
 	 * @param fonts  The fonts to use. The font renderer will go over each font in this array, search for the glyph, and render it if found. If no font has the specified glyph, it will draw the missing font symbol.
 	 * @param sizePx The size of the font in minecraft pixel units. One pixel unit = `guiScale` pixels
+	 * @param charactersPerPage How many characters one glyph page should contain. Default 256
+	 * @param paddingBetweenCharacters Padding between characters on a glyph page. Increase if font characters tend to have a lot of decoration around the "main body" of a character.
+	 */
+	public FontRenderer(Font[] fonts, float sizePx, int charactersPerPage, int paddingBetweenCharacters) {
+		Preconditions.checkArgument(fonts.length > 0, "fonts.length == 0");
+		Preconditions.checkArgument(charactersPerPage > 4, "Unreasonable charactersPerPage count");
+		Preconditions.checkArgument(paddingBetweenCharacters > 0, "paddingBetweenCharacters > 0");
+		this.originalSize = sizePx;
+		this.charsPerPage = charactersPerPage;
+		this.padding = paddingBetweenCharacters;
+		init(fonts, sizePx);
+	}
+
+	/**
+	 * Initializes a new FontRenderer with the specified fonts. Equivalent to {@link FontRenderer#FontRenderer(Font[], float, int, int) FontRenderer}{@code (fonts, sizePx, 256, 5)}
+	 *
+	 * @param fonts  The fonts to use. The font renderer will go over each font in this array, search for the glyph, and render it if found. If no font has the specified glyph, it will draw the missing font symbol.
+	 * @param sizePx The size of the font in minecraft pixel units. One pixel unit = `guiScale` pixels
 	 */
 	public FontRenderer(Font[] fonts, float sizePx) {
-		Preconditions.checkArgument(fonts.length > 0, "fonts.length == 0");
-		this.originalSize = sizePx;
-		init(fonts, sizePx);
+		this(fonts, sizePx, 256, 5);
 	}
 
 	private static int floorNearestMulN(int x, int n) {
@@ -112,7 +130,7 @@ public class FontRenderer implements Closeable {
 	}
 
 	private GlyphMap generateMap(char from, char to) {
-		GlyphMap gm = new GlyphMap(from, to, this.fonts, RendererUtils.randomIdentifier());
+		GlyphMap gm = new GlyphMap(from, to, this.fonts, RendererUtils.randomIdentifier(), padding);
 		maps.add(gm);
 		return gm;
 	}
@@ -123,8 +141,8 @@ public class FontRenderer implements Closeable {
 				return map.getGlyph(glyph);
 			}
 		}
-		int base = floorNearestMulN(glyph, BLOCK_SIZE); // if not, generate a new page and return the generated glyph
-		GlyphMap glyphMap = generateMap((char) base, (char) (base + BLOCK_SIZE));
+		int base = floorNearestMulN(glyph, charsPerPage); // if not, generate a new page and return the generated glyph
+		GlyphMap glyphMap = generateMap((char) base, (char) (base + charsPerPage));
 		return glyphMap.getGlyph(glyph);
 	}
 

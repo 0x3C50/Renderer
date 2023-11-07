@@ -19,6 +19,7 @@ public class FastMStack extends MatrixStack {
 
 	static {
 		try {
+			// reflection should be fine, we're not doing any string names here
 			MethodHandles.Lookup lookup = MethodHandles.privateLookupIn(MatrixStack.Entry.class,
 					MethodHandles.lookup());
 			MATRIXSTACK_ENTRY_CTOR = lookup.findConstructor(MatrixStack.Entry.class,
@@ -48,7 +49,7 @@ public class FastMStack extends MatrixStack {
 			if (x != 0) {
 				top.normalMatrix.scale(Math.signum(x));
 			}
-			return;
+			return; // original MatrixStack implementation is missing this, resulting in invalid transformations
 		}
 		float inverseX = 1.0f / x;
 		float inverseY = 1.0f / y;

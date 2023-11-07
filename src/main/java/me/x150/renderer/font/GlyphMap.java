@@ -16,10 +16,11 @@ import java.util.List;
 
 @RequiredArgsConstructor
 class GlyphMap {
-	private static final int PADDING = 5; // 5 px padding per char
+//	private static final int PADDING = 5; // 5 px padding per char
 	final char fromIncl, toExcl;
 	final Font[] font;
 	final Identifier bindToTexture;
+	final int pixelPadding;
 	private final Char2ObjectArrayMap<Glyph> glyphs = new Char2ObjectArrayMap<>();
 	int width, height;
 
@@ -80,16 +81,16 @@ class GlyphMap {
 			maxY = Math.max(maxY, currentY + height);
 			if (charNX >= charsVert) {
 				currentX = 0;
-				currentY += currentRowMaxY + PADDING; // add height of highest glyph, and reset
+				currentY += currentRowMaxY + pixelPadding; // add height of highest glyph, and reset
 				charNX = 0;
 				currentRowMaxY = 0;
 			}
 			currentRowMaxY = Math.max(currentRowMaxY, height); // calculate the highest glyph in this row
 			glyphs1.add(new Glyph(currentX, currentY, width, height, currentChar, this));
-			currentX += width + PADDING;
+			currentX += width + pixelPadding;
 			charNX++;
 		}
-		BufferedImage bi = new BufferedImage(Math.max(maxX + PADDING, 1), Math.max(maxY + PADDING, 1),
+		BufferedImage bi = new BufferedImage(Math.max(maxX + pixelPadding, 1), Math.max(maxY + pixelPadding, 1),
 				BufferedImage.TYPE_INT_ARGB);
 		width = bi.getWidth();
 		height = bi.getHeight();
@@ -108,6 +109,7 @@ class GlyphMap {
 			g2d.drawString(String.valueOf(glyph.value()), glyph.u(), glyph.v() + fontMetrics.getAscent());
 			glyphs.put(glyph.value(), glyph);
 		}
+//		System.out.printf("%d %d%n", bi.getWidth(), bi.getHeight());
 		RendererUtils.registerBufferedImageTexture(bindToTexture, bi);
 		generated = true;
 	}
