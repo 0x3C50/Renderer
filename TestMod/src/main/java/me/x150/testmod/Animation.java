@@ -68,7 +68,7 @@ public class Animation {
 		return System.nanoTime() - startTime >= dur.toNanos();
 	}
 
-	enum Easing {
+	public enum Easing {
 		LINEAR(x -> x),
 		SINE_IN(x -> 1 - Math.cos(x * Math.PI / 2)),
 		SINE_OUT(x -> Math.sin(x * Math.PI / 2)),

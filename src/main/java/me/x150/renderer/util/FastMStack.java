@@ -31,6 +31,7 @@ public class FastMStack extends MatrixStack {
 
 	private final ObjectArrayList<Entry> fEntries = new ObjectArrayList<>(8);
 	private Entry top;
+
 	public FastMStack() {
 		fEntries.add(top = new Entry(new Matrix4f(), new Matrix3f()));
 	}

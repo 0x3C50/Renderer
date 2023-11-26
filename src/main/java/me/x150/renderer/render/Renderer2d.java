@@ -64,7 +64,7 @@ public class Renderer2d {
 	 * @param textureHeight The texture height (can be height)
 	 */
 	public static void renderTexture(MatrixStack matrices, double x0, double y0, double width, double height, float u, float v, double regionWidth, double regionHeight, double textureWidth,
-	                                 double textureHeight) {
+									 double textureHeight) {
 		double x1 = x0 + width;
 		double y1 = y0 + height;
 		double z = 0;
@@ -128,13 +128,13 @@ public class Renderer2d {
 	 * <p>Renders a filled ellipse</p>
 	 * <p>Best used inside of {@link MSAAFramebuffer#use(int, Runnable)}</p>
 	 *
-	 * @param matrices    The context MatrixStack
+	 * @param matrices     The context MatrixStack
 	 * @param ellipseColor The color of the ellipse
-	 * @param originX     The <b>center</b> X coordinate
-	 * @param originY     The <b>center</b> Y coordinate
-	 * @param radX        Width of the ellipse
-	 * @param radY Height of the ellipse
-	 * @param segments    How many segments to use to render the ellipse (less = more performance, more = higher quality ellipse)
+	 * @param originX      The <b>center</b> X coordinate
+	 * @param originY      The <b>center</b> Y coordinate
+	 * @param radX         Width of the ellipse
+	 * @param radY         Height of the ellipse
+	 * @param segments     How many segments to use to render the ellipse (less = more performance, more = higher quality ellipse)
 	 */
 	public static void renderEllipse(MatrixStack matrices, Color ellipseColor, double originX, double originY, double radX, double radY, @Range(from = 4, to = 360) int segments) {
 		segments = MathHelper.clamp(segments, 4, 360);
@@ -163,12 +163,12 @@ public class Renderer2d {
 	 * <p>Renders a filled circle</p>
 	 * <p>Best used inside of {@link MSAAFramebuffer#use(int, Runnable)}</p>
 	 *
-	 * @param matrices MatrixStack
+	 * @param matrices    MatrixStack
 	 * @param circleColor Color of the circle
-	 * @param originX Center X coordinate
-	 * @param originY Center Y coordinate
-	 * @param rad Uniform radius of the circle
-	 * @param segments Number of segments that should be rendered. Increasing will decrease speed, decreasing with decrease quality
+	 * @param originX     Center X coordinate
+	 * @param originY     Center Y coordinate
+	 * @param rad         Uniform radius of the circle
+	 * @param segments    Number of segments that should be rendered. Increasing will decrease speed, decreasing with decrease quality
 	 */
 	public static void renderCircle(MatrixStack matrices, Color circleColor, double originX, double originY, double rad, @Range(from = 4, to = 360) int segments) {
 		renderEllipse(matrices, circleColor, originX, originY, rad, rad, segments);
@@ -178,17 +178,17 @@ public class Renderer2d {
 	 * <p>Renders an ellipse's outline</p>
 	 * <p>Best used inside of {@link MSAAFramebuffer#use(int, Runnable)}</p>
 	 *
-	 * @param matrices MatrixStack
+	 * @param matrices     MatrixStack
 	 * @param ellipseColor Color of the ellipse
-	 * @param originX Center X coordinate
-	 * @param originY Center Y coordinate
-	 * @param radX Horizontal radius of the ellipse
-	 * @param radY Vertical radius of the ellipse
-	 * @param width Width of the outline. Should usually be the same as height
-	 * @param height Height of the outline. Should usually be the same as width
-	 * @param segments Number of segments that should be rendered. Increasing will decrease speed, decreasing with decrease quality
+	 * @param originX      Center X coordinate
+	 * @param originY      Center Y coordinate
+	 * @param radX         Horizontal radius of the ellipse
+	 * @param radY         Vertical radius of the ellipse
+	 * @param width        Width of the outline. Should usually be the same as height
+	 * @param height       Height of the outline. Should usually be the same as width
+	 * @param segments     Number of segments that should be rendered. Increasing will decrease speed, decreasing with decrease quality
 	 */
-	public static void renderEllipseOutline(MatrixStack matrices, Color ellipseColor, double originX, double originY, double radX, double radY, @Range(from = 0, to = Long.MAX_VALUE) double width, @Range(from = 0, to = Long.MAX_VALUE) double height, @Range(from=4,to=360) int segments) {
+	public static void renderEllipseOutline(MatrixStack matrices, Color ellipseColor, double originX, double originY, double radX, double radY, @Range(from = 0, to = Long.MAX_VALUE) double width, @Range(from = 0, to = Long.MAX_VALUE) double height, @Range(from = 4, to = 360) int segments) {
 		segments = MathHelper.clamp(segments, 4, 360);
 		width = MathHelper.clamp(width, 0, radX);
 		height = MathHelper.clamp(height, 0, radY);
@@ -201,8 +201,8 @@ public class Renderer2d {
 		buffer.begin(DrawMode.TRIANGLE_STRIP, VertexFormats.POSITION_COLOR);
 		for (int i = 0; i <= segments; i++) {
 			double radians = Math.toRadians((double) i / segments * 360d);
-			double sin = Math.sin(radians) * (radX-width);
-			double cos = Math.cos(radians) * (radY-height);
+			double sin = Math.sin(radians) * (radX - width);
+			double cos = Math.cos(radians) * (radY - height);
 			double sin1 = Math.sin(radians) * radX;
 			double cos1 = Math.cos(radians) * radY;
 			buffer.vertex(matrix, (float) (originX + sin), (float) (originY + cos), 0)
@@ -266,7 +266,7 @@ public class Renderer2d {
 	}
 
 	private static void renderRoundedQuadInternal(Matrix4f matrix, float cr, float cg, float cb, float ca, float fromX, float fromY, float toX, float toY, float radC1, float radC2, float radC3,
-	                                              float radC4, float samples) {
+												  float radC4, float samples) {
 		BufferBuilder bufferBuilder = Tessellator.getInstance().getBuffer();
 		bufferBuilder.begin(DrawMode.TRIANGLE_FAN, VertexFormats.POSITION_COLOR);
 
@@ -341,7 +341,7 @@ public class Renderer2d {
 	}
 
 	private static void renderRoundedOutlineInternal(Matrix4f matrix, float cr, float cg, float cb, float ca, float fromX, float fromY, float toX, float toY, float radC1, float radC2, float radC3,
-	                                                 float radC4, float width, float samples) {
+													 float radC4, float width, float samples) {
 		BufferBuilder bufferBuilder = Tessellator.getInstance().getBuffer();
 		bufferBuilder.begin(DrawMode.TRIANGLE_STRIP, VertexFormats.POSITION_COLOR);
 
@@ -389,7 +389,7 @@ public class Renderer2d {
 	 * @param samples      Amount of samples to use per corner
 	 */
 	public static void renderRoundedOutline(MatrixStack matrices, Color c, double fromX, double fromY, double toX, double toY, float radTL, float radTR, float radBL, float radBR, float outlineWidth,
-	                                        float samples) {
+											float samples) {
 		Matrix4f matrix = matrices.peek().getPositionMatrix();
 		float[] color1 = getColor(c);
 		float r = color1[0];

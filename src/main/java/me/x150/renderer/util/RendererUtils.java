@@ -2,6 +2,7 @@ package me.x150.renderer.util;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 import lombok.NonNull;
+import me.x150.renderer.mixin.NativeImageAccessor;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.render.Camera;
 import net.minecraft.client.texture.NativeImage;
@@ -15,14 +16,15 @@ import org.jetbrains.annotations.Contract;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
 import org.joml.Vector4f;
-import org.lwjgl.BufferUtils;
 import org.lwjgl.opengl.GL11;
+import org.lwjgl.system.MemoryUtil;
 
-import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.image.BufferedImage;
-import java.io.ByteArrayOutputStream;
-import java.nio.ByteBuffer;
+import java.awt.image.ColorModel;
+import java.awt.image.DataBuffer;
+import java.awt.image.WritableRaster;
+import java.nio.IntBuffer;
 import java.util.Random;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -148,16 +150,49 @@ public class RendererUtils {
 	 */
 	public static void registerBufferedImageTexture(@NonNull Identifier i, @NonNull BufferedImage bi) {
 		try {
-			ByteArrayOutputStream out = new ByteArrayOutputStream();
-			ImageIO.write(bi, "png", out);
-			byte[] bytes = out.toByteArray();
+			// argb from BufferedImage is little endian, alpha is actually where the `a` is in the label
+			// rgba from NativeImage (and by extension opengl) is big endian, alpha is on the other side (abgr)
+			// thank you opengl
+			int ow = bi.getWidth();
+			int oh = bi.getHeight();
+			NativeImage image = new NativeImage(NativeImage.Format.RGBA, ow, oh, false);
+			@SuppressWarnings("DataFlowIssue") long ptr = ((NativeImageAccessor) (Object) image).getPointer();
+			IntBuffer backingBuffer = MemoryUtil.memIntBuffer(ptr, image.getWidth() * image.getHeight());
+			int off = 0;
+			Object _d;
+			WritableRaster _ra = bi.getRaster();
+			ColorModel _cm = bi.getColorModel();
+			int nbands = _ra.getNumBands();
+			int dataType = _ra.getDataBuffer().getDataType();
+			_d = switch (dataType) {
+				case DataBuffer.TYPE_BYTE -> new byte[nbands];
+				case DataBuffer.TYPE_USHORT -> new short[nbands];
+				case DataBuffer.TYPE_INT -> new int[nbands];
+				case DataBuffer.TYPE_FLOAT -> new float[nbands];
+				case DataBuffer.TYPE_DOUBLE -> new double[nbands];
+				default -> throw new IllegalArgumentException("Unknown data buffer type: " +
+						dataType);
+			};
 
-			ByteBuffer data = BufferUtils.createByteBuffer(bytes.length).put(bytes);
-			data.flip();
-			NativeImageBackedTexture tex = new NativeImageBackedTexture(NativeImage.read(data));
-			MinecraftClient.getInstance()
-					.execute(() -> MinecraftClient.getInstance().getTextureManager().registerTexture(i, tex));
-		} catch (Exception e) { // should never happen, but just in case
+			for (int y = 0; y < oh; y++) {
+				for (int x = 0; x < ow; x++) {
+					_ra.getDataElements(x, y, _d);
+					int a = _cm.getAlpha(_d);
+					int r = _cm.getRed(_d);
+					int g = _cm.getGreen(_d);
+					int b = _cm.getBlue(_d);
+					int abgr = a << 24 | b << 16 | g << 8 | r;
+					backingBuffer.put(abgr);
+				}
+			}
+			NativeImageBackedTexture tex = new NativeImageBackedTexture(image);
+			tex.upload();
+			if (RenderSystem.isOnRenderThread()) {
+				MinecraftClient.getInstance().getTextureManager().registerTexture(i, tex);
+			} else {
+				RenderSystem.recordRenderCall(() -> MinecraftClient.getInstance().getTextureManager().registerTexture(i, tex));
+			}
+		} catch (Throwable e) { // should never happen, but just in case
 			e.printStackTrace();
 		}
 	}

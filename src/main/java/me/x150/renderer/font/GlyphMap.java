@@ -16,7 +16,7 @@ import java.util.List;
 
 @RequiredArgsConstructor
 class GlyphMap {
-//	private static final int PADDING = 5; // 5 px padding per char
+	//	private static final int PADDING = 5; // 5 px padding per char
 	final char fromIncl, toExcl;
 	final Font[] font;
 	final Identifier bindToTexture;

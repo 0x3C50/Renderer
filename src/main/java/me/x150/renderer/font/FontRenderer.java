@@ -4,9 +4,12 @@ import com.google.common.base.Preconditions;
 import com.mojang.blaze3d.systems.RenderSystem;
 import it.unimi.dsi.fastutil.chars.Char2IntArrayMap;
 import it.unimi.dsi.fastutil.chars.Char2ObjectArrayMap;
-import it.unimi.dsi.fastutil.objects.Object2ObjectArrayMap;
+import it.unimi.dsi.fastutil.objects.Object2ObjectMap;
+import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import it.unimi.dsi.fastutil.objects.ObjectList;
+import lombok.NonNull;
+import lombok.SneakyThrows;
 import me.x150.renderer.util.BufferUtils;
 import me.x150.renderer.util.Colors;
 import me.x150.renderer.util.RendererUtils;
@@ -17,18 +20,30 @@ import net.minecraft.client.render.VertexFormat.DrawMode;
 import net.minecraft.client.render.VertexFormats;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.util.Identifier;
+import org.jetbrains.annotations.Nullable;
 import org.joml.Matrix4f;
 import org.lwjgl.opengl.GL11;
 
 import java.awt.*;
 import java.io.Closeable;
 import java.util.List;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
 /**
  * A simple font renderer. Supports multiple fonts, passed in as {@link Font} instances.
  * <h2>Constructor</h2>
  * {@link FontRenderer#FontRenderer(Font[], float)} takes in a {@link Font} array with the fonts to use. All fonts in this array will be asked, in order,
  * if they have a glyph corresponding to the one being drawn. If none of them have it, the missing "square" is drawn.
+ * <h2>Performance</h2>
+ * Glyph maps are lazily computed when needed, to keep memory usage low until needed.
+ * Creating glyph pages for large fonts takes a considerable amount of time.
+ * If font size is high, it is recommended to decrease the amount of glyphs on each page, to both decrease memory usage
+ * and computation time for each page, at the cost of requiring more pages in total to be created.
+ * Additionally, characters for glyph pages which should immediately be available may be passed into {@link FontRenderer#FontRenderer(Font[], float, int, int, String)},
+ * to bake the glyph pages for those characters on another thread once the font renderer is initialized.
  */
 public class FontRenderer implements Closeable {
 	private static final Char2IntArrayMap colorCodes = new Char2IntArrayMap() {{
@@ -49,43 +64,50 @@ public class FontRenderer implements Closeable {
 		put('E', 0xFFFF55);
 		put('F', 0xFFFFFF);
 	}};
-//	private static final int BLOCK_SIZE = 256;
-	private static final Object2ObjectArrayMap<Identifier, ObjectList<DrawEntry>> GLYPH_PAGE_CACHE = new Object2ObjectArrayMap<>();
+	private static final ExecutorService ASYNC_WORKER = Executors.newCachedThreadPool();
+	//	private static final int BLOCK_SIZE = 256;
+	private final Object2ObjectMap<Identifier, ObjectList<DrawEntry>> GLYPH_PAGE_CACHE = new Object2ObjectOpenHashMap<>();
 	private final float originalSize;
 	private final ObjectList<GlyphMap> maps = new ObjectArrayList<>();
 	private final Char2ObjectArrayMap<Glyph> allGlyphs = new Char2ObjectArrayMap<>();
+	private final int charsPerPage;
+	private final int padding;
+	private final String prebakeGlyphs;
 	private int scaleMul = 0;
 	private Font[] fonts;
 	private int previousGameScale = -1;
-	private final int charsPerPage;
-	private final int padding;
+	private Future<Void> prebakeGlyphsFuture;
+	private boolean initialized;
 
 	/**
 	 * Initializes a new FontRenderer with the specified fonts
 	 *
-	 * @param fonts  The fonts to use. The font renderer will go over each font in this array, search for the glyph, and render it if found. If no font has the specified glyph, it will draw the missing font symbol.
-	 * @param sizePx The size of the font in minecraft pixel units. One pixel unit = `guiScale` pixels
-	 * @param charactersPerPage How many characters one glyph page should contain. Default 256
+	 * @param fonts                    The fonts to use. The font renderer will go over each font in this array, search for the glyph, and render it if found. If no font has the specified glyph, it will draw the missing font symbol.
+	 * @param sizePx                   The size of the font in minecraft pixel units. One pixel unit = `guiScale` pixels
+	 * @param charactersPerPage        How many characters one glyph page should contain. Default 256
 	 * @param paddingBetweenCharacters Padding between characters on a glyph page. Increase if font characters tend to have a lot of decoration around the "main body" of a character.
+	 * @param prebakeCharacters        Characters to pre-bake off thread when the font is reinitialized. Glyph pages containing those characters will (most of the time) immediately be available when drawing.
 	 */
-	public FontRenderer(Font[] fonts, float sizePx, int charactersPerPage, int paddingBetweenCharacters) {
-		Preconditions.checkArgument(fonts.length > 0, "fonts.length == 0");
+	public FontRenderer(@NonNull Font[] fonts, float sizePx, int charactersPerPage, int paddingBetweenCharacters, @Nullable String prebakeCharacters) {
+		Preconditions.checkArgument(sizePx > 0, "sizePx <= 0");
+		Preconditions.checkArgument(fonts.length > 0, "fonts.length <= 0");
 		Preconditions.checkArgument(charactersPerPage > 4, "Unreasonable charactersPerPage count");
-		Preconditions.checkArgument(paddingBetweenCharacters > 0, "paddingBetweenCharacters > 0");
+		Preconditions.checkArgument(paddingBetweenCharacters > 0, "paddingBetweenCharacters <= 0");
 		this.originalSize = sizePx;
 		this.charsPerPage = charactersPerPage;
 		this.padding = paddingBetweenCharacters;
+		this.prebakeGlyphs = prebakeCharacters;
 		init(fonts, sizePx);
 	}
 
 	/**
-	 * Initializes a new FontRenderer with the specified fonts. Equivalent to {@link FontRenderer#FontRenderer(Font[], float, int, int) FontRenderer}{@code (fonts, sizePx, 256, 5)}
+	 * Initializes a new FontRenderer with the specified fonts. Equivalent to {@link FontRenderer#FontRenderer(Font[], float, int, int, String) FontRenderer}{@code (fonts, sizePx, 256, 5, null)}
 	 *
 	 * @param fonts  The fonts to use. The font renderer will go over each font in this array, search for the glyph, and render it if found. If no font has the specified glyph, it will draw the missing font symbol.
 	 * @param sizePx The size of the font in minecraft pixel units. One pixel unit = `guiScale` pixels
 	 */
 	public FontRenderer(Font[] fonts, float sizePx) {
-		this(fonts, sizePx, 256, 5);
+		this(fonts, sizePx, 256, 5, null);
 	}
 
 	private static int floorNearestMulN(int x, int n) {
@@ -121,12 +143,27 @@ public class FontRenderer implements Closeable {
 	}
 
 	private void init(Font[] fonts, float sizePx) {
+		if (initialized) throw new IllegalStateException("Double call to init()");
+		initialized = true;
 		this.previousGameScale = RendererUtils.getGuiScale();
 		this.scaleMul = this.previousGameScale;
 		this.fonts = new Font[fonts.length];
 		for (int i = 0; i < fonts.length; i++) {
 			this.fonts[i] = fonts[i].deriveFont(sizePx * this.scaleMul);
 		}
+		if (prebakeGlyphs != null && !prebakeGlyphs.isEmpty()) {
+			prebakeGlyphsFuture = this.prebake();
+		}
+	}
+
+	private Future<Void> prebake() {
+		return ASYNC_WORKER.submit(() -> {
+			for (char c : prebakeGlyphs.toCharArray()) {
+				if (Thread.interrupted()) break;
+				locateGlyph1(c);
+			}
+			return null;
+		});
 	}
 
 	private GlyphMap generateMap(char from, char to) {
@@ -163,6 +200,14 @@ public class FontRenderer implements Closeable {
 	 * @param a     Alpha color component of the text to draw
 	 */
 	public void drawString(MatrixStack stack, String s, float x, float y, float r, float g, float b, float a) {
+		if (prebakeGlyphsFuture != null && !prebakeGlyphsFuture.isDone()) {
+			try {
+				prebakeGlyphsFuture.get();
+			} catch (InterruptedException | ExecutionException e) {
+				// if failed, we just continue
+				// the glyphs aren't created, we'll create them later
+			}
+		}
 		sizeCheck();
 		float r2 = r, g2 = g, b2 = b;
 		stack.push();
@@ -183,72 +228,74 @@ public class FontRenderer implements Closeable {
 		float yOffset = 0;
 		boolean inSel = false;
 		int lineStart = 0;
-		for (int i = 0; i < chars.length; i++) {
-			char c = chars[i];
-			if (inSel) {
-				inSel = false;
-				char c1 = Character.toUpperCase(c);
-				if (colorCodes.containsKey(c1)) {
-					int ii = colorCodes.get(c1);
-					int[] col = Colors.RGBIntToRGB(ii);
-					r2 = col[0] / 255f;
-					g2 = col[1] / 255f;
-					b2 = col[2] / 255f;
-				} else if (c1 == 'R') {
-					r2 = r;
-					g2 = g;
-					b2 = b;
+		synchronized (GLYPH_PAGE_CACHE) {
+			for (int i = 0; i < chars.length; i++) {
+				char c = chars[i];
+				if (inSel) {
+					inSel = false;
+					char c1 = Character.toUpperCase(c);
+					if (colorCodes.containsKey(c1)) {
+						int ii = colorCodes.get(c1);
+						int[] col = Colors.RGBIntToRGB(ii);
+						r2 = col[0] / 255f;
+						g2 = col[1] / 255f;
+						b2 = col[2] / 255f;
+					} else if (c1 == 'R') {
+						r2 = r;
+						g2 = g;
+						b2 = b;
+					}
+					continue;
 				}
-				continue;
+				if (c == '§') {
+					inSel = true;
+					continue;
+				} else if (c == '\n') {
+					yOffset += getStringHeight(s.substring(lineStart, i)) * scaleMul;
+					xOffset = 0;
+					lineStart = i + 1;
+					continue;
+				}
+				Glyph glyph = locateGlyph1(c);
+				if (glyph.value() != ' ') { // we only need to really draw the glyph if it's not blank, otherwise we can just skip its width and that'll be it
+					Identifier i1 = glyph.owner().bindToTexture;
+					DrawEntry entry = new DrawEntry(xOffset, yOffset, r2, g2, b2, glyph);
+					GLYPH_PAGE_CACHE.computeIfAbsent(i1, integer -> new ObjectArrayList<>()).add(entry);
+				}
+				xOffset += glyph.width();
 			}
-			if (c == '§') {
-				inSel = true;
-				continue;
-			} else if (c == '\n') {
-				yOffset += getStringHeight(s.substring(lineStart, i)) * scaleMul;
-				xOffset = 0;
-				lineStart = i + 1;
-				continue;
+			for (Identifier identifier : GLYPH_PAGE_CACHE.keySet()) {
+				RenderSystem.setShaderTexture(0, identifier);
+				List<DrawEntry> objects = GLYPH_PAGE_CACHE.get(identifier);
+
+				bb.begin(DrawMode.QUADS, VertexFormats.POSITION_TEXTURE_COLOR);
+
+				for (DrawEntry object : objects) {
+					float xo = object.atX;
+					float yo = object.atY;
+					float cr = object.r;
+					float cg = object.g;
+					float cb = object.b;
+					Glyph glyph = object.toDraw;
+					GlyphMap owner = glyph.owner();
+					float w = glyph.width();
+					float h = glyph.height();
+					float u1 = (float) glyph.u() / owner.width;
+					float v1 = (float) glyph.v() / owner.height;
+					float u2 = (float) (glyph.u() + glyph.width()) / owner.width;
+					float v2 = (float) (glyph.v() + glyph.height()) / owner.height;
+
+					bb.vertex(mat, xo + 0, yo + h, 0).texture(u1, v2).color(cr, cg, cb, a).next();
+					bb.vertex(mat, xo + w, yo + h, 0).texture(u2, v2).color(cr, cg, cb, a).next();
+					bb.vertex(mat, xo + w, yo + 0, 0).texture(u2, v1).color(cr, cg, cb, a).next();
+					bb.vertex(mat, xo + 0, yo + 0, 0).texture(u1, v1).color(cr, cg, cb, a).next();
+				}
+				BufferUtils.draw(bb);
 			}
-			Glyph glyph = locateGlyph1(c);
-			if (glyph.value() != ' ') { // we only need to really draw the glyph if it's not blank, otherwise we can just skip its width and that'll be it
-				Identifier i1 = glyph.owner().bindToTexture;
-				DrawEntry entry = new DrawEntry(xOffset, yOffset, r2, g2, b2, glyph);
-				GLYPH_PAGE_CACHE.computeIfAbsent(i1, integer -> new ObjectArrayList<>()).add(entry);
-			}
-			xOffset += glyph.width();
+
+			GLYPH_PAGE_CACHE.clear();
 		}
-		for (Identifier identifier : GLYPH_PAGE_CACHE.keySet()) {
-			RenderSystem.setShaderTexture(0, identifier);
-			List<DrawEntry> objects = GLYPH_PAGE_CACHE.get(identifier);
-
-			bb.begin(DrawMode.QUADS, VertexFormats.POSITION_TEXTURE_COLOR);
-
-			for (DrawEntry object : objects) {
-				float xo = object.atX;
-				float yo = object.atY;
-				float cr = object.r;
-				float cg = object.g;
-				float cb = object.b;
-				Glyph glyph = object.toDraw;
-				GlyphMap owner = glyph.owner();
-				float w = glyph.width();
-				float h = glyph.height();
-				float u1 = (float) glyph.u() / owner.width;
-				float v1 = (float) glyph.v() / owner.height;
-				float u2 = (float) (glyph.u() + glyph.width()) / owner.width;
-				float v2 = (float) (glyph.v() + glyph.height()) / owner.height;
-
-				bb.vertex(mat, xo + 0, yo + h, 0).texture(u1, v2).color(cr, cg, cb, a).next();
-				bb.vertex(mat, xo + w, yo + h, 0).texture(u2, v2).color(cr, cg, cb, a).next();
-				bb.vertex(mat, xo + w, yo + 0, 0).texture(u2, v1).color(cr, cg, cb, a).next();
-				bb.vertex(mat, xo + 0, yo + 0, 0).texture(u1, v1).color(cr, cg, cb, a).next();
-			}
-			BufferUtils.draw(bb);
-		}
-
 		stack.pop();
-		GLYPH_PAGE_CACHE.clear();
 	}
 
 	/**
@@ -321,13 +368,21 @@ public class FontRenderer implements Closeable {
 	/**
 	 * Clears all glyph maps, and unlinks them. The font can continue to be used, but it will have to regenerate the maps.
 	 */
+	@SneakyThrows
 	@Override
 	public void close() {
+		if (prebakeGlyphsFuture != null && !prebakeGlyphsFuture.isDone() && !prebakeGlyphsFuture.isCancelled()) {
+			// if we have a prebake job running, cancel it to avoid it creating more pages while the font renderer clears
+			prebakeGlyphsFuture.cancel(true);
+			prebakeGlyphsFuture.get(); // should only ever throw interrupted, which is the parent's job to handle anyway
+			prebakeGlyphsFuture = null;
+		}
 		for (GlyphMap map : maps) {
 			map.destroy();
 		}
 		maps.clear();
 		allGlyphs.clear();
+		initialized = false;
 	}
 
 	record DrawEntry(float atX, float atY, float r, float g, float b, Glyph toDraw) {

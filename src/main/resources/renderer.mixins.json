@@ -9,6 +9,7 @@
     "DebugHudMixin",
     "GameRendererMixin",
     "InGameHudMixin",
+    "NativeImageAccessor",
     "PostEffectPassAccessor",
     "PostEffectProcessorMixin"
   ],

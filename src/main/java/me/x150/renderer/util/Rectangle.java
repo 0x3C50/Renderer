@@ -7,8 +7,8 @@ import java.util.Locale;
 /**
  * Describes a rectangle
  */
+@Getter
 public class Rectangle {
-	@Getter
 	private final double x, y, x1, y1;
 
 	/**

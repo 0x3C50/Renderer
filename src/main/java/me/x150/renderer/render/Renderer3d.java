@@ -282,7 +282,7 @@ public class Renderer3d {
 	}
 
 	private static void genericAABBRender(DrawMode mode, VertexFormat format, Supplier<ShaderProgram> shader, Matrix4f stack, Vec3d start, Vec3d dimensions, Color color,
-	                                      RenderAction action) {
+										  RenderAction action) {
 		float red = color.getRed() / 255f;
 		float green = color.getGreen() / 255f;
 		float blue = color.getBlue() / 255f;

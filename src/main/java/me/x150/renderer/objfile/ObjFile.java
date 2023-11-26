@@ -44,10 +44,10 @@ import java.util.function.Supplier;
  * To render a loaded ObjFile, call {@link #draw(MatrixStack, Matrix4f, Vec3d)}.
  */
 public class ObjFile implements Closeable {
-	private final ResourceProvider provider;
-	private final String name;
 	final Map<Obj, VertexBuffer> buffers = new HashMap<>();
 	final Map<String, Identifier> boundTextures = new HashMap<>();
+	private final ResourceProvider provider;
+	private final String name;
 	Map<String, Obj> materialNameObjMap;
 	private List<Mtl> allMaterials;
 	private boolean baked = false;
