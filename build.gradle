@@ -73,50 +73,29 @@ repositories {
     }
 }
 
-configurations {
-    modImpl
-    libImpl
-}
-
 dependencies {
     // To change the versions see the gradle.properties file
     minecraft "com.mojang:minecraft:${project.minecraft_version}"
     mappings "net.fabricmc:yarn:${project.yarn_mappings}:v2"
     modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
 
-    Set<String> apiModules = [
-            "fabric-api-base",
-            "fabric-resource-loader-v0"
-    ]
-    // Add each module we need
-    apiModules.forEach {
-        modImpl(fabricApi.module(it, project.fabric_version))
-    }
+    modApi "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
 
-    compileOnly 'org.projectlombok:lombok:1.18.24'
-    annotationProcessor 'org.projectlombok:lombok:1.18.24'
+    compileOnly 'org.projectlombok:lombok:1.18.30'
+    annotationProcessor 'org.projectlombok:lombok:1.18.30'
 
-    api(group: 'org.apache.xmlgraphics', name: 'batik-transcoder', version: '1.16') {
+    api(group: 'org.apache.xmlgraphics', name: 'batik-transcoder', version: '1.17') {
         exclude group: "xml-apis", module: "xml-apis"
         exclude group: "commons-io", module: "commons-io"
     }
-    api(group: 'org.apache.xmlgraphics', name: 'batik-codec', version: '1.16') {
+    api(group: 'org.apache.xmlgraphics', name: 'batik-codec', version: '1.17') {
         exclude group: "xml-apis", module: "xml-apis"
         exclude group: "commons-io", module: "commons-io"
     }
     api(group: "de.javagl", name: "obj", version: "0.4.0")
-
-    include modImplementation("org.ladysnake:satin:1.14.0")
-
-    configurations.modImpl.dependencies.each {
-        modImplementation(it)
+    modApi("org.ladysnake:satin:1.14.0") {
+        exclude module: "fabric-api"
     }
-
-    configurations.libImpl.dependencies.each {
-        implementation(it)
-//		include(it)
-    }
-
 }
 
 processResources {
@@ -158,7 +137,7 @@ jar {
     }
 
     from {
-        configurations.libImpl.collect { it.isDirectory() ? it : zipTree(it) }
+//        configurations.libImpl.collect { it.isDirectory() ? it : zipTree(it) }
     }
     duplicatesStrategy(DuplicatesStrategy.EXCLUDE)
 }

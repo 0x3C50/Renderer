@@ -10,6 +10,7 @@ import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import it.unimi.dsi.fastutil.objects.ObjectList;
 import lombok.NonNull;
 import lombok.SneakyThrows;
+import me.x150.renderer.client.RendererMain;
 import me.x150.renderer.util.BufferUtils;
 import me.x150.renderer.util.Colors;
 import me.x150.renderer.util.RendererUtils;
@@ -65,7 +66,6 @@ public class FontRenderer implements Closeable {
 		put('F', 0xFFFFFF);
 	}};
 	private static final ExecutorService ASYNC_WORKER = Executors.newCachedThreadPool();
-	//	private static final int BLOCK_SIZE = 256;
 	private final Object2ObjectMap<Identifier, ObjectList<DrawEntry>> GLYPH_PAGE_CACHE = new Object2ObjectOpenHashMap<>();
 	private final float originalSize;
 	private final ObjectList<GlyphMap> maps = new ObjectArrayList<>();
@@ -167,6 +167,7 @@ public class FontRenderer implements Closeable {
 	}
 
 	private GlyphMap generateMap(char from, char to) {
+		RendererMain.LOGGER.debug("[Font renderer {}] Generating glyph page '{}' ({}) to '{}' ({}), {} characters", hashCode(), from, (int) from, to, (int) to, (int) to-from);
 		GlyphMap gm = new GlyphMap(from, to, this.fonts, RendererUtils.randomIdentifier(), padding);
 		maps.add(gm);
 		return gm;

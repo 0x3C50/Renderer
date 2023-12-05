@@ -1,5 +1,6 @@
 package me.x150.renderer.render;
 
+import com.mojang.blaze3d.systems.RenderSystem;
 import me.x150.renderer.client.RendererMain;
 import me.x150.renderer.util.RendererUtils;
 import net.minecraft.client.MinecraftClient;
@@ -10,6 +11,7 @@ import net.minecraft.util.Identifier;
 import org.apache.batik.transcoder.TranscoderInput;
 import org.apache.batik.transcoder.TranscoderOutput;
 import org.apache.batik.transcoder.image.PNGTranscoder;
+import org.intellij.lang.annotations.Language;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -22,7 +24,6 @@ import java.io.StringReader;
  * <pre>{@code
  * SVGFile svg = new SVGFile("svg source here", 128, 128);
  * // hud render event
- * @MessageSubscription
  * void onHud(RenderEvent.Hud hud) {
  *     svg.render(hud.getMatrixStack(), 10, 10, 128, 128);
  * }
@@ -43,7 +44,7 @@ public class SVGFile implements Closeable {
 	 * @param width     Width of the image to render to. This is automatically adjusted, based on gui scale.
 	 * @param height    Height of the image to render to. This is automatically adjusted, based on gui scale.
 	 */
-	public SVGFile(String svgSource, int width, int height) {
+	public SVGFile(@Language("SVG") String svgSource, int width, int height) {
 		this.svgSource = svgSource;
 		this.originalWidth = width;
 		this.originalHeight = height;
@@ -54,6 +55,7 @@ public class SVGFile implements Closeable {
 			close(); // destroy texture
 		}
 		this.id = RendererUtils.randomIdentifier();
+		RendererMain.LOGGER.debug("Drawing SVG to identifier {}:{}, dimensions are {}x{}", this.id.getNamespace(), this.id.getPath(), width, height);
 		PNGTranscoder transcoder = new PNGTranscoder();
 		transcoder.addTranscodingHint(PNGTranscoder.KEY_WIDTH, width);
 		transcoder.addTranscodingHint(PNGTranscoder.KEY_HEIGHT, height);
@@ -64,8 +66,10 @@ public class SVGFile implements Closeable {
 			transcoder.transcode(transcoderInput, transcoderOutput);
 			byte[] t = out.toByteArray();
 			NativeImageBackedTexture tex = new NativeImageBackedTexture(NativeImage.read(new ByteArrayInputStream(t)));
-			MinecraftClient.getInstance()
-					.execute(() -> MinecraftClient.getInstance().getTextureManager().registerTexture(this.id, tex));
+			if (RenderSystem.isOnRenderThread()) MinecraftClient.getInstance().getTextureManager().registerTexture(this.id, tex);
+			else RenderSystem.recordRenderCall(() -> {
+				MinecraftClient.getInstance().getTextureManager().registerTexture(this.id, tex);
+			});
 		} catch (Throwable t) {
 			RendererMain.LOGGER.error("Failed to render SVG", t);
 			//noinspection SpellCheckingInspection

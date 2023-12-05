@@ -16,7 +16,6 @@ import java.util.List;
 
 @RequiredArgsConstructor
 class GlyphMap {
-	//	private static final int PADDING = 5; // 5 px padding per char
 	final char fromIncl, toExcl;
 	final Font[] font;
 	final Identifier bindToTexture;
@@ -109,7 +108,6 @@ class GlyphMap {
 			g2d.drawString(String.valueOf(glyph.value()), glyph.u(), glyph.v() + fontMetrics.getAscent());
 			glyphs.put(glyph.value(), glyph);
 		}
-//		System.out.printf("%d %d%n", bi.getWidth(), bi.getHeight());
 		RendererUtils.registerBufferedImageTexture(bindToTexture, bi);
 		generated = true;
 	}

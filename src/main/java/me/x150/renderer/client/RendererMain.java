@@ -3,6 +3,8 @@ package me.x150.renderer.client;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
+import org.apache.logging.log4j.Level;
+import org.apache.logging.log4j.core.config.Configurator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -12,5 +14,6 @@ public class RendererMain implements ClientModInitializer {
 
 	@Override
 	public void onInitializeClient() {
+		LOGGER.info("Initialized renderer library");
 	}
 }
