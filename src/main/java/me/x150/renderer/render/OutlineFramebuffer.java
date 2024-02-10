@@ -79,7 +79,6 @@ public class OutlineFramebuffer extends Framebuffer {
 				outlineColor.getGreen() / 255f, outlineColor.getBlue() / 255f, outlineColor.getAlpha() / 255f);
 		ShaderManager.OUTLINE_SHADER.setUniformValue("InnerColor", innerColor.getRed() / 255f,
 				innerColor.getGreen() / 255f, innerColor.getBlue() / 255f, innerColor.getAlpha() / 255f);
-		ShaderManager.OUTLINE_SHADER.setUniformValue("Radius", radius);
 
 		ShaderManager.OUTLINE_SHADER.render(MinecraftClient.getInstance().getTickDelta());
 
