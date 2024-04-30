@@ -10,9 +10,7 @@ public class ShaderManager {
 	public static final ManagedShaderEffect OUTLINE_SHADER = ShaderEffectManager.getInstance()
 			.manage(new Identifier("renderer", "shaders/post/outline.json"));
 	public static final ManagedCoreShader POSITION_TEX_COLOR_NORMAL = ShaderEffectManager.getInstance()
-			.manageCoreShader(new Identifier("renderer", "position_tex_color_normal"), VertexFormats.POSITION_TEXTURE_COLOR_NORMAL, managedCoreShader -> {
-				managedCoreShader.findUniform1f("dummy");
-			});
+			.manageCoreShader(new Identifier("renderer", "position_tex_color_normal"), VertexFormats.POSITION_TEXTURE_COLOR_NORMAL);
 
 	public static void doInit() {
 		// NOOP to get class to load on demand
