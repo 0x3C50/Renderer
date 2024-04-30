@@ -2,6 +2,7 @@ package me.x150.renderer.objfile;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 import de.javagl.obj.*;
+import me.x150.renderer.shader.ShaderManager;
 import me.x150.renderer.util.BufferUtils;
 import me.x150.renderer.util.RendererUtils;
 import net.minecraft.client.MinecraftClient;
@@ -12,6 +13,7 @@ import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.Vec3d;
 import org.joml.Matrix4f;
+import org.lwjgl.opengl.GL12;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
@@ -177,8 +179,13 @@ public class ObjFile implements Closeable {
 		m4f.translate((float) o.x, (float) o.y, (float) o.z);
 		m4f.mul(viewMatrix);
 
-		RendererUtils.setupRender();
+		RenderSystem.enableBlend();
+		RenderSystem.defaultBlendFunc();
+		RenderSystem.setShaderColor(1f, 1f, 1f, 1f);
+		RenderSystem.enableDepthTest();
+		RenderSystem.depthFunc(GL12.GL_LEQUAL);
 		RenderSystem.enableCull();
+
 		for (Map.Entry<String, Obj> stringObjEntry : materialNameObjMap.entrySet()) {
 			String materialName = stringObjEntry.getKey();
 			Obj obj = stringObjEntry.getValue();
@@ -191,7 +198,7 @@ public class ObjFile implements Closeable {
 			}
 			Supplier<ShaderProgram> shader;
 			if (material != null) {
-				shader = hasTexture ? GameRenderer::getPositionTexColorNormalProgram : GameRenderer::getPositionColorProgram;
+				shader = hasTexture ? ShaderManager.POSITION_TEX_COLOR_NORMAL::getProgram : GameRenderer::getPositionColorProgram;
 			} else {
 				shader = GameRenderer::getPositionProgram;
 			}
@@ -200,7 +207,7 @@ public class ObjFile implements Closeable {
 			vertexBuffer.draw(m4f, projectionMatrix, shader.get());
 		}
 		VertexBuffer.unbind();
-		RendererUtils.endRender();
+		RenderSystem.disableBlend();
 	}
 
 	/**

@@ -36,6 +36,10 @@ public class FastMStack extends MatrixStack {
 		fEntries.add(top = new Entry(new Matrix4f(), new Matrix3f()));
 	}
 
+	public FastMStack(Matrix4f top4f, Matrix3f top3f) {
+		fEntries.add(top = new Entry(top4f, top3f));
+	}
+
 	@Override
 	public void translate(float x, float y, float z) {
 		top.positionMatrix.translate(x, y, z);
