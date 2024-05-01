@@ -84,15 +84,15 @@ dependencies {
     compileOnly 'org.projectlombok:lombok:1.18.30'
     annotationProcessor 'org.projectlombok:lombok:1.18.30'
 
-    api(group: 'org.apache.xmlgraphics', name: 'batik-transcoder', version: '1.17') {
-        exclude group: "xml-apis", module: "xml-apis"
+    implementation(group: 'org.apache.xmlgraphics', name: 'batik-transcoder', version: '1.17') {
+        exclude group: "xml-apis"
         exclude group: "commons-io", module: "commons-io"
     }
-    api(group: 'org.apache.xmlgraphics', name: 'batik-codec', version: '1.17') {
-        exclude group: "xml-apis", module: "xml-apis"
+    implementation(group: 'org.apache.xmlgraphics', name: 'batik-codec', version: '1.17') {
+        exclude group: "xml-apis"
         exclude group: "commons-io", module: "commons-io"
     }
-    api(group: "de.javagl", name: "obj", version: "0.4.0")
+    implementation(group: "de.javagl", name: "obj", version: "0.4.0")
     modApi("org.ladysnake:satin:1.17.0") {
         exclude module: "fabric-api"
     }
