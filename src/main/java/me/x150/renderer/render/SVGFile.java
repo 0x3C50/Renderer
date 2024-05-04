@@ -1,25 +1,24 @@
 package me.x150.renderer.render;
 
+import com.github.weisj.jsvg.SVGDocument;
+import com.github.weisj.jsvg.attributes.ViewBox;
+import com.github.weisj.jsvg.parser.SVGLoader;
 import com.mojang.blaze3d.systems.RenderSystem;
 import me.x150.renderer.client.RendererMain;
 import me.x150.renderer.util.RendererUtils;
 import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.texture.NativeImage;
-import net.minecraft.client.texture.NativeImageBackedTexture;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.util.Identifier;
-import org.apache.batik.transcoder.TranscoderInput;
-import org.apache.batik.transcoder.TranscoderOutput;
-import org.apache.batik.transcoder.image.PNGTranscoder;
 import org.intellij.lang.annotations.Language;
 
+import java.awt.*;
+import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.Closeable;
-import java.io.StringReader;
+import java.nio.charset.StandardCharsets;
 
 /**
- * An SVG renderer, that renders the image to a texture beforehand. Uses <a href="https://xmlgraphics.apache.org/batik/">Apache Batik</a> to parse and draw the SVG.
+ * An SVG renderer, that renders the image to a texture beforehand. Uses <a href="https://github.com/weisJ/jsvg">JSVG</a> to parse and draw the SVG.
  * Usage example:
  * <pre>{@code
  * SVGFile svg = new SVGFile("svg source here", 128, 128);
@@ -56,20 +55,22 @@ public class SVGFile implements Closeable {
 		}
 		this.id = RendererUtils.randomIdentifier();
 		RendererMain.LOGGER.debug("Drawing SVG to identifier {}:{}, dimensions are {}x{}", this.id.getNamespace(), this.id.getPath(), width, height);
-		PNGTranscoder transcoder = new PNGTranscoder();
-		transcoder.addTranscodingHint(PNGTranscoder.KEY_WIDTH, width);
-		transcoder.addTranscodingHint(PNGTranscoder.KEY_HEIGHT, height);
-		TranscoderInput transcoderInput = new TranscoderInput(new StringReader(svgSource));
-		ByteArrayOutputStream out = new ByteArrayOutputStream();
-		TranscoderOutput transcoderOutput = new TranscoderOutput(out);
+
 		try {
-			transcoder.transcode(transcoderInput, transcoderOutput);
-			byte[] t = out.toByteArray();
-			NativeImageBackedTexture tex = new NativeImageBackedTexture(NativeImage.read(new ByteArrayInputStream(t)));
-			if (RenderSystem.isOnRenderThread()) MinecraftClient.getInstance().getTextureManager().registerTexture(this.id, tex);
-			else RenderSystem.recordRenderCall(() -> {
-				MinecraftClient.getInstance().getTextureManager().registerTexture(this.id, tex);
-			});
+			SVGLoader loader = new SVGLoader();
+			SVGDocument doc = loader.load(new ByteArrayInputStream(svgSource.getBytes(StandardCharsets.UTF_8)));
+			assert doc != null;
+
+			BufferedImage bi = new BufferedImage((int) Math.ceil(width), (int) Math.ceil(height), BufferedImage.TYPE_INT_ARGB);
+			Graphics2D g = bi.createGraphics();
+			g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+			g.setRenderingHint(RenderingHints.KEY_STROKE_CONTROL, RenderingHints.VALUE_STROKE_PURE);
+
+			doc.render(null, g, new ViewBox(width, height));
+
+			g.dispose();
+
+			RendererUtils.registerBufferedImageTexture(this.id, bi);
 		} catch (Throwable t) {
 			RendererMain.LOGGER.error("Failed to render SVG", t);
 			//noinspection SpellCheckingInspection
@@ -92,7 +93,16 @@ public class SVGFile implements Closeable {
 			this.memoizedGuiScale = guiScale;
 			_redraw(this.originalWidth * this.memoizedGuiScale, this.originalHeight * this.memoizedGuiScale);
 		}
-		Renderer2d.renderTexture(stack, this.id, x, y, renderWidth, renderHeight);
+		RenderSystem.enableBlend();
+		RenderSystem.defaultBlendFunc();
+//		int prevMin = GL11.glGetTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MIN_FILTER);
+//		int prevMag = GL11.glGetTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MAG_FILTER);
+//		GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MIN_FILTER, GL11.GL_LINEAR);
+//		GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MAG_FILTER, GL11.GL_LINEAR);
+		// the actual image is ceil(dims), but is actually only drawn to the raw dims. use ceil(dims) for pixel perfect accuracy without overflowing the bounds
+		Renderer2d.renderTexture(stack, this.id, x, y, Math.ceil(renderWidth), Math.ceil(renderHeight));
+//		GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MIN_FILTER, prevMin);
+//		GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MAG_FILTER, prevMag);
 	}
 
 	/**
