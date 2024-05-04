@@ -1,16 +1,24 @@
 package me.x150.testmod;
 
 import it.unimi.dsi.fastutil.doubles.Double2DoubleFunction;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.time.Duration;
 
 public class Animation {
+	@Setter
 	private float start;
+	@Setter
 	private float end;
 	private long startTime;
 	private Duration dur;
+	@Setter
 	private Easing easing = Easing.LINEAR;
+	@Setter
+	@Getter
 	private boolean forward = true;
+
 	public Animation(float start, float end, Duration duration) {
 		this.start = start;
 		this.end = end;
@@ -23,32 +31,12 @@ public class Animation {
 		this.easing = easing;
 	}
 
-	public void setStart(float start) {
-		this.start = start;
-	}
-
-	public void setEnd(float end) {
-		this.end = end;
-	}
-
 	public void setDuration(Duration dur) {
 		this.dur = dur;
 	}
 
 	public void reset() {
 		this.startTime = System.nanoTime();
-	}
-
-	public void setEasing(Easing easing) {
-		this.easing = easing;
-	}
-
-	public boolean isForward() {
-		return forward;
-	}
-
-	public void setForward(boolean forward) {
-		this.forward = forward;
 	}
 
 	public float get() {

@@ -23,7 +23,6 @@ import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.util.Identifier;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Matrix4f;
-import org.lwjgl.opengl.GL11;
 
 import java.awt.*;
 import java.io.Closeable;
@@ -167,7 +166,7 @@ public class FontRenderer implements Closeable {
 	}
 
 	private GlyphMap generateMap(char from, char to) {
-		RendererMain.LOGGER.debug("[Font renderer {}] Generating glyph page '{}' ({}) to '{}' ({}), {} characters", hashCode(), from, (int) from, to, (int) to, (int) to-from);
+		RendererMain.LOGGER.debug("[Font renderer {}] Generating glyph page '{}' ({}) to '{}' ({}), {} characters", hashCode(), from, (int) from, to, (int) to, (int) to - from);
 		GlyphMap gm = new GlyphMap(from, to, this.fonts, RendererUtils.randomIdentifier(), padding);
 		maps.add(gm);
 		return gm;

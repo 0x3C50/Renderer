@@ -2,6 +2,7 @@ package me.x150.renderer.util;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 import lombok.NonNull;
+import me.x150.renderer.client.RendererMain;
 import me.x150.renderer.mixin.NativeImageAccessor;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.render.Camera;
@@ -193,7 +194,7 @@ public class RendererUtils {
 				RenderSystem.recordRenderCall(() -> MinecraftClient.getInstance().getTextureManager().registerTexture(i, tex));
 			}
 		} catch (Throwable e) { // should never happen, but just in case
-			e.printStackTrace();
+			RendererMain.LOGGER.error("Failed to register buffered image as identifier {}", i, e);
 		}
 	}
 

@@ -145,7 +145,7 @@ public class Renderer2d {
 
 		BufferBuilder buffer = Tessellator.getInstance().getBuffer();
 		buffer.begin(DrawMode.TRIANGLE_FAN, VertexFormats.POSITION_COLOR);
-		for (int i = 0; i < 360; i += Math.min(360d / segments, 360 - i)) {
+		for (int i = 0; i < 360; i += (int) Math.min(360d / segments, 360 - i)) {
 			double radians = Math.toRadians(i);
 			double sin = Math.sin(radians) * radX;
 			double cos = Math.cos(radians) * radY;

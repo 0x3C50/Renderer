@@ -3,28 +3,19 @@ package me.x150.testmod;
 import lombok.SneakyThrows;
 import me.x150.renderer.font.FontRenderer;
 import me.x150.renderer.objfile.ObjFile;
-import me.x150.renderer.render.*;
-import me.x150.renderer.util.RendererUtils;
+import me.x150.renderer.render.OutlineFramebuffer;
+import me.x150.renderer.render.Renderer3d;
+import me.x150.renderer.render.SVGFile;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.util.math.MatrixStack;
-import net.minecraft.text.MutableText;
-import net.minecraft.text.Text;
-import net.minecraft.text.TextColor;
 import net.minecraft.util.math.Vec3d;
 import org.joml.Matrix4f;
 
 import java.awt.*;
-import java.lang.invoke.MethodType;
 import java.nio.file.Path;
-import java.util.Arrays;
-import java.util.Objects;
-import java.util.concurrent.atomic.AtomicInteger;
 
 public class Handler {
-	static FontRenderer fr;
-	private static ObjFile ob;
-
-	private static SVGFile sv = new SVGFile("""
+	private static final SVGFile sv = new SVGFile("""
 			<?xml version="1.0" encoding="UTF-8"?>
 			<!-- Generator: Adobe Illustrator 26.0.1, SVG Export Plug-In . SVG Version: 6.00 Build 0)  -->
 			<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" id="Capa_1" x="0px" y="0px" viewBox="0 0 24 24" style="enable-background:new 0 0 24 24;" xml:space="preserve" width="512" height="512">
@@ -34,6 +25,10 @@ public class Handler {
 			</g>
 			</svg>
 			""", 128, 128);
+	static FontRenderer fr;
+	static long l = 0;
+	private static ObjFile ob;
+
 	@SneakyThrows
 	public static void world(MatrixStack stack) {
 		if (ob == null) {
@@ -46,7 +41,6 @@ public class Handler {
 		Renderer3d.renderFilled(stack, Color.RED, new Vec3d(0, 200, 0), new Vec3d(1, 1, 1));
 		Renderer3d.renderFilled(stack, Color.GREEN, new Vec3d(2, 202, 2), new Vec3d(1, 1, 1));
 	}
-	static long l = 0;
 
 	@SneakyThrows
 	public static void hud(DrawContext matrices) {
