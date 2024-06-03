@@ -1,5 +1,5 @@
 # Renderer
-An easy-to-use rendering library for modern fabric
+An easy-to-use rendering library for modern fabric.
 
 # Installing
 You can install this library using [Jitpack](https://jitpack.io/)
