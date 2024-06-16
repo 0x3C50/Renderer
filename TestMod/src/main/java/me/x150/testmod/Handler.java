@@ -33,9 +33,9 @@ public class Handler {
 	public static void world(MatrixStack stack) {
 		if (ob == null) {
 			ob = new ObjFile("untitled.obj",
-					ObjFile.ResourceProvider.ofPath(Path.of("/media/x150/stuff/Dev/Java/RenderLib2/run/")));
+					ObjFile.ResourceProvider.ofPath(Path.of("/home/x150")));
 		}
-		ob.draw(stack, new Matrix4f(), new Vec3d(0, 400, 0));
+		ob.draw(stack, new Matrix4f(), new Vec3d(0, 200, 0));
 		OutlineFramebuffer.useAndDraw(() -> Renderer3d.renderFilled(stack, Color.WHITE, new Vec3d(0, 300, 0), new Vec3d(5, 5, 5)), 1f, Color.GREEN, Color.BLACK);
 
 		Renderer3d.renderFilled(stack, Color.RED, new Vec3d(0, 200, 0), new Vec3d(1, 1, 1));
@@ -46,7 +46,7 @@ public class Handler {
 	public static void hud(DrawContext matrices) {
 		if (fr == null) {
 			Font fn = Font.decode("FreeSerif");
-			fr = new FontRenderer(new Font[]{fn}, 64, 256, 2, "123");
+			fr = new FontRenderer(new Font[]{fn}, 64, 5, 2, "123");
 		}
 		if (l++ > 60 * 4) fr.drawString(matrices.getMatrices(), "012345689", 5, 5, 1, 1, 1, 1);
 		sv.render(matrices.getMatrices(), 5, 5, 128, 128);

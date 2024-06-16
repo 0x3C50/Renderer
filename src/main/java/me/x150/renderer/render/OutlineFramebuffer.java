@@ -80,7 +80,7 @@ public class OutlineFramebuffer extends Framebuffer {
 		ShaderManager.OUTLINE_SHADER.setUniformValue("InnerColor", innerColor.getRed() / 255f,
 				innerColor.getGreen() / 255f, innerColor.getBlue() / 255f, innerColor.getAlpha() / 255f);
 
-		ShaderManager.OUTLINE_SHADER.render(MinecraftClient.getInstance().getTickDelta());
+		ShaderManager.OUTLINE_SHADER.render(MinecraftClient.getInstance().getRenderTickCounter().getTickDelta(false));
 
 		buffer.clear(false);
 

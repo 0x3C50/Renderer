@@ -3,8 +3,8 @@ package me.x150.renderer.util;
 import com.google.common.base.Preconditions;
 import net.minecraft.client.gl.VertexBuffer;
 import net.minecraft.client.render.BufferBuilder;
-import net.minecraft.client.render.BufferBuilder.BuiltBuffer;
 import net.minecraft.client.render.BufferRenderer;
+import net.minecraft.client.render.BuiltBuffer;
 
 public class BufferUtils {
 	/**

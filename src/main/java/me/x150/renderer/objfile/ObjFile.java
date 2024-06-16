@@ -101,7 +101,6 @@ public class ObjFile implements Closeable {
 	}
 
 	private void bake() {
-		BufferBuilder b = Tessellator.getInstance().getBuffer();
 		for (Map.Entry<String, Obj> stringObjEntry : materialNameObjMap.entrySet()) {
 			String materialName = stringObjEntry.getKey();
 			Obj objToDraw = stringObjEntry.getValue();
@@ -117,7 +116,7 @@ public class ObjFile implements Closeable {
 			} else {
 				vmf = VertexFormats.POSITION;
 			}
-			b.begin(VertexFormat.DrawMode.TRIANGLES, vmf);
+			BufferBuilder b = Tessellator.getInstance().begin(VertexFormat.DrawMode.TRIANGLES, vmf);
 			for (int i = 0; i < objToDraw.getNumFaces(); i++) {
 				ObjFace face = objToDraw.getFace(i);
 				boolean hasNormals = face.containsNormalIndices();
@@ -150,10 +149,9 @@ public class ObjFile implements Closeable {
 						FloatTuple normals = objToDraw.getNormal(face.getNormalIndex(i1));
 						vertex.normal(normals.getX(), normals.getY(), normals.getZ());
 					}
-					vertex.next();
 				}
 			}
-			BufferBuilder.BuiltBuffer end = b.end();
+			BuiltBuffer end = b.end();
 			buffers.put(objToDraw, BufferUtils.createVbo(end, VertexBuffer.Usage.STATIC));
 		}
 		baked = true;

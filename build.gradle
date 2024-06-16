@@ -86,7 +86,7 @@ dependencies {
 
     implementation("com.github.weisj:jsvg:1.4.0")
     implementation(group: "de.javagl", name: "obj", version: "0.4.0")
-    modApi("org.ladysnake:satin:1.17.0") {
+    modApi("org.ladysnake:satin:2.0.0") {
         exclude module: "fabric-api"
     }
 }

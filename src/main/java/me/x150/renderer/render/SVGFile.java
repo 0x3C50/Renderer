@@ -74,7 +74,7 @@ public class SVGFile implements Closeable {
 		} catch (Throwable t) {
 			RendererMain.LOGGER.error("Failed to render SVG", t);
 			//noinspection SpellCheckingInspection
-			this.id = new Identifier("missingno"); // yes, this is real. this points to the "missing" texture
+			this.id = Identifier.ofVanilla("missingno"); // yes, this is real. this points to the "missing" texture
 		}
 	}
 
@@ -116,8 +116,8 @@ public class SVGFile implements Closeable {
 		if (this.id == null) {
 			throw new IllegalStateException("Already closed");
 		}
+		// this might be minecraft's "missingno" texture, we don't want to free that.
 		if (this.id.getNamespace().equals("renderer")) {
-			// this might be minecraft's "missingno" texture, we don't want to free that.
 			MinecraftClient.getInstance().getTextureManager().destroyTexture(this.id);
 		}
 		this.id = null;

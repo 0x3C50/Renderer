@@ -344,6 +344,6 @@ public class RendererUtils {
 	 */
 	@Contract(value = "-> new", pure = true)
 	public static Identifier randomIdentifier() {
-		return new Identifier("renderer", "temp/" + randomString(32));
+		return Identifier.of("renderer", "temp/" + randomString(32));
 	}
 }
