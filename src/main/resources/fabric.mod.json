@@ -26,7 +26,8 @@
   ],
   "depends": {
     "fabricloader": ">=0.14.12",
-    "minecraft": ">=1.21.0"
+    "minecraft": ">=1.21.0",
+    "satin": "${satin_version}"
   },
   "custom": {
     "modmenu": {

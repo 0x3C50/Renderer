@@ -36,7 +36,10 @@ allprojects {
         inputs.property "version", version
 
         filesMatching("fabric.mod.json") {
-            expand "version": version
+            expand (
+                    "version": version,
+                    "satin_version": project.satin_version
+            )
         }
     }
 }
@@ -86,17 +89,21 @@ dependencies {
 
     implementation("com.github.weisj:jsvg:1.4.0")
     implementation(group: "de.javagl", name: "obj", version: "0.4.0")
-    modApi("org.ladysnake:satin:2.0.0") {
+    modApi("org.ladysnake:satin:${project.satin_version}") {
         exclude module: "fabric-api"
     }
 }
 
 processResources {
     inputs.property "version", project.version
+    inputs.property("satin_version", project.satin_version)
     filteringCharset "UTF-8"
 
     filesMatching("fabric.mod.json") {
-        expand "version": project.version
+        expand (
+                "version": version,
+                "satin_version": project.satin_version
+        )
     }
 }
 

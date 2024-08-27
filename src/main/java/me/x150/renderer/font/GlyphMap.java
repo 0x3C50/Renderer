@@ -1,10 +1,7 @@
 package me.x150.renderer.font;
 
-import it.unimi.dsi.fastutil.chars.Char2ObjectArrayMap;
-import lombok.RequiredArgsConstructor;
 import me.x150.renderer.util.RendererUtils;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.util.Identifier;
+import net.minecraft.client.texture.NativeImageBackedTexture;
 
 import java.awt.*;
 import java.awt.font.FontRenderContext;
@@ -12,32 +9,44 @@ import java.awt.geom.AffineTransform;
 import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
-@RequiredArgsConstructor
 class GlyphMap {
 	final char fromIncl, toExcl;
 	final Font[] font;
-	final Identifier bindToTexture;
+	NativeImageBackedTexture texture;
 	final int pixelPadding;
-	private final Char2ObjectArrayMap<Glyph> glyphs = new Char2ObjectArrayMap<>();
+	private final Glyph[] glyphs;
 	int width, height;
 
 	boolean generated = false;
 
+	public GlyphMap(char fromIncl, char toExcl, Font[] font, int pixelPadding) {
+		this.fromIncl = fromIncl;
+		this.toExcl = toExcl;
+		this.font = font;
+		this.pixelPadding = pixelPadding;
+		this.glyphs = new Glyph[toExcl - fromIncl];
+	}
+
 	public Glyph getGlyph(char c) {
-		if (!generated) {
-			generate();
+		synchronized (this) {
+			if (!generated) {
+				privateGenerate();
+			}
+			return glyphs[c - fromIncl];
 		}
-		return glyphs.get(c);
 	}
 
 	public void destroy() {
-		MinecraftClient.getInstance().getTextureManager().destroyTexture(this.bindToTexture);
-		this.glyphs.clear();
-		this.width = -1;
-		this.height = -1;
-		generated = false;
+		synchronized (this) {
+			generated = false;
+			if (texture != null) texture.close();
+			Arrays.fill(glyphs, null);
+			this.width = -1;
+			this.height = -1;
+		}
 	}
 
 	public boolean contains(char c) {
@@ -54,12 +63,17 @@ class GlyphMap {
 	}
 
 	public void generate() {
+		synchronized (this) {
+			privateGenerate();
+		}
+	}
+
+	private void privateGenerate() {
 		if (generated) {
 			return;
 		}
 		int range = toExcl - fromIncl - 1;
 		int charsVert = (int) (Math.ceil(Math.sqrt(range)) * 1.5);  // double as many chars wide as high
-		glyphs.clear();
 		int generatedChars = 0;
 		int charNX = 0;
 		int maxX = 0, maxY = 0;
@@ -106,9 +120,9 @@ class GlyphMap {
 			g2d.setFont(getFontForGlyph(glyph.value()));
 			FontMetrics fontMetrics = g2d.getFontMetrics();
 			g2d.drawString(String.valueOf(glyph.value()), glyph.u(), glyph.v() + fontMetrics.getAscent());
-			glyphs.put(glyph.value(), glyph);
+			glyphs[glyph.value()-fromIncl] = glyph;
 		}
-		RendererUtils.registerBufferedImageTexture(bindToTexture, bi);
+		this.texture = RendererUtils.bufferedImageToNIBT(bi);
 		generated = true;
 	}
 }

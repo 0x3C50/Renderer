@@ -2,17 +2,14 @@ package me.x150.testmod;
 
 import lombok.SneakyThrows;
 import me.x150.renderer.font.FontRenderer;
-import me.x150.renderer.objfile.ObjFile;
 import me.x150.renderer.render.OutlineFramebuffer;
 import me.x150.renderer.render.Renderer3d;
 import me.x150.renderer.render.SVGFile;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.util.math.Vec3d;
-import org.joml.Matrix4f;
 
 import java.awt.*;
-import java.nio.file.Path;
 
 public class Handler {
 	private static final SVGFile sv = new SVGFile("""
@@ -27,15 +24,15 @@ public class Handler {
 			""", 128, 128);
 	static FontRenderer fr;
 	static long l = 0;
-	private static ObjFile ob;
+//	private static ObjFile ob;
 
 	@SneakyThrows
 	public static void world(MatrixStack stack) {
-		if (ob == null) {
-			ob = new ObjFile("untitled.obj",
-					ObjFile.ResourceProvider.ofPath(Path.of("/home/x150")));
-		}
-		ob.draw(stack, new Matrix4f(), new Vec3d(0, 200, 0));
+//		if (ob == null) {
+//			ob = new ObjFile("untitled.obj",
+//					ObjFile.ResourceProvider.ofPath(Path.of("/home/x150")));
+//		}
+//		ob.draw(stack, new Matrix4f(), new Vec3d(0, 200, 0));
 		OutlineFramebuffer.useAndDraw(() -> Renderer3d.renderFilled(stack, Color.WHITE, new Vec3d(0, 300, 0), new Vec3d(5, 5, 5)), 1f, Color.GREEN, Color.BLACK);
 
 		Renderer3d.renderFilled(stack, Color.RED, new Vec3d(0, 200, 0), new Vec3d(1, 1, 1));

@@ -3,14 +3,13 @@ package me.x150.renderer.font;
 import com.google.common.base.Preconditions;
 import com.mojang.blaze3d.systems.RenderSystem;
 import it.unimi.dsi.fastutil.chars.Char2IntArrayMap;
-import it.unimi.dsi.fastutil.chars.Char2ObjectArrayMap;
-import it.unimi.dsi.fastutil.objects.Object2ObjectMap;
-import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
+import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
+import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import it.unimi.dsi.fastutil.objects.ObjectList;
 import lombok.NonNull;
 import lombok.SneakyThrows;
-import me.x150.renderer.client.RendererMain;
+import lombok.extern.slf4j.Slf4j;
 import me.x150.renderer.util.BufferUtils;
 import me.x150.renderer.util.Colors;
 import me.x150.renderer.util.RendererUtils;
@@ -19,18 +18,16 @@ import net.minecraft.client.render.GameRenderer;
 import net.minecraft.client.render.Tessellator;
 import net.minecraft.client.render.VertexFormat.DrawMode;
 import net.minecraft.client.render.VertexFormats;
+import net.minecraft.client.texture.NativeImageBackedTexture;
 import net.minecraft.client.util.math.MatrixStack;
-import net.minecraft.util.Identifier;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Matrix4f;
 
 import java.awt.*;
 import java.io.Closeable;
 import java.util.List;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
+import java.util.concurrent.*;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 /**
  * A simple font renderer. Supports multiple fonts, passed in as {@link Font} instances.
@@ -45,6 +42,7 @@ import java.util.concurrent.Future;
  * Additionally, characters for glyph pages which should immediately be available may be passed into {@link FontRenderer#FontRenderer(Font[], float, int, int, String)},
  * to bake the glyph pages for those characters on another thread once the font renderer is initialized.
  */
+@Slf4j
 public class FontRenderer implements Closeable {
 	private static final Char2IntArrayMap colorCodes = new Char2IntArrayMap() {{
 		put('0', 0x000000);
@@ -65,10 +63,9 @@ public class FontRenderer implements Closeable {
 		put('F', 0xFFFFFF);
 	}};
 	private static final ExecutorService ASYNC_WORKER = Executors.newCachedThreadPool();
-	private final Object2ObjectMap<Identifier, ObjectList<DrawEntry>> GLYPH_PAGE_CACHE = new Object2ObjectOpenHashMap<>();
+	private final Int2ObjectMap<ObjectList<DrawEntry>> GLYPH_PAGE_CACHE = new Int2ObjectOpenHashMap<>();
 	private final float originalSize;
 	private final ObjectList<GlyphMap> maps = new ObjectArrayList<>();
-	private final Char2ObjectArrayMap<Glyph> allGlyphs = new Char2ObjectArrayMap<>();
 	private final int charsPerPage;
 	private final int padding;
 	private final String prebakeGlyphs;
@@ -77,6 +74,8 @@ public class FontRenderer implements Closeable {
 	private int previousGameScale = -1;
 	private Future<Void> prebakeGlyphsFuture;
 	private boolean initialized;
+
+	private final ReentrantReadWriteLock LOCK = new ReentrantReadWriteLock();
 
 	/**
 	 * Initializes a new FontRenderer with the specified fonts
@@ -143,48 +142,67 @@ public class FontRenderer implements Closeable {
 
 	private void init(Font[] fonts, float sizePx) {
 		if (initialized) throw new IllegalStateException("Double call to init()");
-		initialized = true;
-		this.previousGameScale = RendererUtils.getGuiScale();
-		this.scaleMul = this.previousGameScale;
-		this.fonts = new Font[fonts.length];
-		for (int i = 0; i < fonts.length; i++) {
-			this.fonts[i] = fonts[i].deriveFont(sizePx * this.scaleMul);
-		}
-		if (prebakeGlyphs != null && !prebakeGlyphs.isEmpty()) {
-			prebakeGlyphsFuture = this.prebake();
+		LOCK.writeLock().lock();
+		try {
+			this.previousGameScale = RendererUtils.getGuiScale();
+			this.scaleMul = this.previousGameScale;
+			this.fonts = new Font[fonts.length];
+			for (int i = 0; i < fonts.length; i++) {
+				this.fonts[i] = fonts[i].deriveFont(sizePx * this.scaleMul);
+			}
+			if (prebakeGlyphs != null && !prebakeGlyphs.isEmpty()) {
+				prebakeGlyphsFuture = this.prebake();
+			}
+			initialized = true;
+		} finally {
+			LOCK.writeLock().unlock();
 		}
 	}
 
 	private Future<Void> prebake() {
 		return ASYNC_WORKER.submit(() -> {
-			for (char c : prebakeGlyphs.toCharArray()) {
-				if (Thread.interrupted()) break;
-				locateGlyph1(c);
+			log.debug("prebake on {}", Thread.currentThread());
+			LOCK.writeLock().lock();
+			try {
+				for (char c : prebakeGlyphs.toCharArray()) {
+					if (Thread.interrupted()) break;
+					locateGlyph0(c);
+				}
+			} finally {
+				LOCK.writeLock().unlock();
+				log.debug("prebake done");
 			}
 			return null;
 		});
 	}
 
 	private GlyphMap generateMap(char from, char to) {
-		RendererMain.LOGGER.debug("[Font renderer {}] Generating glyph page '{}' ({}) to '{}' ({}), {} characters", hashCode(), from, (int) from, to, (int) to, (int) to - from);
-		GlyphMap gm = new GlyphMap(from, to, this.fonts, RendererUtils.randomIdentifier(), padding);
-		maps.add(gm);
+		GlyphMap gm = new GlyphMap(from, to, this.fonts, padding);
+		LOCK.writeLock().lock();
+		try {
+			gm.generate();
+			maps.add(gm);
+		} finally {
+			LOCK.writeLock().unlock();
+		}
+		log.debug("[Font renderer {}] Generated glyph page '{}' ({}) to '{}' ({}), {} characters into {}", hashCode(), from, (int) from, to, (int) to, (int) to - from, gm.texture.getGlId());
 		return gm;
 	}
 
 	private Glyph locateGlyph0(char glyph) {
-		for (GlyphMap map : maps) { // go over existing ones
-			if (map.contains(glyph)) { // do they have it? good
-				return map.getGlyph(glyph);
+		LOCK.readLock().lock();
+		try {
+			for (GlyphMap map : maps) { // go over existing ones
+				if (map.contains(glyph)) { // do they have it? good
+					return map.getGlyph(glyph);
+				}
 			}
+		} finally {
+			LOCK.readLock().unlock();
 		}
 		int base = floorNearestMulN(glyph, charsPerPage); // if not, generate a new page and return the generated glyph
 		GlyphMap glyphMap = generateMap((char) base, (char) (base + charsPerPage));
 		return glyphMap.getGlyph(glyph);
-	}
-
-	private Glyph locateGlyph1(char glyph) {
-		return allGlyphs.computeIfAbsent(glyph, this::locateGlyph0);
 	}
 
 	/**
@@ -216,11 +234,6 @@ public class FontRenderer implements Closeable {
 
 		RenderSystem.enableBlend();
 		RenderSystem.defaultBlendFunc();
-//		RenderSystem.disableCull();
-//		int prevMin = GL11.glGetTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MIN_FILTER);
-//		int prevMag = GL11.glGetTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MAG_FILTER);
-//		GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MIN_FILTER, GL11.GL_LINEAR);
-//		GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MAG_FILTER, GL11.GL_LINEAR);
 
 		RenderSystem.setShader(GameRenderer::getPositionTexColorProgram);
 		Matrix4f mat = stack.peek().getPositionMatrix();
@@ -257,17 +270,17 @@ public class FontRenderer implements Closeable {
 					lineStart = i + 1;
 					continue;
 				}
-				Glyph glyph = locateGlyph1(c);
+				Glyph glyph = locateGlyph0(c);
 				if (glyph.value() != ' ') { // we only need to really draw the glyph if it's not blank, otherwise we can just skip its width and that'll be it
-					Identifier i1 = glyph.owner().bindToTexture;
+					NativeImageBackedTexture i1 = glyph.owner().texture;
 					DrawEntry entry = new DrawEntry(xOffset, yOffset, r2, g2, b2, glyph);
-					GLYPH_PAGE_CACHE.computeIfAbsent(i1, integer -> new ObjectArrayList<>()).add(entry);
+					GLYPH_PAGE_CACHE.computeIfAbsent(i1.getGlId(), integer -> new ObjectArrayList<>()).add(entry);
 				}
 				xOffset += glyph.width();
 			}
-			for (Identifier identifier : GLYPH_PAGE_CACHE.keySet()) {
-				RenderSystem.setShaderTexture(0, identifier);
-				List<DrawEntry> objects = GLYPH_PAGE_CACHE.get(identifier);
+			for (int glId : GLYPH_PAGE_CACHE.keySet()) {
+				RenderSystem.setShaderTexture(0, glId);
+				List<DrawEntry> objects = GLYPH_PAGE_CACHE.get(glId);
 
 				BufferBuilder bb = Tessellator.getInstance().begin(DrawMode.QUADS, VertexFormats.POSITION_TEXTURE_COLOR);
 
@@ -297,8 +310,6 @@ public class FontRenderer implements Closeable {
 			GLYPH_PAGE_CACHE.clear();
 		}
 		stack.pop();
-//		GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MIN_FILTER, prevMin);
-//		GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MAG_FILTER, prevMag);
 	}
 
 	/**
@@ -333,7 +344,7 @@ public class FontRenderer implements Closeable {
 				currentLine = 0;
 				continue;
 			}
-			Glyph glyph = locateGlyph1(c1);
+			Glyph glyph = locateGlyph0(c1);
 			currentLine += glyph.width() / (float) this.scaleMul;
 		}
 		return Math.max(currentLine, maxPreviousLines);
@@ -356,13 +367,13 @@ public class FontRenderer implements Closeable {
 			if (c1 == '\n') {
 				if (currentLine == 0) {
 					// empty line, assume space
-					currentLine = locateGlyph1(' ').height() / (float) this.scaleMul;
+					currentLine = locateGlyph0(' ').height() / (float) this.scaleMul;
 				}
 				previous += currentLine;
 				currentLine = 0;
 				continue;
 			}
-			Glyph glyph = locateGlyph1(c1);
+			Glyph glyph = locateGlyph0(c1);
 			currentLine = Math.max(glyph.height() / (float) this.scaleMul, currentLine);
 		}
 		return currentLine + previous;
@@ -380,12 +391,16 @@ public class FontRenderer implements Closeable {
 			prebakeGlyphsFuture.get(); // should only ever throw interrupted, which is the parent's job to handle anyway
 			prebakeGlyphsFuture = null;
 		}
-		for (GlyphMap map : maps) {
-			map.destroy();
+		LOCK.writeLock().lock();
+		try {
+			for (GlyphMap map : maps) {
+				map.destroy();
+			}
+			maps.clear();
+			initialized = false;
+		} finally {
+			LOCK.writeLock().unlock();
 		}
-		maps.clear();
-		allGlyphs.clear();
-		initialized = false;
 	}
 
 	record DrawEntry(float atX, float atY, float r, float g, float b, Glyph toDraw) {

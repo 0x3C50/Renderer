@@ -2,7 +2,6 @@ package me.x150.renderer.util;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 import lombok.NonNull;
-import me.x150.renderer.client.RendererMain;
 import me.x150.renderer.mixin.NativeImageAccessor;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.render.Camera;
@@ -14,6 +13,7 @@ import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec3d;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Contract;
+import org.jetbrains.annotations.NotNull;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
 import org.joml.Vector4f;
@@ -149,53 +149,55 @@ public class RendererUtils {
 	 * @param i  The identifier to register the texture under
 	 * @param bi The BufferedImage holding the texture
 	 */
-	public static void registerBufferedImageTexture(@NonNull Identifier i, @NonNull BufferedImage bi) {
-		try {
-			// argb from BufferedImage is little endian, alpha is actually where the `a` is in the label
-			// rgba from NativeImage (and by extension opengl) is big endian, alpha is on the other side (abgr)
-			// thank you opengl
-			int ow = bi.getWidth();
-			int oh = bi.getHeight();
-			NativeImage image = new NativeImage(NativeImage.Format.RGBA, ow, oh, false);
-			@SuppressWarnings("DataFlowIssue") long ptr = ((NativeImageAccessor) (Object) image).getPointer();
-			IntBuffer backingBuffer = MemoryUtil.memIntBuffer(ptr, image.getWidth() * image.getHeight());
-			int off = 0;
-			Object _d;
-			WritableRaster _ra = bi.getRaster();
-			ColorModel _cm = bi.getColorModel();
-			int nbands = _ra.getNumBands();
-			int dataType = _ra.getDataBuffer().getDataType();
-			_d = switch (dataType) {
-				case DataBuffer.TYPE_BYTE -> new byte[nbands];
-				case DataBuffer.TYPE_USHORT -> new short[nbands];
-				case DataBuffer.TYPE_INT -> new int[nbands];
-				case DataBuffer.TYPE_FLOAT -> new float[nbands];
-				case DataBuffer.TYPE_DOUBLE -> new double[nbands];
-				default -> throw new IllegalArgumentException("Unknown data buffer type: " +
-						dataType);
-			};
-
-			for (int y = 0; y < oh; y++) {
-				for (int x = 0; x < ow; x++) {
-					_ra.getDataElements(x, y, _d);
-					int a = _cm.getAlpha(_d);
-					int r = _cm.getRed(_d);
-					int g = _cm.getGreen(_d);
-					int b = _cm.getBlue(_d);
-					int abgr = a << 24 | b << 16 | g << 8 | r;
-					backingBuffer.put(abgr);
-				}
-			}
-			NativeImageBackedTexture tex = new NativeImageBackedTexture(image);
-			tex.upload();
-			if (RenderSystem.isOnRenderThread()) {
-				MinecraftClient.getInstance().getTextureManager().registerTexture(i, tex);
-			} else {
-				RenderSystem.recordRenderCall(() -> MinecraftClient.getInstance().getTextureManager().registerTexture(i, tex));
-			}
-		} catch (Throwable e) { // should never happen, but just in case
-			RendererMain.LOGGER.error("Failed to register buffered image as identifier {}", i, e);
+	public static NativeImageBackedTexture registerBufferedImageTexture(@NonNull Identifier i, @NonNull BufferedImage bi) {
+		NativeImageBackedTexture tex = bufferedImageToNIBT(bi);
+		if (RenderSystem.isOnRenderThread()) {
+			MinecraftClient.getInstance().getTextureManager().registerTexture(i, tex);
+		} else {
+			RenderSystem.recordRenderCall(() -> MinecraftClient.getInstance().getTextureManager().registerTexture(i, tex));
 		}
+		return tex;
+	}
+
+	public static @NotNull NativeImageBackedTexture bufferedImageToNIBT(@NotNull BufferedImage bi) {
+		// argb from BufferedImage is little endian, alpha is actually where the `a` is in the label
+		// rgba from NativeImage (and by extension opengl) is big endian, alpha is on the other side (abgr)
+		// thank you opengl
+		int ow = bi.getWidth();
+		int oh = bi.getHeight();
+		NativeImage image = new NativeImage(NativeImage.Format.RGBA, ow, oh, false);
+		@SuppressWarnings("DataFlowIssue") long ptr = ((NativeImageAccessor) (Object) image).getPointer();
+		IntBuffer backingBuffer = MemoryUtil.memIntBuffer(ptr, image.getWidth() * image.getHeight());
+		int off = 0;
+		Object _d;
+		WritableRaster raster = bi.getRaster();
+		ColorModel colorModel = bi.getColorModel();
+		int nbands = raster.getNumBands();
+		int dataType = raster.getDataBuffer().getDataType();
+		_d = switch (dataType) {
+			case DataBuffer.TYPE_BYTE -> new byte[nbands];
+			case DataBuffer.TYPE_USHORT -> new short[nbands];
+			case DataBuffer.TYPE_INT -> new int[nbands];
+			case DataBuffer.TYPE_FLOAT -> new float[nbands];
+			case DataBuffer.TYPE_DOUBLE -> new double[nbands];
+			default -> throw new IllegalArgumentException("Unknown data buffer type: " +
+					dataType);
+		};
+
+		for (int y = 0; y < oh; y++) {
+			for (int x = 0; x < ow; x++) {
+				raster.getDataElements(x, y, _d);
+				int a = colorModel.getAlpha(_d);
+				int r = colorModel.getRed(_d);
+				int g = colorModel.getGreen(_d);
+				int b = colorModel.getBlue(_d);
+				int abgr = a << 24 | b << 16 | g << 8 | r;
+				backingBuffer.put(abgr);
+			}
+		}
+		NativeImageBackedTexture tex = new NativeImageBackedTexture(image);
+		tex.upload();
+		return tex;
 	}
 
 	/**
