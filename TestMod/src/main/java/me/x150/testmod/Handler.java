@@ -2,9 +2,7 @@ package me.x150.testmod;
 
 import lombok.SneakyThrows;
 import me.x150.renderer.font.FontRenderer;
-import me.x150.renderer.render.OutlineFramebuffer;
-import me.x150.renderer.render.Renderer3d;
-import me.x150.renderer.render.SVGFile;
+import me.x150.renderer.render.*;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.util.math.Vec3d;
@@ -23,8 +21,7 @@ public class Handler {
 			</svg>
 			""", 128, 128);
 	static FontRenderer fr;
-	static long l = 0;
-//	private static ObjFile ob;
+	//	private static ObjFile ob;
 
 	@SneakyThrows
 	public static void world(MatrixStack stack) {
@@ -45,7 +42,26 @@ public class Handler {
 			Font fn = Font.decode("FreeSerif");
 			fr = new FontRenderer(new Font[]{fn}, 64, 5, 2, "123");
 		}
-		if (l++ > 60 * 4) fr.drawString(matrices.getMatrices(), "012345689", 5, 5, 1, 1, 1, 1);
+//		if (l++ > 60 * 4) fr.drawString(matrices.getMatrices(), "012345689", 5, 5, 1, 1, 1, 1);
 		sv.render(matrices.getMatrices(), 5, 5, 128, 128);
+
+		if (System.currentTimeMillis() % 7000 > 3500) {
+//			MinecraftClient instance = MinecraftClient.getInstance();
+//			Window window = instance.getWindow();
+
+			MaskedBlurFramebuffer.drawNoMask(8, 3.6f);
+		}
+
+//		String collect = Arrays.stream(RenderProfiler.getAllTickTimes()).map(it -> String.format("%s: %07d ns", it.name(), it.end() - it.start())).collect(Collectors.joining("\n"));
+//
+//		MatrixStack emptyMatrixStack = RendererUtils.getEmptyMatrixStack();
+//		emptyMatrixStack.push();
+//		emptyMatrixStack.scale(.5f, .5f, 1);
+//		fr.drawString(emptyMatrixStack, collect, 5, 5, 1f, 1f, 1f, 1f);
+//		emptyMatrixStack.pop();
+
+//		ShaderManager.GAUSSIAN_BLUR.setUniformValue("width", 16);
+//		ShaderManager.GAUSSIAN_BLUR.setUniformValue("sigma", 4f);
+//		ShaderManager.GAUSSIAN_BLUR.render(MinecraftClient.getInstance().getRenderTickCounter().getTickDelta(true));
 	}
 }
