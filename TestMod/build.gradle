@@ -1,4 +1,4 @@
-archives_base_name = "TestMod"
+archivesBaseName = "TestMod"
 
 configurations {
     modImpl

@@ -54,14 +54,14 @@ public class MaskedBlurFramebuffer  extends Framebuffer {
 
 	/**
 	 * Uses this framebuffer as a mask for the gaussian blur shader, which blurs the contents of the currently active framebuffer.
-	 * <h2>Gaussian blur</h2>
-	 * Gaussian blur is distinct from other blur algorithms in that its kernel (the matrix around the current pixel in which other pixels are sampled).
+	 * <h4>Gaussian blur</h4>
+	 * Gaussian blur is distinct from other blur algorithms in that its kernel (the matrix around the current pixel in which other pixels are sampled)
 	 * is weighted after the normal distribution. This makes for a much smoother blur compared to other algorithms.
-	 * <h2>Parameters</h2>
+	 * <h4>Parameters</h4>
 	 * The kernel size is the overall size of the kernel, how many other pixels around the current pixel are sampled.
 	 * The sigma influences how much weight should be placed at the center of the kernel.
 	 * For more information and for an example of what the calculation looks like, see <a href="https://www.desmos.com/calculator/xeuj6cqiz6">this desmos graph</a>.
-	 * <h2>Tips</h2>
+	 * <h4>Tips</h4>
 	 * For a nice looking blur, try to configure the sigma such that the y value at the ends of the graph are close to 0.
 	 * Note that choosing a high sigma leads to a very even influence of all pixels, which makes the blur effect look similar to a box blur.
 	 * @param kernelSizePx Kernel size of the gaussian blur shader
