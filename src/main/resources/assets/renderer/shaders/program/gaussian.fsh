@@ -18,7 +18,7 @@ float pdf(float x, float sigma) {
 
 void main() {
 //    float weights[width*2+1];
-    float radiusMul = texture(MaskSampler, texCoord).b;
+    float radiusMul = texture(MaskSampler, texCoord).a;
     if (radiusMul == 0) {
         fragColor = texture(DiffuseSampler, texCoord);
         return;

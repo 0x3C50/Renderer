@@ -1,0 +1,29 @@
+{
+	"targets": [
+		"sw1", "pf"
+	],
+	"passes": [
+		{
+			"name": "testmod:bruhhrubruh",
+			"intarget": "minecraft:main",
+			"outtarget": "sw1",
+			"auxtargets": [
+				{
+					"name": "PrevFb",
+					"id": "pf"
+				}
+			],
+			"uniforms": []
+		},
+		{
+			"name": "blit",
+			"intarget": "sw1",
+			"outtarget": "pf"
+		},
+		{
+			"name": "blit",
+			"intarget": "sw1",
+			"outtarget": "minecraft:main"
+		}
+	]
+}

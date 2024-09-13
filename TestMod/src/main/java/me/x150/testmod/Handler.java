@@ -34,6 +34,14 @@ public class Handler {
 
 		Renderer3d.renderFilled(stack, Color.RED, new Vec3d(0, 200, 0), new Vec3d(1, 1, 1));
 		Renderer3d.renderFilled(stack, Color.GREEN, new Vec3d(2, 202, 2), new Vec3d(1, 1, 1));
+
+//		stack.push();
+//		stack.translate(System.currentTimeMillis() % 5000 / 5000d * 100, 0, 0);
+
+		LaggingMaskFramebuffer.use(() -> {
+			Renderer3d.renderFilled(stack, Color.WHITE, new Vec3d(0, 70, 0), new Vec3d(2, 2, 2));
+		});
+		LaggingMaskFramebuffer.draw();
 	}
 
 	@SneakyThrows
@@ -45,12 +53,9 @@ public class Handler {
 //		if (l++ > 60 * 4) fr.drawString(matrices.getMatrices(), "012345689", 5, 5, 1, 1, 1, 1);
 		sv.render(matrices.getMatrices(), 5, 5, 128, 128);
 
-		if (System.currentTimeMillis() % 7000 > 3500) {
-//			MinecraftClient instance = MinecraftClient.getInstance();
-//			Window window = instance.getWindow();
+//		MatrixStack emptyMatrixStack = RendererUtils.getEmptyMatrixStack();
 
-			MaskedBlurFramebuffer.drawNoMask(8, 3.6f);
-		}
+
 
 //		String collect = Arrays.stream(RenderProfiler.getAllTickTimes()).map(it -> String.format("%s: %07d ns", it.name(), it.end() - it.start())).collect(Collectors.joining("\n"));
 //
