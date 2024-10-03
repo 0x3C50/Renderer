@@ -30,16 +30,18 @@ public class Handler {
 //					ObjFile.ResourceProvider.ofPath(Path.of("/home/x150")));
 //		}
 //		ob.draw(stack, new Matrix4f(), new Vec3d(0, 200, 0));
-		OutlineFramebuffer.useAndDraw(() -> Renderer3d.renderFilled(stack, Color.WHITE, new Vec3d(0, 300, 0), new Vec3d(5, 5, 5)), 1f, Color.GREEN, Color.BLACK);
-
-		Renderer3d.renderFilled(stack, Color.RED, new Vec3d(0, 200, 0), new Vec3d(1, 1, 1));
-		Renderer3d.renderFilled(stack, Color.GREEN, new Vec3d(2, 202, 2), new Vec3d(1, 1, 1));
-
-//		stack.push();
-//		stack.translate(System.currentTimeMillis() % 5000 / 5000d * 100, 0, 0);
-
+//		OutlineFramebuffer.useAndDraw(() -> Renderer3d.renderFilled(stack, Color.WHITE, new Vec3d(0, 300, 0), new Vec3d(5, 5, 5)), 1f, Color.GREEN, Color.BLACK);
+//
+//		Renderer3d.renderFilled(stack, Color.RED, new Vec3d(0, 200, 0), new Vec3d(1, 1, 1));
+//		Renderer3d.renderFilled(stack, Color.GREEN, new Vec3d(2, 202, 2), new Vec3d(1, 1, 1));
+//
+////		stack.push();
+////		stack.translate(System.currentTimeMillis() % 5000 / 5000d * 100, 0, 0);
+//
 		LaggingMaskFramebuffer.use(() -> {
+			Renderer3d.stopRenderThroughWalls();
 			Renderer3d.renderFilled(stack, Color.WHITE, new Vec3d(0, 70, 0), new Vec3d(2, 2, 2));
+			Renderer3d.renderThroughWalls();
 		});
 		LaggingMaskFramebuffer.draw();
 	}
@@ -48,9 +50,11 @@ public class Handler {
 	public static void hud(DrawContext matrices) {
 		if (fr == null) {
 			Font fn = Font.decode("FreeSerif");
-			fr = new FontRenderer(new Font[]{fn}, 64, 5, 2, "123");
+			fr = new FontRenderer(new Font[]{fn}, 64, 5, 2, "123")
+					.roundCoordinates(true);
 		}
-//		if (l++ > 60 * 4) fr.drawString(matrices.getMatrices(), "012345689", 5, 5, 1, 1, 1, 1);
+		fr.drawString(matrices.getMatrices(), "012345689", 5f + ((System.currentTimeMillis() % 5000) / 5000f) * 200f, 5f
+				+ ((System.currentTimeMillis() % 7000) / 7000f) * 100f, 1, 1, 1, 1);
 		sv.render(matrices.getMatrices(), 5, 5, 128, 128);
 
 //		MatrixStack emptyMatrixStack = RendererUtils.getEmptyMatrixStack();

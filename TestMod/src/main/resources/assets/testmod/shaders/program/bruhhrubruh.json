@@ -49,6 +49,12 @@
 				1.0,
 				1.0
 			]
+		},
+		{
+			"name": "time",
+			"type": "float",
+			"count": 1,
+			"values": [1]
 		}
 	]
 }

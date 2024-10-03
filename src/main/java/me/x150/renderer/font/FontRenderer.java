@@ -44,7 +44,7 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
  */
 @Slf4j
 public class FontRenderer implements Closeable {
-	private static final Char2IntArrayMap colorCodes = new Char2IntArrayMap() {{
+	protected static final Char2IntArrayMap colorCodes = new Char2IntArrayMap() {{
 		put('0', 0x000000);
 		put('1', 0x0000AA);
 		put('2', 0x00AA00);
@@ -62,20 +62,32 @@ public class FontRenderer implements Closeable {
 		put('E', 0xFFFF55);
 		put('F', 0xFFFFFF);
 	}};
-	private static final ExecutorService ASYNC_WORKER = Executors.newCachedThreadPool();
-	private final Int2ObjectMap<ObjectList<DrawEntry>> GLYPH_PAGE_CACHE = new Int2ObjectOpenHashMap<>();
-	private final float originalSize;
-	private final ObjectList<GlyphMap> maps = new ObjectArrayList<>();
-	private final int charsPerPage;
-	private final int padding;
-	private final String prebakeGlyphs;
-	private int scaleMul = 0;
-	private Font[] fonts;
-	private int previousGameScale = -1;
-	private Future<Void> prebakeGlyphsFuture;
-	private boolean initialized;
+	protected static final ExecutorService ASYNC_WORKER = Executors.newCachedThreadPool();
+	protected final Int2ObjectMap<ObjectList<DrawEntry>> GLYPH_PAGE_CACHE = new Int2ObjectOpenHashMap<>();
+	protected final float originalSize;
+	protected final ObjectList<GlyphMap> maps = new ObjectArrayList<>();
+	protected final int charsPerPage;
+	protected final int padding;
+	protected final String prebakeGlyphs;
+	protected int scaleMul = 0;
+	protected Font[] fonts;
+	protected int previousGameScale = -1;
+	protected Future<Void> prebakeGlyphsFuture;
+	protected boolean initialized;
+
+	protected boolean roundCoordinates = false;
 
 	private final ReentrantReadWriteLock LOCK = new ReentrantReadWriteLock();
+
+	/**
+	 * Rounds coordinates to pixel coordinates, to make sure the font is drawn correctly, to prevent artifacts
+	 * @param round true to round coordinates (default), false to skip rounding
+	 * @return this
+	 */
+	public FontRenderer roundCoordinates(boolean round) {
+		this.roundCoordinates = round;
+		return this;
+	}
 
 	/**
 	 * Initializes a new FontRenderer with the specified fonts
@@ -227,6 +239,10 @@ public class FontRenderer implements Closeable {
 			}
 		}
 		sizeCheck();
+		if (roundCoordinates) {
+			x = (float) Math.round(x * scaleMul) / scaleMul;
+			y = (float) Math.round(y * scaleMul) / scaleMul;
+		}
 		float r2 = r, g2 = g, b2 = b;
 		stack.push();
 		stack.translate(x, y, 0);
@@ -403,6 +419,6 @@ public class FontRenderer implements Closeable {
 		}
 	}
 
-	record DrawEntry(float atX, float atY, float r, float g, float b, Glyph toDraw) {
+	protected record DrawEntry(float atX, float atY, float r, float g, float b, Glyph toDraw) {
 	}
 }

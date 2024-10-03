@@ -12,7 +12,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-class GlyphMap {
+public class GlyphMap {
 	final char fromIncl, toExcl;
 	final Font[] font;
 	NativeImageBackedTexture texture;

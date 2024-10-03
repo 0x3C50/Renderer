@@ -48,6 +48,7 @@ public class LaggingMaskFramebuffer extends Framebuffer {
 		LaggingMaskFramebuffer buffer = obtain();
 
 		TestMod.mse.setSamplerUniform("Mask", buffer);
+		TestMod.mse.setUniformValue("time", System.nanoTime() / 1e6f / 1000f);
 
 		TestMod.mse.render(MinecraftClient.getInstance().getRenderTickCounter().getTickDelta(true));
 
