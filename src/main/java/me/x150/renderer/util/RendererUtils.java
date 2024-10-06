@@ -41,6 +41,8 @@ public class RendererUtils {
 	public static final Matrix4f lastModMat = new Matrix4f();
 	@ApiStatus.Internal
 	public static final Matrix4f lastWorldSpaceMatrix = new Matrix4f();
+    @ApiStatus.Internal
+    public static final int[] lastViewport = new int[4];
 
 	private static final FastMStack empty = new FastMStack();
 	private static final MinecraftClient client = MinecraftClient.getInstance();
@@ -256,8 +258,6 @@ public class RendererUtils {
 	public static Vec3d worldSpaceToScreenSpace(@NonNull Vec3d pos) {
 		Camera camera = client.getEntityRenderDispatcher().camera;
 		int displayHeight = client.getWindow().getHeight();
-		int[] viewport = new int[4];
-		GL11.glGetIntegerv(GL11.GL_VIEWPORT, viewport);
 		Vector3f target = new Vector3f();
 
 		double deltaX = pos.x - camera.getPos().x;
@@ -271,7 +271,7 @@ public class RendererUtils {
 		Matrix4f matrixModel = new Matrix4f(lastModMat);
 
 		matrixProj.mul(matrixModel)
-				.project(transformedCoordinates.x(), transformedCoordinates.y(), transformedCoordinates.z(), viewport,
+				.project(transformedCoordinates.x(), transformedCoordinates.y(), transformedCoordinates.z(), lastViewport,
 						target);
 
 		return new Vec3d(target.x / client.getWindow().getScaleFactor(),
@@ -309,8 +309,6 @@ public class RendererUtils {
 		Camera camera = client.getEntityRenderDispatcher().camera;
 		int displayHeight = client.getWindow().getScaledHeight();
 		int displayWidth = client.getWindow().getScaledWidth();
-		int[] viewport = new int[4];
-		GL11.glGetIntegerv(GL11.GL_VIEWPORT, viewport);
 		Vector3f target = new Vector3f();
 
 		Matrix4f matrixProj = new Matrix4f(lastProjMat);
@@ -318,8 +316,8 @@ public class RendererUtils {
 
 		matrixProj.mul(matrixModel)
 				.mul(lastWorldSpaceMatrix)
-				.unproject((float) x / displayWidth * viewport[2],
-						(float) (displayHeight - y) / displayHeight * viewport[3], (float) d, viewport, target);
+				.unproject((float) x / displayWidth * lastViewport[2],
+						(float) (displayHeight - y) / displayHeight * lastViewport[3], (float) d, lastViewport, target);
 
 		return new Vec3d(target.x, target.y, target.z).add(camera.getPos());
 	}

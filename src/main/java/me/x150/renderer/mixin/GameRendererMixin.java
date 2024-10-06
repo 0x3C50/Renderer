@@ -11,6 +11,7 @@ import me.x150.renderer.util.RendererUtils;
 import net.minecraft.client.render.*;
 import net.minecraft.client.util.math.MatrixStack;
 import org.joml.Matrix4f;
+import org.lwjgl.opengl.GL11;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 
@@ -29,6 +30,8 @@ public abstract class GameRendererMixin {
 		RendererUtils.lastProjMat.set(RenderSystem.getProjectionMatrix());
 		RendererUtils.lastModMat.set(RenderSystem.getModelViewMatrix());
 		RendererUtils.lastWorldSpaceMatrix.set(matrix.peek().getPositionMatrix());
+        GL11.glGetIntegerv(GL11.GL_VIEWPORT, RendererUtils.lastViewport);
+
 		RenderEvents.WORLD.invoker().rendered(matrix);
 		Renderer3d.renderFadingBlocks(matrix);
 
