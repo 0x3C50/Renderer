@@ -265,10 +265,10 @@ public class Renderer2d {
 												  float radC4, float samples) {
 		BufferBuilder bufferBuilder =Tessellator.getInstance().begin(DrawMode.TRIANGLE_FAN, VertexFormats.POSITION_COLOR);
 
-		_populateRC(toX - radC4, toY - radC4, radC4, 0);
-		_populateRC(toX - radC2, fromY + radC2, radC2, 1);
-		_populateRC(fromX + radC1, fromY + radC1, radC1, 2);
-		_populateRC(fromX + radC3, toY - radC3, radC3, 3);
+		setRc(toX - radC4, toY - radC4, radC4, 0);
+		setRc(toX - radC2, fromY + radC2, radC2, 1);
+		setRc(fromX + radC1, fromY + radC1, radC1, 2);
+		setRc(fromX + radC3, toY - radC3, radC3, 3);
 		for (int i = 0; i < 4; i++) {
 			float[] current = roundedCache[i];
 			float rad = current[2];
@@ -329,7 +329,7 @@ public class Renderer2d {
 		renderRoundedQuad(stack, c, x, y, x1, y1, rad, rad, rad, rad, samples);
 	}
 
-	private static void _populateRC(float a, float b, float c, int i) {
+	private static void setRc(float a, float b, float c, int i) {
 		roundedCache[i][0] = a;
 		roundedCache[i][1] = b;
 		roundedCache[i][2] = c;
@@ -339,10 +339,10 @@ public class Renderer2d {
 													 float radC4, float width, float samples) {
 		BufferBuilder bufferBuilder =Tessellator.getInstance().begin(DrawMode.TRIANGLE_STRIP, VertexFormats.POSITION_COLOR);
 
-		_populateRC(toX - radC4, toY - radC4, radC4, 0);
-		_populateRC(toX - radC2, fromY + radC2, radC2, 1);
-		_populateRC(fromX + radC1, fromY + radC1, radC1, 2);
-		_populateRC(fromX + radC3, toY - radC3, radC3, 3);
+		setRc(toX - radC4, toY - radC4, radC4, 0);
+		setRc(toX - radC2, fromY + radC2, radC2, 1);
+		setRc(fromX + radC1, fromY + radC1, radC1, 2);
+		setRc(fromX + radC3, toY - radC3, radC3, 3);
 		for (int i = 0; i < 4; i++) {
 			float[] current = roundedCache[i];
 			float rad = current[2];

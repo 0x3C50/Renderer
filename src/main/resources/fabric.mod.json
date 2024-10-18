@@ -15,10 +15,7 @@
   "environment": "client",
   "entrypoints": {
     "client": [
-      "me.x150.renderer.client.RendererMain"
-    ],
-    "main": [
-      "me.x150.renderer.Renderer"
+      "me.x150.renderer.RendererMain"
     ]
   },
   "mixins": [

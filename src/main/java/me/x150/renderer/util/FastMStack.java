@@ -51,8 +51,8 @@ public class FastMStack extends MatrixStack {
 		if (x == y && y == z) {
 			// normal matrix is normalized, if all elements are uniform, we can just scale it based on the sign of the
 			// elements. (positive / zero = no effect, negative = flip it)
-			if (x != 0) {
-				top.normalMatrix.scale(Math.signum(x));
+			if (x < 0) {
+				top.normalMatrix.scale(-1);
 			}
 			return; // original MatrixStack implementation is missing this, resulting in invalid transformations
 		}

@@ -1,7 +1,9 @@
 package me.x150.renderer.util;
 
 import com.mojang.blaze3d.systems.RenderSystem;
+import lombok.Getter;
 import lombok.NonNull;
+import lombok.Setter;
 import me.x150.renderer.mixin.NativeImageAccessor;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.render.Camera;
@@ -17,7 +19,6 @@ import org.jetbrains.annotations.NotNull;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
 import org.joml.Vector4f;
-import org.lwjgl.opengl.GL11;
 import org.lwjgl.system.MemoryUtil;
 
 import java.awt.*;
@@ -51,22 +52,32 @@ public class RendererUtils {
 	private static final Random RND = new Random();
 
 	/**
+	 * Skips setting the rendering flags before drawing.
+	 * If, for example, a custom blending function is desired, this flag can be set to true to prevent the library from resetting blending
+	 */
+	@Setter
+	@Getter
+	private static boolean skipSetup = false;
+
+	/**
 	 * <p>Sets up rendering and resets everything that should be reset</p>
 	 */
 	public static void setupRender() {
-		RenderSystem.disableCull();
-		RenderSystem.enableBlend();
-		RenderSystem.defaultBlendFunc();
-		RenderSystem.setShaderColor(1f, 1f, 1f, 1f);
+		if (!skipSetup) {
+			RenderSystem.disableCull();
+			RenderSystem.enableBlend();
+			RenderSystem.defaultBlendFunc();
+		}
 	}
 
 	/**
 	 * <p>Reverts everything back to normal after rendering</p>
 	 */
 	public static void endRender() {
-		RenderSystem.disableBlend();
-		RenderSystem.enableCull();
-		RenderSystem.depthFunc(GL11.GL_LEQUAL);
+		if (!skipSetup) {
+			RenderSystem.disableBlend();
+			RenderSystem.enableCull();
+		}
 	}
 
 	/**

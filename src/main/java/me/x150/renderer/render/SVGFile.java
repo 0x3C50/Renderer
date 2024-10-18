@@ -4,7 +4,7 @@ import com.github.weisj.jsvg.SVGDocument;
 import com.github.weisj.jsvg.attributes.ViewBox;
 import com.github.weisj.jsvg.parser.SVGLoader;
 import com.mojang.blaze3d.systems.RenderSystem;
-import me.x150.renderer.client.RendererMain;
+import me.x150.renderer.RendererMain;
 import me.x150.renderer.util.RendererUtils;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.util.math.MatrixStack;
@@ -93,16 +93,12 @@ public class SVGFile implements Closeable {
 			this.memoizedGuiScale = guiScale;
 			_redraw(this.originalWidth * this.memoizedGuiScale, this.originalHeight * this.memoizedGuiScale);
 		}
-		RenderSystem.enableBlend();
-		RenderSystem.defaultBlendFunc();
-//		int prevMin = GL11.glGetTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MIN_FILTER);
-//		int prevMag = GL11.glGetTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MAG_FILTER);
-//		GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MIN_FILTER, GL11.GL_LINEAR);
-//		GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MAG_FILTER, GL11.GL_LINEAR);
+		if (!RendererUtils.isSkipSetup()) {
+			RenderSystem.enableBlend();
+			RenderSystem.defaultBlendFunc();
+		}
 		// the actual image is ceil(dims), but is actually only drawn to the raw dims. use ceil(dims) for pixel perfect accuracy without overflowing the bounds
 		Renderer2d.renderTexture(stack, this.id, x, y, Math.ceil(renderWidth), Math.ceil(renderHeight));
-//		GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MIN_FILTER, prevMin);
-//		GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MAG_FILTER, prevMag);
 	}
 
 	/**

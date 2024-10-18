@@ -5,7 +5,7 @@ import java.util.Stack;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * A render profiler
+ * Profiler for render events. Mostly used for profiling the library itself, but can also be used by user code if desired.
  */
 public class RenderProfiler {
 	static final Stack<Entry> s = new Stack<>();

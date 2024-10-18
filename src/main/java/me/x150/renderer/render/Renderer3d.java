@@ -3,6 +3,7 @@ package me.x150.renderer.render;
 import com.mojang.blaze3d.systems.RenderSystem;
 import me.x150.renderer.util.AlphaOverride;
 import me.x150.renderer.util.BufferUtils;
+import me.x150.renderer.util.RendererUtils;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gl.ShaderProgram;
 import net.minecraft.client.render.*;
@@ -53,15 +54,19 @@ public class Renderer3d {
 	}
 
 	private static void setupRender() {
-		RenderSystem.enableBlend();
-		RenderSystem.setShaderColor(1f, 1f, 1f, 1f);
-		RenderSystem.enableDepthTest();
-		RenderSystem.depthFunc(renderThroughWalls ? GL11.GL_ALWAYS : GL11.GL_LEQUAL);
+		if (!RendererUtils.isSkipSetup()) {
+			RenderSystem.enableBlend();
+			RenderSystem.setShaderColor(1f, 1f, 1f, 1f);
+			RenderSystem.enableDepthTest();
+			RenderSystem.depthFunc(renderThroughWalls ? GL11.GL_ALWAYS : GL11.GL_LEQUAL);
+		}
 	}
 
 	private static void endRender() {
-		RenderSystem.enableCull();
-		RenderSystem.disableBlend();
+		if (!RendererUtils.isSkipSetup()) {
+			RenderSystem.enableCull();
+			RenderSystem.disableBlend();
+		}
 	}
 
 	static float transformColor(float f) {

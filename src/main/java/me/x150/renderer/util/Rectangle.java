@@ -1,18 +1,22 @@
 package me.x150.renderer.util;
 
 import lombok.Getter;
-
-import java.util.Locale;
+import lombok.ToString;
 
 /**
- * Describes a rectangle
+ * Describes a rectangle positioned in 2 dimensions with width and height
  */
 @Getter
+@ToString
 public class Rectangle {
 	private final double x, y, x1, y1;
 
 	/**
-	 * Constructs a new rectangle. The coordinates provided will be normalized.
+	 * Constructs a new rectangle. The coordinates should follow the following constraints, and will be adjusted to fit them if necessary:
+	 * <ul>
+	 *     <li>minX < maxX</li>
+	 *     <li>minY < maxY</li>
+	 * </ul>
 	 *
 	 * @param minX Min X coordinate (left)
 	 * @param minY Min Y coordinate (top)
@@ -31,7 +35,8 @@ public class Rectangle {
 	}
 
 	/**
-	 * Returns true if a coordinate is inside the rectangle
+	 * Returns true if the given coordinate is contained inside this rectangle. More specifically, this algorithm returns true when
+	 * {@code px in x0..x1 and py in y0..y1}.
 	 *
 	 * @param x The X coordinate
 	 * @param y The Y coordinate
@@ -39,12 +44,6 @@ public class Rectangle {
 	 */
 	public boolean contains(double x, double y) {
 		return x >= this.x && x <= this.x1 && y >= this.y && y <= this.y1;
-	}
-
-	@Override
-	public String toString() {
-		return String.format(Locale.ENGLISH, "%s{x=%f, y=%f, x1=%f, y1=%f}", getClass().getSimpleName(), this.x, this.y,
-				this.x1, this.y1);
 	}
 
 	/**

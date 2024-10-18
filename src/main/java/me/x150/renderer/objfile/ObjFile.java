@@ -177,12 +177,14 @@ public class ObjFile implements Closeable {
 		m4f.translate((float) o.x, (float) o.y, (float) o.z);
 		m4f.mul(viewMatrix);
 
-		RenderSystem.enableBlend();
-		RenderSystem.defaultBlendFunc();
-		RenderSystem.setShaderColor(1f, 1f, 1f, 1f);
-		RenderSystem.enableDepthTest();
-		RenderSystem.depthFunc(GL12.GL_LEQUAL);
-		RenderSystem.enableCull();
+		if (!RendererUtils.isSkipSetup()) {
+			RenderSystem.enableBlend();
+			RenderSystem.defaultBlendFunc();
+			RenderSystem.setShaderColor(1f, 1f, 1f, 1f);
+			RenderSystem.enableDepthTest();
+			RenderSystem.depthFunc(GL12.GL_LEQUAL);
+			RenderSystem.enableCull();
+		}
 
 		for (Map.Entry<String, Obj> stringObjEntry : materialNameObjMap.entrySet()) {
 			String materialName = stringObjEntry.getKey();
@@ -205,7 +207,9 @@ public class ObjFile implements Closeable {
 			vertexBuffer.draw(m4f, projectionMatrix, shader.get());
 		}
 		VertexBuffer.unbind();
-		RenderSystem.disableBlend();
+		if (!RendererUtils.isSkipSetup()) {
+			RenderSystem.disableBlend();
+		}
 	}
 
 	/**

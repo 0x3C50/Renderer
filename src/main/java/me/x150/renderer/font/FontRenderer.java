@@ -248,8 +248,10 @@ public class FontRenderer implements Closeable {
 		stack.translate(x, y, 0);
 		stack.scale(1f / this.scaleMul, 1f / this.scaleMul, 1f);
 
-		RenderSystem.enableBlend();
-		RenderSystem.defaultBlendFunc();
+		if (!RendererUtils.isSkipSetup()) {
+			RenderSystem.enableBlend();
+			RenderSystem.defaultBlendFunc();
+		}
 
 		RenderSystem.setShader(GameRenderer::getPositionTexColorProgram);
 		Matrix4f mat = stack.peek().getPositionMatrix();
