@@ -14,8 +14,8 @@ public class Rectangle {
 	/**
 	 * Constructs a new rectangle. The coordinates should follow the following constraints, and will be adjusted to fit them if necessary:
 	 * <ul>
-	 *     <li>minX < maxX</li>
-	 *     <li>minY < maxY</li>
+	 *     <li>minX &lt; maxX</li>
+	 *     <li>minY &lt; maxY</li>
 	 * </ul>
 	 *
 	 * @param minX Min X coordinate (left)
