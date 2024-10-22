@@ -1,17 +1,13 @@
 package me.x150.renderer.render;
 
 import com.mojang.blaze3d.platform.GlStateManager;
-import com.mojang.blaze3d.platform.GlStateManager.DstFactor;
-import com.mojang.blaze3d.platform.GlStateManager.SrcFactor;
 import com.mojang.blaze3d.systems.RenderSystem;
-import me.x150.renderer.mixinUtil.ShaderEffectDuck;
 import me.x150.renderer.shader.ShaderManager;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gl.Framebuffer;
 import org.lwjgl.opengl.GL30C;
 
 import java.awt.*;
-import java.util.Objects;
 
 /**
  * A framebuffer that draws everything in it outlined. Rendered content within this framebuffer isn't rendered as usual, but rather used as a mask. The color of the elements do not matter, but the alpha must be {@code 1} to be counted into the mask.
@@ -22,7 +18,7 @@ public class OutlineFramebuffer extends Framebuffer {
 	private OutlineFramebuffer(int width, int height) {
 		super(false);
 		RenderSystem.assertOnRenderThreadOrInit();
-		this.resize(width, height, true);
+		this.resize(width, height);
 		this.setClearColor(0f, 0f, 0f, 0f);
 	}
 
@@ -44,7 +40,7 @@ public class OutlineFramebuffer extends Framebuffer {
 		RenderSystem.assertOnRenderThreadOrInit();
 		OutlineFramebuffer buffer = obtain();
 		if (buffer.textureWidth != mainBuffer.textureWidth || buffer.textureHeight != mainBuffer.textureHeight) {
-			buffer.resize(mainBuffer.textureWidth, mainBuffer.textureHeight, false);
+			buffer.resize(mainBuffer.textureWidth, mainBuffer.textureHeight);
 		}
 
 		GlStateManager._glBindFramebuffer(GL30C.GL_DRAW_FRAMEBUFFER, buffer.fbo);
@@ -69,11 +65,7 @@ public class OutlineFramebuffer extends Framebuffer {
 		Framebuffer mainBuffer = MinecraftClient.getInstance().getFramebuffer();
 		OutlineFramebuffer buffer = obtain();
 
-		((ShaderEffectDuck) Objects.requireNonNull(
-				ShaderManager.OUTLINE_SHADER.getShaderEffect())).renderer$addFakeTarget("inp", buffer);
-		// final buffer is written to here, including transparency
-		Framebuffer out = ShaderManager.OUTLINE_SHADER.getShaderEffect().getSecondaryTarget("out");
-
+		ShaderManager.OUTLINE_SHADER.setSamplerUniform("MaskSampler", buffer);
 		ShaderManager.OUTLINE_SHADER.setUniformValue("Radius", radius);
 		ShaderManager.OUTLINE_SHADER.setUniformValue("OutlineColor", outlineColor.getRed() / 255f,
 				outlineColor.getGreen() / 255f, outlineColor.getBlue() / 255f, outlineColor.getAlpha() / 255f);
@@ -82,18 +74,9 @@ public class OutlineFramebuffer extends Framebuffer {
 
 		ShaderManager.OUTLINE_SHADER.render(MinecraftClient.getInstance().getRenderTickCounter().getTickDelta(false));
 
-		buffer.clear(false);
+		buffer.clear();
 
-		mainBuffer.beginWrite(false);
-
-		RenderSystem.enableBlend();
-		RenderSystem.blendFuncSeparate(SrcFactor.SRC_ALPHA, DstFactor.ONE_MINUS_SRC_ALPHA, SrcFactor.ZERO,
-				DstFactor.ONE);
-		RenderSystem.backupProjectionMatrix();
-		out.draw(out.textureWidth, out.textureHeight, false);
-		RenderSystem.restoreProjectionMatrix();
-		RenderSystem.defaultBlendFunc();
-		RenderSystem.disableBlend();
+		mainBuffer.beginWrite(true);
 	}
 
 	/**

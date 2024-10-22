@@ -6,8 +6,7 @@ import me.x150.renderer.shader.ShaderManager;
 import me.x150.renderer.util.BufferUtils;
 import me.x150.renderer.util.RendererUtils;
 import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.gl.ShaderProgram;
-import net.minecraft.client.gl.VertexBuffer;
+import net.minecraft.client.gl.*;
 import net.minecraft.client.render.*;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.util.Identifier;
@@ -23,7 +22,6 @@ import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
-import java.util.function.Supplier;
 
 /**
  * A wavefront obj file parser.
@@ -152,7 +150,7 @@ public class ObjFile implements Closeable {
 				}
 			}
 			BuiltBuffer end = b.end();
-			buffers.put(objToDraw, BufferUtils.createVbo(end, VertexBuffer.Usage.STATIC));
+			buffers.put(objToDraw, BufferUtils.createVbo(end, GlUsage.STATIC_READ));
 		}
 		baked = true;
 	}
@@ -196,15 +194,18 @@ public class ObjFile implements Closeable {
 				Identifier identifier = boundTextures.get(mapKd);
 				RenderSystem.setShaderTexture(0, identifier);
 			}
-			Supplier<ShaderProgram> shader;
 			if (material != null) {
-				shader = hasTexture ? ShaderManager.POSITION_TEX_COLOR_NORMAL::getProgram : GameRenderer::getPositionColorProgram;
+				if (hasTexture) {
+					RenderSystem.setShader(ShaderManager.POSITION_TEX_COLOR_NORMAL.getProgram());
+				} else {
+					RenderSystem.setShader(ShaderProgramKeys.POSITION_COLOR);
+				}
 			} else {
-				shader = GameRenderer::getPositionProgram;
+				RenderSystem.setShader(ShaderProgramKeys.POSITION);
 			}
 			VertexBuffer vertexBuffer = buffers.get(obj);
 			vertexBuffer.bind();
-			vertexBuffer.draw(m4f, projectionMatrix, shader.get());
+			vertexBuffer.draw(m4f, projectionMatrix, RenderSystem.getShader());
 		}
 		VertexBuffer.unbind();
 		if (!RendererUtils.isSkipSetup()) {

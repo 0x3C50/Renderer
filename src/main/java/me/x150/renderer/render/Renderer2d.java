@@ -4,8 +4,8 @@ import com.mojang.blaze3d.systems.RenderSystem;
 import me.x150.renderer.util.BufferUtils;
 import me.x150.renderer.util.Colors;
 import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.gl.ShaderProgramKeys;
 import net.minecraft.client.render.BufferBuilder;
-import net.minecraft.client.render.GameRenderer;
 import net.minecraft.client.render.Tessellator;
 import net.minecraft.client.render.VertexFormat.DrawMode;
 import net.minecraft.client.render.VertexFormats;
@@ -89,7 +89,7 @@ public class Renderer2d {
 		buffer.vertex(matrix, (float) x1, (float) y0, (float) z).texture(u1, v0);
 		buffer.vertex(matrix, (float) x0, (float) y0, (float) z).texture(u0, v0);
 
-		RenderSystem.setShader(GameRenderer::getPositionTexProgram);
+		RenderSystem.setShader(ShaderProgramKeys.POSITION_TEX);
 		BufferUtils.draw(buffer);
 	}
 
@@ -152,7 +152,7 @@ public class Renderer2d {
 					;
 		}
 		setupRender();
-		RenderSystem.setShader(GameRenderer::getPositionColorProgram);
+		RenderSystem.setShader(ShaderProgramKeys.POSITION_COLOR);
 		BufferUtils.draw(buffer);
 		endRender();
 	}
@@ -210,7 +210,7 @@ public class Renderer2d {
 					;
 		}
 		setupRender();
-		RenderSystem.setShader(GameRenderer::getPositionColorProgram);
+		RenderSystem.setShader(ShaderProgramKeys.POSITION_COLOR);
 		BufferUtils.draw(buffer);
 		endRender();
 	}
@@ -256,7 +256,7 @@ public class Renderer2d {
 				;
 
 		setupRender();
-		RenderSystem.setShader(GameRenderer::getPositionColorProgram);
+		RenderSystem.setShader(ShaderProgramKeys.POSITION_COLOR);
 		BufferUtils.draw(buffer);
 		endRender();
 	}
@@ -306,7 +306,7 @@ public class Renderer2d {
 		float b = color1[2];
 		float a = color1[3];
 		setupRender();
-		RenderSystem.setShader(GameRenderer::getPositionColorProgram);
+		RenderSystem.setShader(ShaderProgramKeys.POSITION_COLOR);
 
 		renderRoundedQuadInternal(matrix, r, g, b, a, (float) fromX, (float) fromY, (float) toX, (float) toY, radTL,
 				radTR, radBL, radBR, samples);
@@ -391,7 +391,7 @@ public class Renderer2d {
 		float b = color1[2];
 		float a = color1[3];
 		setupRender();
-		RenderSystem.setShader(GameRenderer::getPositionColorProgram);
+		RenderSystem.setShader(ShaderProgramKeys.POSITION_COLOR);
 
 		renderRoundedOutlineInternal(matrix, r, g, b, a, (float) fromX, (float) fromY, (float) toX, (float) toY, radTL,
 				radTR, radBL, radBR, outlineWidth, samples);
@@ -438,7 +438,7 @@ public class Renderer2d {
 				;
 
 		setupRender();
-		RenderSystem.setShader(GameRenderer::getPositionColorProgram);
+		RenderSystem.setShader(ShaderProgramKeys.POSITION_COLOR);
 		BufferUtils.draw(bufferBuilder);
 		endRender();
 	}

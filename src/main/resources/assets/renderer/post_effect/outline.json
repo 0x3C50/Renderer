@@ -1,0 +1,20 @@
+{
+  "targets": [
+    "inp"
+  ],
+  "passes": [
+    {
+      "name": "renderer:outline",
+      "inputs": [
+        {
+          "sampler_name": "Diffuse",
+          "target": "inp"
+        }
+      ],
+      "output": "minecraft:main",
+      "uniforms": [
+
+      ]
+    }
+  ]
+}

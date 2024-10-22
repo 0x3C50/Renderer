@@ -1,6 +1,7 @@
 #version 330
 
 uniform sampler2D DiffuseSampler;
+uniform sampler2D MaskSampler;
 
 in vec2 texCoord;
 in vec2 oneTexel;
@@ -13,10 +14,11 @@ uniform vec4 InnerColor;
 out vec4 fragColor;
 
 void main() {
-    vec4 current = texture(DiffuseSampler, texCoord);
+    vec4 current = texture(MaskSampler, texCoord);
+    vec4 currentNormal = texture(DiffuseSampler, texCoord);
 
     if (current.a != 0) {
-        fragColor = InnerColor;
+        fragColor = vec4(mix(currentNormal.rgb, InnerColor.rgb, InnerColor.a), 1);
         return;
     }
 
@@ -26,10 +28,11 @@ void main() {
         for(float y = -Radius; y <= Radius; y++) {
             vec2 offset = vec2(x, y);
             vec2 coord = texCoord + offset * oneTexel;
-            vec4 t = texture(DiffuseSampler, coord);
+            vec4 t = texture(MaskSampler, coord);
             if (t.a == 1) seenSelect = true;
             else if (t.a == 0) seenNonSelect = true;
         }
     }
-    fragColor = (seenSelect && seenNonSelect) ? OutlineColor : vec4(0);
+    if (seenSelect && seenNonSelect) fragColor = vec4(mix(currentNormal.rgb, OutlineColor.rgb, OutlineColor.a), 1);
+    else fragColor = currentNormal;
 }

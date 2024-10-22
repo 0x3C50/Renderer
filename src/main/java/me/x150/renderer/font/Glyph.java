@@ -1,4 +1,10 @@
 package me.x150.renderer.font;
 
-public record Glyph(int u, int v, int width, int height, char value, GlyphMap owner) {
+public record Glyph(double tlU, double tlV,
+					double texW, double texH,
+					double baselineX, double baselineY,
+					float ascent, float descent,
+
+					int logicalWidth, int logicalHeight,
+					char value, GlyphMap owner) {
 }

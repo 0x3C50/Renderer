@@ -16,7 +16,7 @@ public class MaskedBlurFramebuffer  extends Framebuffer {
 	private MaskedBlurFramebuffer(int width, int height) {
 		super(false);
 		RenderSystem.assertOnRenderThreadOrInit();
-		this.resize(width, height, true);
+		this.resize(width, height);
 		this.setClearColor(0f, 0f, 0f, 0f);
 	}
 
@@ -38,7 +38,7 @@ public class MaskedBlurFramebuffer  extends Framebuffer {
 		RenderSystem.assertOnRenderThreadOrInit();
 		MaskedBlurFramebuffer buffer = obtain();
 		if (buffer.textureWidth != mainBuffer.textureWidth || buffer.textureHeight != mainBuffer.textureHeight) {
-			buffer.resize(mainBuffer.textureWidth, mainBuffer.textureHeight, false);
+			buffer.resize(mainBuffer.textureWidth, mainBuffer.textureHeight);
 		}
 
 		GlStateManager._glBindFramebuffer(GL30C.GL_DRAW_FRAMEBUFFER, buffer.fbo);
@@ -78,7 +78,7 @@ public class MaskedBlurFramebuffer  extends Framebuffer {
 
 		ShaderManager.GAUSSIAN_BLUR.render(MinecraftClient.getInstance().getRenderTickCounter().getTickDelta(true));
 
-		buffer.clear(false);
+		buffer.clear();
 
 		mainBuffer.beginWrite(false);
 	}

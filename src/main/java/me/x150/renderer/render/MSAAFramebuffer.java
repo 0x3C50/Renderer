@@ -88,7 +88,7 @@ public class MSAAFramebuffer extends Framebuffer {
 	public static void use(int samples, Framebuffer mainBuffer, Runnable drawAction) {
 		RenderSystem.assertOnRenderThreadOrInit();
 		MSAAFramebuffer msaaBuffer = MSAAFramebuffer.getInstance(samples);
-		msaaBuffer.resize(mainBuffer.textureWidth, mainBuffer.textureHeight, true);
+		msaaBuffer.resize(mainBuffer.textureWidth, mainBuffer.textureHeight);
 
 		GlStateManager._glBindFramebuffer(GL30C.GL_READ_FRAMEBUFFER, mainBuffer.fbo);
 		GlStateManager._glBindFramebuffer(GL30C.GL_DRAW_FRAMEBUFFER, msaaBuffer.fbo);
@@ -124,19 +124,19 @@ public class MSAAFramebuffer extends Framebuffer {
 				GL30C.GL_LINEAR
 		);
 
-		msaaBuffer.clear(true);
+		msaaBuffer.clear();
 		mainBuffer.beginWrite(false);
 	}
 
 	@Override
-	public void resize(int width, int height, boolean getError) {
+	public void resize(int width, int height) {
 		if (this.textureWidth != width || this.textureHeight != height) {
-			super.resize(width, height, getError);
+			super.resize(width, height);
 		}
 	}
 
 	@Override
-	public void initFbo(int width, int height, boolean getError) {
+	public void initFbo(int width, int height) {
 		RenderSystem.assertOnRenderThreadOrInit();
 		int maxSize = RenderSystem.maxSupportedTextureSize();
 		if (width <= 0 || width > maxSize || height <= 0 || height > maxSize) {
@@ -171,7 +171,7 @@ public class MSAAFramebuffer extends Framebuffer {
 		this.depthAttachment = MinecraftClient.getInstance().getFramebuffer().getDepthAttachment();
 
 		this.checkFramebufferStatus();
-		this.clear(getError);
+		this.clear();
 		this.endRead();
 	}
 

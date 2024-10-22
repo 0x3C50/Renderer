@@ -5,7 +5,8 @@ import me.x150.renderer.util.AlphaOverride;
 import me.x150.renderer.util.BufferUtils;
 import me.x150.renderer.util.RendererUtils;
 import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.gl.ShaderProgram;
+import net.minecraft.client.gl.ShaderProgramKey;
+import net.minecraft.client.gl.ShaderProgramKeys;
 import net.minecraft.client.render.*;
 import net.minecraft.client.render.VertexFormat.DrawMode;
 import net.minecraft.client.util.math.MatrixStack;
@@ -19,7 +20,6 @@ import java.awt.*;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.function.Consumer;
-import java.util.function.Supplier;
 
 /**
  * Renderer in the world context
@@ -124,7 +124,7 @@ public class Renderer3d {
 				c.getAlpha() / 255f)};
 	}
 
-	private static void useBuffer(DrawMode mode, VertexFormat format, Supplier<ShaderProgram> shader, Consumer<BufferBuilder> runner) {
+	private static void useBuffer(DrawMode mode, VertexFormat format, ShaderProgramKey shader, Consumer<BufferBuilder> runner) {
 		Tessellator t = Tessellator.getInstance();
 		BufferBuilder bb = t.begin(mode, format);
 
@@ -149,7 +149,7 @@ public class Renderer3d {
 		genericAABBRender(
 				DrawMode.DEBUG_LINES,
 				VertexFormats.POSITION_COLOR,
-				GameRenderer::getPositionColorProgram,
+				ShaderProgramKeys.POSITION_COLOR,
 				m,
 				start,
 				dimensions,
@@ -219,7 +219,7 @@ public class Renderer3d {
 		float greenOutline = outline[1];
 		float blueOutline = outline[2];
 		float alphaOutline = outline[3];
-		useBuffer(DrawMode.QUADS, VertexFormats.POSITION_COLOR, GameRenderer::getPositionColorProgram, buffer -> {
+		useBuffer(DrawMode.QUADS, VertexFormats.POSITION_COLOR, ShaderProgramKeys.POSITION_COLOR, buffer -> {
 			buffer.vertex(matrix, x1, y2, z1).color(redFill, greenFill, blueFill, alphaFill);
 			buffer.vertex(matrix, x1, y2, z2).color(redFill, greenFill, blueFill, alphaFill);
 			buffer.vertex(matrix, x2, y2, z2).color(redFill, greenFill, blueFill, alphaFill);
@@ -251,7 +251,7 @@ public class Renderer3d {
 			buffer.vertex(matrix, x1, y1, z2).color(redFill, greenFill, blueFill, alphaFill);
 		});
 
-		useBuffer(DrawMode.DEBUG_LINES, VertexFormats.POSITION_COLOR, GameRenderer::getPositionColorProgram, buffer -> {
+		useBuffer(DrawMode.DEBUG_LINES, VertexFormats.POSITION_COLOR, ShaderProgramKeys.POSITION_COLOR, buffer -> {
 			buffer.vertex(matrix, x1, y1, z1).color(redOutline, greenOutline, blueOutline, alphaOutline);
 			buffer.vertex(matrix, x1, y1, z2).color(redOutline, greenOutline, blueOutline, alphaOutline);
 			buffer.vertex(matrix, x1, y1, z2).color(redOutline, greenOutline, blueOutline, alphaOutline);
@@ -284,7 +284,7 @@ public class Renderer3d {
 		});
 	}
 
-	private static void genericAABBRender(DrawMode mode, VertexFormat format, Supplier<ShaderProgram> shader, Matrix4f stack, Vec3d start, Vec3d dimensions, Color color,
+	private static void genericAABBRender(DrawMode mode, VertexFormat format, ShaderProgramKey shader, Matrix4f stack, Vec3d start, Vec3d dimensions, Color color,
 										  RenderAction action) {
 		float red = color.getRed() / 255f;
 		float green = color.getGreen() / 255f;
@@ -315,7 +315,7 @@ public class Renderer3d {
 		genericAABBRender(
 				DrawMode.QUADS,
 				VertexFormats.POSITION_COLOR,
-				GameRenderer::getPositionColorProgram,
+				ShaderProgramKeys.POSITION_COLOR,
 				s,
 				start,
 				dimensions,
@@ -367,7 +367,7 @@ public class Renderer3d {
 		genericAABBRender(
 				DrawMode.DEBUG_LINES,
 				VertexFormats.POSITION_COLOR,
-				GameRenderer::getPositionColorProgram,
+				ShaderProgramKeys.POSITION_COLOR,
 				s,
 				start,
 				end.subtract(start),

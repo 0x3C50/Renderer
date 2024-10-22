@@ -1,0 +1,39 @@
+{
+	"targets": {
+		"swap": {}
+	},
+	"passes": [
+		{
+			"program": "renderer:program/gaussian_no_mask",
+			"inputs": [
+				{
+					"sampler_name": "Diffuse",
+					"target": "minecraft:main"
+				}
+			],
+			"output": "swap",
+			"uniforms": [
+				{
+					"name": "direction",
+					"values": [1, 0]
+				}
+			]
+		},
+		{
+			"program": "renderer:program/gaussian_no_mask",
+			"inputs": [
+				{
+					"sampler_name": "Diffuse",
+					"target": "swap"
+				}
+			],
+			"output": "minecraft:main",
+			"uniforms": [
+				{
+					"name": "direction",
+					"values": [0, 1]
+				}
+			]
+		}
+	]
+}

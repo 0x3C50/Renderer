@@ -9,9 +9,7 @@
     "DebugHudMixin",
     "GameRendererMixin",
     "InGameHudMixin",
-    "NativeImageAccessor",
-    "PostEffectPassAccessor",
-    "PostEffectProcessorMixin"
+    "NativeImageAccessor"
   ],
   "injectors": {
     "defaultRequire": 1

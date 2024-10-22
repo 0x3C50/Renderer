@@ -14,15 +14,15 @@ import java.util.List;
 
 public class GlyphMap {
 	final char fromIncl, toExcl;
-	final Font[] font;
-	NativeImageBackedTexture texture;
+	final Font font;
 	final int pixelPadding;
 	private final Glyph[] glyphs;
+	NativeImageBackedTexture texture;
 	int width, height;
 
 	boolean generated = false;
 
-	public GlyphMap(char fromIncl, char toExcl, Font[] font, int pixelPadding) {
+	public GlyphMap(char fromIncl, char toExcl, Font font, int pixelPadding) {
 		this.fromIncl = fromIncl;
 		this.toExcl = toExcl;
 		this.font = font;
@@ -53,15 +53,6 @@ public class GlyphMap {
 		return c >= fromIncl && c < toExcl;
 	}
 
-	private Font getFontForGlyph(char c) {
-		for (Font font1 : this.font) {
-			if (font1.canDisplay(c)) {
-				return font1;
-			}
-		}
-		return this.font[0]; // no font can display it, so it doesn't matter which one we pick; it'll always be missing
-	}
-
 	public void generate() {
 		synchronized (this) {
 			privateGenerate();
@@ -84,8 +75,7 @@ public class GlyphMap {
 		FontRenderContext frc = new FontRenderContext(af, true, false);
 		while (generatedChars <= range) {
 			char currentChar = (char) (fromIncl + generatedChars);
-			Font font = getFontForGlyph(currentChar);
-			Rectangle2D stringBounds = font.getStringBounds(String.valueOf(currentChar), frc);
+			Rectangle2D stringBounds = this.font.getStringBounds(String.valueOf(currentChar), frc);
 
 			int width = (int) Math.ceil(stringBounds.getWidth());
 			int height = (int) Math.ceil(stringBounds.getHeight());
@@ -99,7 +89,9 @@ public class GlyphMap {
 				currentRowMaxY = 0;
 			}
 			currentRowMaxY = Math.max(currentRowMaxY, height); // calculate the highest glyph in this row
-			glyphs1.add(new Glyph(currentX, currentY, width, height, currentChar, this));
+			Glyph gl = new Glyph(currentX, currentY, width, height,
+					currentX, currentY, 0, 0, width, height, currentChar, this);
+			glyphs1.add(gl);
 			currentX += width + pixelPadding;
 			charNX++;
 		}
@@ -112,16 +104,21 @@ public class GlyphMap {
 		g2d.fillRect(0, 0, width, height);
 		g2d.setColor(Color.WHITE);
 
-		g2d.setRenderingHint(RenderingHints.KEY_FRACTIONALMETRICS, RenderingHints.VALUE_FRACTIONALMETRICS_OFF);
+		g2d.setRenderingHint(RenderingHints.KEY_FRACTIONALMETRICS, RenderingHints.VALUE_FRACTIONALMETRICS_ON);
 		g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_OFF);
 		g2d.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
 
+		g2d.setFont(font);
+		FontMetrics fontMetrics = g2d.getFontMetrics();
 		for (Glyph glyph : glyphs1) {
-			g2d.setFont(getFontForGlyph(glyph.value()));
-			FontMetrics fontMetrics = g2d.getFontMetrics();
-			g2d.drawString(String.valueOf(glyph.value()), glyph.u(), glyph.v() + fontMetrics.getAscent());
-			glyphs[glyph.value()-fromIncl] = glyph;
+			g2d.drawString(String.valueOf(glyph.value()), (int) glyph.tlU(), (int) (glyph.tlV() + fontMetrics.getAscent()));
+			glyphs[glyph.value() - fromIncl] = glyph;
 		}
+//		try {
+//			ImageIO.write(bi, "png", Path.of("dump").resolve("page%d-%d%d.png".formatted((int) fromIncl, (int) toExcl, font.getStyle())).toFile());
+//		} catch (IOException e) {
+//			throw new RuntimeException(e);
+//		}
 		this.texture = RendererUtils.bufferedImageToNIBT(bi);
 		generated = true;
 	}
