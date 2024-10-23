@@ -12,8 +12,8 @@ import lombok.extern.slf4j.Slf4j;
 import me.x150.renderer.util.BufferUtils;
 import me.x150.renderer.util.Colors;
 import me.x150.renderer.util.RendererUtils;
-import net.minecraft.client.gl.ShaderProgramKeys;
 import net.minecraft.client.render.BufferBuilder;
+import net.minecraft.client.render.GameRenderer;
 import net.minecraft.client.render.Tessellator;
 import net.minecraft.client.render.VertexFormat.DrawMode;
 import net.minecraft.client.render.VertexFormats;
@@ -62,7 +62,6 @@ public class FontRenderer implements Closeable {
 	protected final ObjectList<DrawEntry> CURRENT_ALL_CHARS = new ObjectArrayList<>();
 	protected final float originalSize;
 	protected final int charsPerPage;
-	protected final int padding;
 	protected final String prebakeGlyphs;
 	protected GlyphMapPage pageNormal;
 	protected GlyphMapPage pageItalic;
@@ -86,13 +85,12 @@ public class FontRenderer implements Closeable {
 	 * @param charactersPerPage How many characters one glyph page should contain. Default 256
 	 * @param prebakeCharacters Characters to pre-bake off thread when the font is reinitialized. Glyph pages containing those characters will (most of the time) immediately be available when drawing.
 	 */
-	public FontRenderer(@NonNull Font font, float sizePx, int charactersPerPage, int paddingBetweenCharacters, @Nullable String prebakeCharacters) {
+	public FontRenderer(@NonNull Font font, float sizePx, int charactersPerPage, @Nullable String prebakeCharacters) {
 		Preconditions.checkArgument(sizePx > 0, "sizePx <= 0");
 		Preconditions.checkArgument(charactersPerPage > 4, "Unreasonable charactersPerPage count (< 4)");
 //		Preconditions.checkArgument(paddingBetweenCharacters > 0, "paddingBetweenCharacters <= 0");
 		this.originalSize = sizePx;
 		this.charsPerPage = charactersPerPage;
-		this.padding = paddingBetweenCharacters;
 		this.prebakeGlyphs = prebakeCharacters;
 		init(font, sizePx);
 	}
@@ -104,7 +102,7 @@ public class FontRenderer implements Closeable {
 	 * @param sizePx The size of the font in minecraft pixel units. One pixel unit = `guiScale` pixels
 	 */
 	public FontRenderer(Font font, float sizePx) {
-		this(font, sizePx, 256, 5, null);
+		this(font, sizePx, 256, null);
 	}
 
 	/**
@@ -153,20 +151,12 @@ public class FontRenderer implements Closeable {
 			this.previousGameScale = RendererUtils.getGuiScale();
 			this.scaleMul = this.previousGameScale;
 			float totalSize = sizePx * this.scaleMul;
-//			if (totalSize < 32) {
-//				// in this case we run into WEIRD ASS rounding issues with the font api itself
-//				// seems there's not much we can do except scale the font api up, and scale us down
-//				int evenMultToGetAbove = 1;
-//				while (totalSize * evenMultToGetAbove < 32) evenMultToGetAbove++; // not the best solution but w/e
-//				this.scaleMul *= evenMultToGetAbove;
-//				totalSize *= evenMultToGetAbove;
-//			}
 			this.font = fonts.deriveFont(totalSize);
 			this.fontMetrics = FontMetricsAccessor.getMetrics(this.font);
-			this.pageNormal = new GlyphMapPage(font, charsPerPage, padding);
-			this.pageBold = new GlyphMapPage(font.deriveFont(Font.BOLD), charsPerPage, padding);
-			this.pageItalic = new GlyphMapPage(font.deriveFont(Font.ITALIC), charsPerPage, padding);
-			this.pageBoldItalic = new GlyphMapPage(font.deriveFont(Font.BOLD | Font.ITALIC), charsPerPage, padding);
+			this.pageNormal = new GlyphMapPage(font, charsPerPage);
+			this.pageBold = new GlyphMapPage(font.deriveFont(Font.BOLD), charsPerPage);
+			this.pageItalic = new GlyphMapPage(font.deriveFont(Font.ITALIC), charsPerPage);
+			this.pageBoldItalic = new GlyphMapPage(font.deriveFont(Font.BOLD | Font.ITALIC), charsPerPage);
 			if (prebakeGlyphs != null && !prebakeGlyphs.isEmpty()) {
 				prebakeGlyphsFuture = this.prebake();
 			}
@@ -250,12 +240,10 @@ public class FontRenderer implements Closeable {
 			RenderSystem.defaultBlendFunc();
 		}
 
-		RenderSystem.setShader(ShaderProgramKeys.POSITION_TEX_COLOR);
+		RenderSystem.setShader(GameRenderer::getPositionTexColorProgram);
 		Matrix4f mat = stack.peek().getPositionMatrix();
 		final float[] xOffset = {0};
 		final float[] yOffset = {0};
-		boolean inSel = false;
-		int lineStart = 0;
 		OrderedText orderedText = s.asOrderedText();
 		final boolean[] shouldDoLinePass = {false};
 		synchronized (GLYPH_PAGE_CACHE) {
@@ -300,44 +288,50 @@ public class FontRenderer implements Closeable {
 						float cb = object.b;
 						Glyph glyph = object.toDraw;
 						GlyphMap owner = glyph.owner();
+						float hOf = (float) (fontMetrics.getAscent() - object.toDraw.glyphRegion().tlToBaselineY());
+						float xOf = (float) -object.toDraw.glyphRegion().tlToBaselineX();
 						float w = (float) glyph.texW();
 						float h = (float) glyph.texH();
-						float u1 = (float) (glyph.tlU()) / owner.width;
-						float v1 = (float) (glyph.tlV()) / owner.height;
-						float u2 = (float) (glyph.tlU() + glyph.texW()) / owner.width;
-						float v2 = (float) (glyph.tlV() + glyph.texH()) / owner.height;
+						float u1 = (float) ((glyph.tlX()-2) / owner.width);
+						float v1 = (float) ((glyph.tlY()-2) / owner.height);
+						float u2 = (float) ((glyph.tlX() + glyph.texW() + 2) / owner.width);
+						float v2 = (float) ((glyph.tlY() + glyph.texH() + 2) / owner.height);
 
-						bb.vertex(mat, xo + 0, yo + h, 0).texture(u1, v2).color(cr, cg, cb, a);
-						bb.vertex(mat, xo + w, yo + h, 0).texture(u2, v2).color(cr, cg, cb, a);
-						bb.vertex(mat, xo + w, yo + 0, 0).texture(u2, v1).color(cr, cg, cb, a);
-						bb.vertex(mat, xo + 0, yo + 0, 0).texture(u1, v1).color(cr, cg, cb, a);
+						bb.vertex(mat, xo + 0-2+xOf, yo + h+2+hOf, 0).texture(u1, v2).color(cr, cg, cb, a);
+						bb.vertex(mat, xo + w+2+xOf, yo + h+2+hOf, 0).texture(u2, v2).color(cr, cg, cb, a);
+						bb.vertex(mat, xo + w+2+xOf, yo + 0-2+hOf, 0).texture(u2, v1).color(cr, cg, cb, a);
+						bb.vertex(mat, xo + 0-2+xOf, yo + 0-2+hOf, 0).texture(u1, v1).color(cr, cg, cb, a);
 					}
 					BufferUtils.draw(bb);
 				}
 
 				if (shouldDoLinePass[0]) {
-					RenderSystem.setShader(ShaderProgramKeys.POSITION_COLOR);
+					RenderSystem.setShader(GameRenderer::getPositionColorProgram);
 					BufferBuilder linesBuffer = Tessellator.getInstance().begin(DrawMode.QUADS, VertexFormats.POSITION_COLOR);
 					for (DrawEntry currentAllChar : CURRENT_ALL_CHARS) {
 						float tlX = currentAllChar.atX;
 						float tlY = currentAllChar.atY;
 						Glyph glyph = currentAllChar.toDraw;
 						float width = glyph.logicalWidth();
-//						float height = currentAllChar.toDraw.height();
+						float hOf = (float) (fontMetrics.getAscent());
+						tlY += hOf;
+						// FIXME 23 Okt. 2024 10:27: this draws the line correctly through the character, but then it isn't continuous
+						//   we need a better solution for this shit
+//						tlX -= (float) glyph.glyphRegion().tlToBaselineX();
 						final float strikeHeight = (originalSize / 16f) * scaleMul;
 						float cr = currentAllChar.r;
 						float cg = currentAllChar.g;
 						float cb = currentAllChar.b;
 						if (currentAllChar.strike) {
 							float halfStrikeHeight = strikeHeight / 2f;
-							float center = tlY + fontMetrics.getAscent() * 0.7f;
+							float center = tlY - fontMetrics.getAscent() * 0.2f;
 							linesBuffer.vertex(mat, tlX, center + halfStrikeHeight, 0).color(cr, cg, cb, a);
 							linesBuffer.vertex(mat, tlX + width, center + halfStrikeHeight, 0).color(cr, cg, cb, a);
 							linesBuffer.vertex(mat, tlX + width, center - halfStrikeHeight, 0).color(cr, cg, cb, a);
 							linesBuffer.vertex(mat, tlX, center - halfStrikeHeight, 0).color(cr, cg, cb, a);
 						}
 						if (currentAllChar.underline) {
-							float baseline = tlY + fontMetrics.getAscent() + 1f;
+							float baseline = tlY  + strikeHeight + 1f;
 							linesBuffer.vertex(mat, tlX, baseline, 0).color(cr, cg, cb, a);
 							linesBuffer.vertex(mat, tlX + width, baseline, 0).color(cr, cg, cb, a);
 							linesBuffer.vertex(mat, tlX + width, baseline - strikeHeight, 0).color(cr, cg, cb, a);

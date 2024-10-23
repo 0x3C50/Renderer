@@ -46,11 +46,10 @@ public class Handler {
 	@SneakyThrows
 	public static void hud(DrawContext context) {
 		if (fr == null) {
-			Font fn = Font.decode("Roboto");
+			Font fn = Font.decode("MesloLGS NF");
 			fr = new FontRenderer(fn, 10);
 			fr.roundCoordinates(true);
 		}
-		UnaryOperator<Style> theMod = style -> style.withUnderline(true).withStrikethrough(true).withColor(0xFFAA55);
 		MutableText theText = Text.literal("The quick brown fox jumps over the lazy dog\n")
 				.append(Text.literal("italic\n").styled(it -> it.withItalic(true)))
 				.append(Text.literal("bold\n").styled(it -> it.withBold(true)))
@@ -62,8 +61,12 @@ public class Handler {
 		float y = 5f;
 		float width = fr.getTextWidth(theText);
 		float height = fr.getTextHeight(theText);
-		Renderer2d.renderQuad(context.getMatrices(), Color.RED, x, y, x+width, y+height);
-		fr.drawText(context.getMatrices(), theText, x, y, 1);
+		MatrixStack mat = context.getMatrices();
+		mat.push();
+//		mat.scale(6, 6, 0);
+		Renderer2d.renderQuad(mat, Color.RED, x, y, x+width, y+height);
+		fr.drawText(mat, theText, x, y, 1);
+		mat.pop();
 		RenderSystem.disableBlend();
 //		sv.render(matrices.getMatrices(), 5, 5, 128, 128);
 //		LaggingMaskFramebuffer obtain = LaggingMaskFramebuffer.obtain();

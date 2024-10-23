@@ -13,11 +13,10 @@ public class GlyphMapPage implements Closeable {
 	private final ReentrantReadWriteLock rrw = new ReentrantReadWriteLock(false);
 	private final Font font;
 	private final int nCharacters;
-	private final int padding;
 
 	private GlyphMap[] maps;
 
-	public GlyphMapPage(Font font, int nCharacters, int padding) {
+	public GlyphMapPage(Font font, int nCharacters) {
 		Preconditions.checkArgument(nCharacters >= 32, "should be more than 32 chars per page to not blow up the map array");
 		this.font = font;
 		this.nCharacters = nCharacters;
@@ -26,7 +25,6 @@ public class GlyphMapPage implements Closeable {
 		// allocate at minimum enough pages to fit to char of 0xFF. should cover most of the maps we need
 		// if a crazy request comes through, assuming a reasonable size, we shouldnt blow up that much
 		this.maps = new GlyphMap[Math.min(indexOfAlphaNumericLimit + 1, maxMaps)];
-		this.padding = padding;
 	}
 
 	private static int floorNearestMulN(int x, int n) {
@@ -50,7 +48,7 @@ public class GlyphMapPage implements Closeable {
 		rrw.readLock().unlock();
 		if (map != null) return map;
 		int until = base + nCharacters;
-		GlyphMap gm = new GlyphMap((char) base, (char) until, font, padding);
+		GlyphMap gm = new GlyphMap((char) base, (char) until, font);
 		gm.generate();
 		rrw.writeLock().lock();
 		maps[index] = gm;

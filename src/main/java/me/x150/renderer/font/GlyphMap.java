@@ -1,32 +1,48 @@
 package me.x150.renderer.font;
 
+import lombok.extern.slf4j.Slf4j;
 import me.x150.renderer.util.RendererUtils;
 import net.minecraft.client.texture.NativeImageBackedTexture;
 
+import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.font.FontRenderContext;
+import java.awt.font.TextLayout;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+@Slf4j
 public class GlyphMap {
+	private static final Path DUMP_PATH;
+	static {
+		String property = System.getProperty("renderer.dumpGlyphMapsPath");
+		if (property != null) {
+			DUMP_PATH = Path.of(property);
+			log.info("Dumping glyph maps to dir '{}'", DUMP_PATH);
+		} else {
+			DUMP_PATH = null;
+		}
+	}
+	private static final int PADDING = 2;
 	final char fromIncl, toExcl;
 	final Font font;
-	final int pixelPadding;
 	private final Glyph[] glyphs;
 	NativeImageBackedTexture texture;
 	int width, height;
 
 	boolean generated = false;
 
-	public GlyphMap(char fromIncl, char toExcl, Font font, int pixelPadding) {
+	public GlyphMap(char fromIncl, char toExcl, Font font) {
 		this.fromIncl = fromIncl;
 		this.toExcl = toExcl;
 		this.font = font;
-		this.pixelPadding = pixelPadding;
 		this.glyphs = new Glyph[toExcl - fromIncl];
 	}
 
@@ -59,43 +75,79 @@ public class GlyphMap {
 		}
 	}
 
+	record PreGlyphRegion(double width, double height, double tlToBaselineX, double tlToBaselineY, TextLayout layout, char c) {}
+
 	private void privateGenerate() {
 		if (generated) {
 			return;
 		}
-		int range = toExcl - fromIncl - 1;
-		int charsVert = (int) (Math.ceil(Math.sqrt(range)) * 1.5);  // double as many chars wide as high
-		int generatedChars = 0;
-		int charNX = 0;
-		int maxX = 0, maxY = 0;
+		int maxX = 0, maxY;
 		int currentX = 0, currentY = 0;
 		int currentRowMaxY = 0;
 		List<Glyph> glyphs1 = new ArrayList<>();
 		AffineTransform af = new AffineTransform();
 		FontRenderContext frc = new FontRenderContext(af, true, false);
-		while (generatedChars <= range) {
-			char currentChar = (char) (fromIncl + generatedChars);
-			Rectangle2D stringBounds = this.font.getStringBounds(String.valueOf(currentChar), frc);
-
-			int width = (int) Math.ceil(stringBounds.getWidth());
-			int height = (int) Math.ceil(stringBounds.getHeight());
-			generatedChars++;
-			maxX = Math.max(maxX, currentX + width);
-			maxY = Math.max(maxY, currentY + height);
-			if (charNX >= charsVert) {
-				currentX = 0;
-				currentY += currentRowMaxY + pixelPadding; // add height of highest glyph, and reset
-				charNX = 0;
-				currentRowMaxY = 0;
-			}
-			currentRowMaxY = Math.max(currentRowMaxY, height); // calculate the highest glyph in this row
-			Glyph gl = new Glyph(currentX, currentY, width, height,
-					currentX, currentY, 0, 0, width, height, currentChar, this);
-			glyphs1.add(gl);
-			currentX += width + pixelPadding;
-			charNX++;
+		FontMetrics fm = FontMetricsAccessor.getMetrics(font);
+		List<PreGlyphRegion> glyphRegions = new ArrayList<>();
+		for(char currentChar = fromIncl; currentChar < toExcl; currentChar++) {
+			if (!font.canDisplay(currentChar)) continue;
+			TextLayout layout = new TextLayout(String.valueOf(currentChar), font, frc);
+			Rectangle2D bounds = layout.getBounds();
+			PreGlyphRegion pgr = new PreGlyphRegion(bounds.getWidth(), bounds.getHeight(),
+					-bounds.getX(),-bounds.getY(),layout,currentChar);
+			glyphRegions.add(pgr);
 		}
-		BufferedImage bi = new BufferedImage(Math.max(maxX + pixelPadding, 1), Math.max(maxY + pixelPadding, 1),
+		double optimalWidth = glyphRegions.stream().mapToDouble(it -> it.width+4).sum();
+		// find optimal width to balance width and height, for a near-1:1 texture
+		// max 10 attempts or until the delta between width and height is below 10
+		for (int i = 0; i < 10; i++) {
+			double heightWithThatWidth = 0;
+			double fx = 0;
+			double maxHeightHere = 0;
+			for (PreGlyphRegion glyphRegion : glyphRegions) {
+				if (fx > optimalWidth) {
+					heightWithThatWidth += maxHeightHere;
+					maxHeightHere = 0;
+					fx = 0;
+				}
+				maxHeightHere = Math.max(maxHeightHere, glyphRegion.height);
+				fx += glyphRegion.width+PADDING*2+1;
+			}
+			heightWithThatWidth += maxHeightHere; // account for last line
+			if (Math.abs(optimalWidth - heightWithThatWidth) < 50) break; // good enough
+			optimalWidth = Math.ceil((heightWithThatWidth + optimalWidth) / 2f); // try again with that width, to slowly balance the dims out
+		}
+		for (PreGlyphRegion glyphRegion : glyphRegions) {
+			if (currentX >= optimalWidth) {
+				currentY += currentRowMaxY;
+				currentRowMaxY = 0;
+				maxX = Math.max(maxX,currentX);
+				currentX = 0;
+			}
+
+			double drawAtX = currentX+glyphRegion.tlToBaselineX+PADDING;
+			double drawAtY = currentY+glyphRegion.tlToBaselineY+PADDING;
+
+			float theCharAscent = glyphRegion.layout.getAscent();
+			int theNormalAscent = fm.getAscent();
+			float ascentAdd = theNormalAscent - theCharAscent;
+
+			Glyph gle = new Glyph(
+					currentX, currentY, glyphRegion.width, glyphRegion.height,
+					ascentAdd,
+					drawAtX, drawAtY, (int) Math.ceil(this.font.getStringBounds(String.valueOf(glyphRegion.c), frc).getWidth()),
+					glyphRegion.c, glyphRegion, this
+			);
+			glyphs1.add(gle);
+
+			int height = (int) (Math.ceil(glyphRegion.height)+PADDING*2+1);
+			currentRowMaxY = Math.max(currentRowMaxY, height);
+			currentX += (int) (Math.ceil(glyphRegion.width)+PADDING*2+1);
+		}
+
+		maxY = currentY + currentRowMaxY;
+
+		BufferedImage bi = new BufferedImage(Math.max(maxX, 1), Math.max(maxY, 1),
 				BufferedImage.TYPE_INT_ARGB);
 		width = bi.getWidth();
 		height = bi.getHeight();
@@ -109,16 +161,21 @@ public class GlyphMap {
 		g2d.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
 
 		g2d.setFont(font);
-		FontMetrics fontMetrics = g2d.getFontMetrics();
+//		FontMetrics fontMetrics = g2d.getFontMetrics();
 		for (Glyph glyph : glyphs1) {
-			g2d.drawString(String.valueOf(glyph.value()), (int) glyph.tlU(), (int) (glyph.tlV() + fontMetrics.getAscent()));
+			glyph.glyphRegion().layout.draw(g2d, (float) glyph.baselineX(), (float) glyph.baselineY());
 			glyphs[glyph.value() - fromIncl] = glyph;
 		}
-//		try {
-//			ImageIO.write(bi, "png", Path.of("dump").resolve("page%d-%d%d.png".formatted((int) fromIncl, (int) toExcl, font.getStyle())).toFile());
-//		} catch (IOException e) {
-//			throw new RuntimeException(e);
-//		}
+		if (DUMP_PATH != null) {
+			Path dmpD = DUMP_PATH.resolve(font.getFontName());
+			Path to = dmpD.resolve(String.format("page %d to %d.png", (int) fromIncl, (int) toExcl));
+			try {
+				Files.createDirectories(dmpD);
+				ImageIO.write(bi, "png", to.toFile());
+			} catch (IOException e) {
+				log.error("couldn't dump to '{}'", to, e);
+			}
+		}
 		this.texture = RendererUtils.bufferedImageToNIBT(bi);
 		generated = true;
 	}
