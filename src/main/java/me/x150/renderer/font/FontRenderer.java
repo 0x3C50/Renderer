@@ -12,8 +12,8 @@ import lombok.extern.slf4j.Slf4j;
 import me.x150.renderer.util.BufferUtils;
 import me.x150.renderer.util.Colors;
 import me.x150.renderer.util.RendererUtils;
+import net.minecraft.client.gl.ShaderProgramKeys;
 import net.minecraft.client.render.BufferBuilder;
-import net.minecraft.client.render.GameRenderer;
 import net.minecraft.client.render.Tessellator;
 import net.minecraft.client.render.VertexFormat.DrawMode;
 import net.minecraft.client.render.VertexFormats;
@@ -240,7 +240,7 @@ public class FontRenderer implements Closeable {
 			RenderSystem.defaultBlendFunc();
 		}
 
-		RenderSystem.setShader(GameRenderer::getPositionTexColorProgram);
+		RenderSystem.setShader(ShaderProgramKeys.POSITION_TEX_COLOR);
 		Matrix4f mat = stack.peek().getPositionMatrix();
 		final float[] xOffset = {0};
 		final float[] yOffset = {0};
@@ -306,7 +306,7 @@ public class FontRenderer implements Closeable {
 				}
 
 				if (shouldDoLinePass[0]) {
-					RenderSystem.setShader(GameRenderer::getPositionColorProgram);
+					RenderSystem.setShader(ShaderProgramKeys.POSITION_COLOR);
 					BufferBuilder linesBuffer = Tessellator.getInstance().begin(DrawMode.QUADS, VertexFormats.POSITION_COLOR);
 					for (DrawEntry currentAllChar : CURRENT_ALL_CHARS) {
 						float tlX = currentAllChar.atX;
