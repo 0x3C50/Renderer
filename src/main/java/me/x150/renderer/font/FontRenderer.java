@@ -2,7 +2,6 @@ package me.x150.renderer.font;
 
 import com.google.common.base.Preconditions;
 import com.mojang.blaze3d.systems.RenderSystem;
-import it.unimi.dsi.fastutil.chars.Char2IntArrayMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
@@ -20,108 +19,90 @@ import net.minecraft.client.render.VertexFormat.DrawMode;
 import net.minecraft.client.render.VertexFormats;
 import net.minecraft.client.texture.NativeImageBackedTexture;
 import net.minecraft.client.util.math.MatrixStack;
+import net.minecraft.text.OrderedText;
+import net.minecraft.text.Style;
+import net.minecraft.text.Text;
+import net.minecraft.text.TextColor;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Matrix4f;
 
 import java.awt.*;
 import java.io.Closeable;
 import java.util.List;
-import java.util.concurrent.*;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+
+/*
+READERS BEWARE
+
+you are entering the land of
+FONT FUCKSHIT
+
+there is no returning. after this point, you will forever be mesmerized at how fucking insane computer typography is
+some of the shit in this file is so arcane, not even I, the creator, could coherently explain it with a gun to my head.
+good luck.
+*/
 
 /**
- * A simple font renderer. Supports multiple fonts, passed in as {@link Font} instances.
- * <h2>Constructor</h2>
- * {@link FontRenderer#FontRenderer(Font[], float)} takes in a {@link Font} array with the fonts to use. All fonts in this array will be asked, in order,
- * if they have a glyph corresponding to the one being drawn. If none of them have it, the missing "square" is drawn.
+ * A simple font renderer, supporting latin fonts passed in via a {@link Font} object.
  * <h2>Performance</h2>
  * Glyph maps are lazily computed when needed, to keep memory usage low until needed.
  * Creating glyph pages for large fonts takes a considerable amount of time.
  * If font size is high, it is recommended to decrease the amount of glyphs on each page, to both decrease memory usage
  * and computation time for each page, at the cost of requiring more pages in total to be created.
- * Additionally, characters for glyph pages which should immediately be available may be passed into {@link FontRenderer#FontRenderer(Font[], float, int, int, String)},
+ * Additionally, characters for glyph pages which should immediately be available may be passed into {@link #FontRenderer(Font, float, int, String)},
  * to bake the glyph pages for those characters on another thread once the font renderer is initialized.
  */
 @Slf4j
 public class FontRenderer implements Closeable {
-	protected static final Char2IntArrayMap colorCodes = new Char2IntArrayMap() {{
-		put('0', 0x000000);
-		put('1', 0x0000AA);
-		put('2', 0x00AA00);
-		put('3', 0x00AAAA);
-		put('4', 0xAA0000);
-		put('5', 0xAA00AA);
-		put('6', 0xFFAA00);
-		put('7', 0xAAAAAA);
-		put('8', 0x555555);
-		put('9', 0x5555FF);
-		put('A', 0x55FF55);
-		put('B', 0x55FFFF);
-		put('C', 0xFF5555);
-		put('D', 0xFF55FF);
-		put('E', 0xFFFF55);
-		put('F', 0xFFFFFF);
-	}};
 	protected static final ExecutorService ASYNC_WORKER = Executors.newCachedThreadPool();
 	protected final Int2ObjectMap<ObjectList<DrawEntry>> GLYPH_PAGE_CACHE = new Int2ObjectOpenHashMap<>();
+	protected final ObjectList<DrawEntry> CURRENT_ALL_CHARS = new ObjectArrayList<>();
 	protected final float originalSize;
-	protected final ObjectList<GlyphMap> maps = new ObjectArrayList<>();
 	protected final int charsPerPage;
-	protected final int padding;
 	protected final String prebakeGlyphs;
-	protected int scaleMul = 0;
-	protected Font[] fonts;
+	protected GlyphMapPage pageNormal;
+	protected GlyphMapPage pageItalic;
+	protected GlyphMapPage pageBold;
+	protected GlyphMapPage pageBoldItalic;
+	protected float scaleMul = 0;
+	protected Font font;
 	protected int previousGameScale = -1;
 	protected Future<Void> prebakeGlyphsFuture;
 	protected boolean initialized;
 
 	protected boolean roundCoordinates = false;
 
-	private final ReentrantReadWriteLock LOCK = new ReentrantReadWriteLock();
+	private FontMetrics fontMetrics;
 
 	/**
-	 * Rounds coordinates to pixel coordinates, to make sure the font is drawn correctly, to prevent artifacts
-	 * @param round true to round coordinates (default), false to skip rounding
-	 * @return this
-	 */
-	public FontRenderer roundCoordinates(boolean round) {
-		this.roundCoordinates = round;
-		return this;
-	}
-
-	/**
-	 * Initializes a new FontRenderer with the specified fonts
+	 * Initializes a new FontRenderer with the specified font
 	 *
-	 * @param fonts                    The fonts to use. The font renderer will go over each font in this array, search for the glyph, and render it if found. If no font has the specified glyph, it will draw the missing font symbol.
-	 * @param sizePx                   The size of the font in minecraft pixel units. One pixel unit = `guiScale` pixels
-	 * @param charactersPerPage        How many characters one glyph page should contain. Default 256
-	 * @param paddingBetweenCharacters Padding between characters on a glyph page. Increase if font characters tend to have a lot of decoration around the "main body" of a character.
-	 * @param prebakeCharacters        Characters to pre-bake off thread when the font is reinitialized. Glyph pages containing those characters will (most of the time) immediately be available when drawing.
+	 * @param font              The font to use
+	 * @param sizePx            The size of the font in minecraft pixel units. One pixel unit = `guiScale` pixels
+	 * @param charactersPerPage How many characters one glyph page should contain. Default 256
+	 * @param prebakeCharacters Characters to pre-bake off thread when the font is reinitialized. Glyph pages containing those characters will (most of the time) immediately be available when drawing.
 	 */
-	public FontRenderer(@NonNull Font[] fonts, float sizePx, int charactersPerPage, int paddingBetweenCharacters, @Nullable String prebakeCharacters) {
+	public FontRenderer(@NonNull Font font, float sizePx, int charactersPerPage, @Nullable String prebakeCharacters) {
 		Preconditions.checkArgument(sizePx > 0, "sizePx <= 0");
-		Preconditions.checkArgument(fonts.length > 0, "fonts.length <= 0");
-		Preconditions.checkArgument(charactersPerPage > 4, "Unreasonable charactersPerPage count");
-		Preconditions.checkArgument(paddingBetweenCharacters > 0, "paddingBetweenCharacters <= 0");
+		Preconditions.checkArgument(charactersPerPage > 4, "Unreasonable charactersPerPage count (< 4)");
+//		Preconditions.checkArgument(paddingBetweenCharacters > 0, "paddingBetweenCharacters <= 0");
 		this.originalSize = sizePx;
 		this.charsPerPage = charactersPerPage;
-		this.padding = paddingBetweenCharacters;
 		this.prebakeGlyphs = prebakeCharacters;
-		init(fonts, sizePx);
+		init(font, sizePx);
 	}
 
 	/**
-	 * Initializes a new FontRenderer with the specified fonts. Equivalent to {@link FontRenderer#FontRenderer(Font[], float, int, int, String) FontRenderer}{@code (fonts, sizePx, 256, 5, null)}
+	 * Initializes a new FontRenderer with the specified fonts. Equivalent to {@link #FontRenderer(Font, float, int, String) FontRenderer}{@code (fonts, sizePx, 256, null)}
 	 *
-	 * @param fonts  The fonts to use. The font renderer will go over each font in this array, search for the glyph, and render it if found. If no font has the specified glyph, it will draw the missing font symbol.
+	 * @param font   The font to use
 	 * @param sizePx The size of the font in minecraft pixel units. One pixel unit = `guiScale` pixels
 	 */
-	public FontRenderer(Font[] fonts, float sizePx) {
-		this(fonts, sizePx, 256, 5, null);
-	}
-
-	private static int floorNearestMulN(int x, int n) {
-		return n * (int) Math.floor((double) x / (double) n);
+	public FontRenderer(Font font, float sizePx) {
+		this(font, sizePx, 256, null);
 	}
 
 	/**
@@ -144,92 +125,99 @@ public class FontRenderer implements Closeable {
 		return f.toString();
 	}
 
+	/**
+	 * Rounds coordinates to pixel coordinates, to make sure the font is drawn correctly, to prevent artifacts
+	 *
+	 * @param round true to round coordinates, false to skip rounding (default)
+	 * @return this
+	 */
+	@SuppressWarnings("UnusedReturnValue")
+	public FontRenderer roundCoordinates(boolean round) {
+		this.roundCoordinates = round;
+		return this;
+	}
+
 	private void sizeCheck() {
 		int gs = RendererUtils.getGuiScale();
 		if (gs != this.previousGameScale) {
 			close(); // delete glyphs and cache
-			init(this.fonts, this.originalSize); // re-init
+			init(this.font, this.originalSize); // re-init
 		}
 	}
 
-	private void init(Font[] fonts, float sizePx) {
+	protected void init(Font fonts, float sizePx) {
 		if (initialized) throw new IllegalStateException("Double call to init()");
-		LOCK.writeLock().lock();
-		try {
+		synchronized (this) {
 			this.previousGameScale = RendererUtils.getGuiScale();
 			this.scaleMul = this.previousGameScale;
-			this.fonts = new Font[fonts.length];
-			for (int i = 0; i < fonts.length; i++) {
-				this.fonts[i] = fonts[i].deriveFont(sizePx * this.scaleMul);
-			}
+			float totalSize = sizePx * this.scaleMul;
+			this.font = fonts.deriveFont(totalSize);
+			this.fontMetrics = FontMetricsAccessor.getMetrics(this.font);
+			this.pageNormal = new GlyphMapPage(font, charsPerPage);
+			this.pageBold = new GlyphMapPage(font.deriveFont(Font.BOLD), charsPerPage);
+			this.pageItalic = new GlyphMapPage(font.deriveFont(Font.ITALIC), charsPerPage);
+			this.pageBoldItalic = new GlyphMapPage(font.deriveFont(Font.BOLD | Font.ITALIC), charsPerPage);
 			if (prebakeGlyphs != null && !prebakeGlyphs.isEmpty()) {
 				prebakeGlyphsFuture = this.prebake();
 			}
 			initialized = true;
-		} finally {
-			LOCK.writeLock().unlock();
 		}
 	}
 
 	private Future<Void> prebake() {
 		return ASYNC_WORKER.submit(() -> {
 			log.debug("prebake on {}", Thread.currentThread());
-			LOCK.writeLock().lock();
 			try {
 				for (char c : prebakeGlyphs.toCharArray()) {
 					if (Thread.interrupted()) break;
-					locateGlyph0(c);
+					locateGlyph0(c, false, false);
 				}
 			} finally {
-				LOCK.writeLock().unlock();
 				log.debug("prebake done");
 			}
 			return null;
 		});
 	}
 
-	private GlyphMap generateMap(char from, char to) {
-		GlyphMap gm = new GlyphMap(from, to, this.fonts, padding);
-		LOCK.writeLock().lock();
-		try {
-			gm.generate();
-			maps.add(gm);
-		} finally {
-			LOCK.writeLock().unlock();
-		}
-		log.debug("[Font renderer {}] Generated glyph page '{}' ({}) to '{}' ({}), {} characters into {}", hashCode(), from, (int) from, to, (int) to, (int) to - from, gm.texture.getGlId());
-		return gm;
-	}
-
-	private Glyph locateGlyph0(char glyph) {
-		LOCK.readLock().lock();
-		try {
-			for (GlyphMap map : maps) { // go over existing ones
-				if (map.contains(glyph)) { // do they have it? good
-					return map.getGlyph(glyph);
-				}
-			}
-		} finally {
-			LOCK.readLock().unlock();
-		}
-		int base = floorNearestMulN(glyph, charsPerPage); // if not, generate a new page and return the generated glyph
-		GlyphMap glyphMap = generateMap((char) base, (char) (base + charsPerPage));
-		return glyphMap.getGlyph(glyph);
+	protected Glyph locateGlyph0(char glyph, boolean bold, boolean italic) {
+		GlyphMapPage page;
+		if (bold && italic) page = this.pageBoldItalic;
+		else if (bold) page = this.pageBold;
+		else if (italic) page = this.pageItalic;
+		else page = this.pageNormal;
+		GlyphMap map = page.getOrCreateMap(glyph);
+		return map.getGlyph(glyph);
 	}
 
 	/**
 	 * Draws a string
 	 *
+	 * @param stack MatrixStack
+	 * @param s     String to draw
+	 * @param x     X coordinate
+	 * @param y     Y coordinate
+	 * @param r     Red color component (0-1f)
+	 * @param g     Green color component (0-1f)
+	 * @param b     Blue color component (0-1f)
+	 * @param a     Alpha component (0-1f)
+	 * @deprecated Use {@link #drawText(MatrixStack, Text, float, float, float)} instead
+	 */
+	@Deprecated
+	public void drawString(MatrixStack stack, String s, float x, float y, float r, float g, float b, float a) {
+		int rgbColor = Colors.ARGBToInt((int) (r * 255f), (int) (g * 255f), (int) (b * 255f), 0);
+		drawText(stack, Text.literal(s).styled(it -> it.withParent(Style.EMPTY.withColor(rgbColor))), x, y, a);
+	}
+
+	/**
+	 * Draws a styled Text
+	 *
 	 * @param stack The MatrixStack
-	 * @param s     The string to draw
+	 * @param s     Text to draw
 	 * @param x     X coordinate to draw at
 	 * @param y     Y coordinate to draw at
-	 * @param r     Red color component of the text to draw
-	 * @param g     Green color component of the text to draw
-	 * @param b     Blue color component of the text to draw
-	 * @param a     Alpha color component of the text to draw
+	 * @param a     Alpha component of the color (0-1f). Other colors are read from the Text style
 	 */
-	public void drawString(MatrixStack stack, String s, float x, float y, float r, float g, float b, float a) {
+	public void drawText(MatrixStack stack, Text s, float x, float y, float a) {
 		if (prebakeGlyphsFuture != null && !prebakeGlyphsFuture.isDone()) {
 			try {
 				prebakeGlyphsFuture.get();
@@ -243,7 +231,6 @@ public class FontRenderer implements Closeable {
 			x = (float) Math.round(x * scaleMul) / scaleMul;
 			y = (float) Math.round(y * scaleMul) / scaleMul;
 		}
-		float r2 = r, g2 = g, b2 = b;
 		stack.push();
 		stack.translate(x, y, 0);
 		stack.scale(1f / this.scaleMul, 1f / this.scaleMul, 1f);
@@ -255,77 +242,108 @@ public class FontRenderer implements Closeable {
 
 		RenderSystem.setShader(GameRenderer::getPositionTexColorProgram);
 		Matrix4f mat = stack.peek().getPositionMatrix();
-		char[] chars = s.toCharArray();
-		float xOffset = 0;
-		float yOffset = 0;
-		boolean inSel = false;
-		int lineStart = 0;
+		final float[] xOffset = {0};
+		final float[] yOffset = {0};
+		OrderedText orderedText = s.asOrderedText();
+		final boolean[] shouldDoLinePass = {false};
 		synchronized (GLYPH_PAGE_CACHE) {
-			for (int i = 0; i < chars.length; i++) {
-				char c = chars[i];
-				if (inSel) {
-					inSel = false;
-					char c1 = Character.toUpperCase(c);
-					if (colorCodes.containsKey(c1)) {
-						int ii = colorCodes.get(c1);
-						int[] col = Colors.RGBIntToRGB(ii);
-						r2 = col[0] / 255f;
-						g2 = col[1] / 255f;
-						b2 = col[2] / 255f;
-					} else if (c1 == 'R') {
-						r2 = r;
-						g2 = g;
-						b2 = b;
+			synchronized (CURRENT_ALL_CHARS) {
+				orderedText.accept((index, style, codePoint) -> {
+					char c = (char) codePoint;
+					if (c == '\n') {
+						yOffset[0] += fontMetrics.getHeight();
+						xOffset[0] = 0;
+						return true;
 					}
-					continue;
+					TextColor textColor = style.getColor();
+					int rgbColor = textColor != null ? textColor.getRgb() : 0xFFFFFF;
+					int[] colorRGBA = Colors.ARGBIntToRGBA(rgbColor);
+					float r2 = colorRGBA[0] / 255f;
+					float g2 = colorRGBA[1] / 255f;
+					float b2 = colorRGBA[2] / 255f;
+					boolean bold = style.isBold();
+					boolean ital = style.isItalic();
+					Glyph glyph = locateGlyph0(c, bold, ital);
+					if (glyph.value() != ' ') { // we only need to really draw the glyph if it's not blank, otherwise we can just skip its width and that'll be it
+						NativeImageBackedTexture i1 = glyph.owner().texture;
+						DrawEntry entry = new DrawEntry(xOffset[0], yOffset[0], r2, g2, b2, style.isUnderlined(), style.isStrikethrough(), glyph);
+						if (!shouldDoLinePass[0]) shouldDoLinePass[0] = style.isUnderlined() || style.isStrikethrough();
+						CURRENT_ALL_CHARS.add(entry);
+						GLYPH_PAGE_CACHE.computeIfAbsent(i1.getGlId(), integer -> new ObjectArrayList<>()).add(entry);
+					}
+					xOffset[0] += glyph.logicalWidth();
+					return true;
+				});
+				for (int glId : GLYPH_PAGE_CACHE.keySet()) {
+					RenderSystem.setShaderTexture(0, glId);
+					List<DrawEntry> objects = GLYPH_PAGE_CACHE.get(glId);
+
+					BufferBuilder bb = Tessellator.getInstance().begin(DrawMode.QUADS, VertexFormats.POSITION_TEXTURE_COLOR);
+
+					for (DrawEntry object : objects) {
+						float xo = object.atX;
+						float yo = object.atY;
+						float cr = object.r;
+						float cg = object.g;
+						float cb = object.b;
+						Glyph glyph = object.toDraw;
+						GlyphMap owner = glyph.owner();
+						float hOf = (float) (fontMetrics.getAscent() - object.toDraw.glyphRegion().tlToBaselineY());
+						float xOf = (float) -object.toDraw.glyphRegion().tlToBaselineX();
+						float w = (float) glyph.texW();
+						float h = (float) glyph.texH();
+						float u1 = (float) ((glyph.tlX()-2) / owner.width);
+						float v1 = (float) ((glyph.tlY()-2) / owner.height);
+						float u2 = (float) ((glyph.tlX() + glyph.texW() + 2) / owner.width);
+						float v2 = (float) ((glyph.tlY() + glyph.texH() + 2) / owner.height);
+
+						bb.vertex(mat, xo + 0-2+xOf, yo + h+2+hOf, 0).texture(u1, v2).color(cr, cg, cb, a);
+						bb.vertex(mat, xo + w+2+xOf, yo + h+2+hOf, 0).texture(u2, v2).color(cr, cg, cb, a);
+						bb.vertex(mat, xo + w+2+xOf, yo + 0-2+hOf, 0).texture(u2, v1).color(cr, cg, cb, a);
+						bb.vertex(mat, xo + 0-2+xOf, yo + 0-2+hOf, 0).texture(u1, v1).color(cr, cg, cb, a);
+					}
+					BufferUtils.draw(bb);
 				}
-				if (c == '§') {
-					inSel = true;
-					continue;
-				} else if (c == '\n') {
-					yOffset += getStringHeight(s.substring(lineStart, i)) * scaleMul;
-					xOffset = 0;
-					lineStart = i + 1;
-					continue;
+
+				if (shouldDoLinePass[0]) {
+					RenderSystem.setShader(GameRenderer::getPositionColorProgram);
+					BufferBuilder linesBuffer = Tessellator.getInstance().begin(DrawMode.QUADS, VertexFormats.POSITION_COLOR);
+					for (DrawEntry currentAllChar : CURRENT_ALL_CHARS) {
+						float tlX = currentAllChar.atX;
+						float tlY = currentAllChar.atY;
+						Glyph glyph = currentAllChar.toDraw;
+						float width = glyph.logicalWidth();
+						float hOf = (float) (fontMetrics.getAscent());
+						tlY += hOf;
+						// FIXME 23 Okt. 2024 10:27: this draws the line correctly through the character, but then it isn't continuous
+						//   we need a better solution for this shit
+//						tlX -= (float) glyph.glyphRegion().tlToBaselineX();
+						final float strikeHeight = (originalSize / 16f) * scaleMul;
+						float cr = currentAllChar.r;
+						float cg = currentAllChar.g;
+						float cb = currentAllChar.b;
+						if (currentAllChar.strike) {
+							float halfStrikeHeight = strikeHeight / 2f;
+							float center = tlY - fontMetrics.getAscent() * 0.2f;
+							linesBuffer.vertex(mat, tlX, center + halfStrikeHeight, 0).color(cr, cg, cb, a);
+							linesBuffer.vertex(mat, tlX + width, center + halfStrikeHeight, 0).color(cr, cg, cb, a);
+							linesBuffer.vertex(mat, tlX + width, center - halfStrikeHeight, 0).color(cr, cg, cb, a);
+							linesBuffer.vertex(mat, tlX, center - halfStrikeHeight, 0).color(cr, cg, cb, a);
+						}
+						if (currentAllChar.underline) {
+							float baseline = tlY  + strikeHeight + 1f;
+							linesBuffer.vertex(mat, tlX, baseline, 0).color(cr, cg, cb, a);
+							linesBuffer.vertex(mat, tlX + width, baseline, 0).color(cr, cg, cb, a);
+							linesBuffer.vertex(mat, tlX + width, baseline - strikeHeight, 0).color(cr, cg, cb, a);
+							linesBuffer.vertex(mat, tlX, baseline - strikeHeight, 0).color(cr, cg, cb, a);
+						}
+					}
+					BufferUtils.draw(linesBuffer);
 				}
-				Glyph glyph = locateGlyph0(c);
-				if (glyph.value() != ' ') { // we only need to really draw the glyph if it's not blank, otherwise we can just skip its width and that'll be it
-					NativeImageBackedTexture i1 = glyph.owner().texture;
-					DrawEntry entry = new DrawEntry(xOffset, yOffset, r2, g2, b2, glyph);
-					GLYPH_PAGE_CACHE.computeIfAbsent(i1.getGlId(), integer -> new ObjectArrayList<>()).add(entry);
-				}
-				xOffset += glyph.width();
+
+				GLYPH_PAGE_CACHE.clear();
+				CURRENT_ALL_CHARS.clear();
 			}
-			for (int glId : GLYPH_PAGE_CACHE.keySet()) {
-				RenderSystem.setShaderTexture(0, glId);
-				List<DrawEntry> objects = GLYPH_PAGE_CACHE.get(glId);
-
-				BufferBuilder bb = Tessellator.getInstance().begin(DrawMode.QUADS, VertexFormats.POSITION_TEXTURE_COLOR);
-
-				for (DrawEntry object : objects) {
-					float xo = object.atX;
-					float yo = object.atY;
-					float cr = object.r;
-					float cg = object.g;
-					float cb = object.b;
-					Glyph glyph = object.toDraw;
-					GlyphMap owner = glyph.owner();
-					float w = glyph.width();
-					float h = glyph.height();
-					float u1 = (float) glyph.u() / owner.width;
-					float v1 = (float) glyph.v() / owner.height;
-					float u2 = (float) (glyph.u() + glyph.width()) / owner.width;
-					float v2 = (float) (glyph.v() + glyph.height()) / owner.height;
-
-					bb.vertex(mat, xo + 0, yo + h, 0).texture(u1, v2).color(cr, cg, cb, a);
-					bb.vertex(mat, xo + w, yo + h, 0).texture(u2, v2).color(cr, cg, cb, a);
-					bb.vertex(mat, xo + w, yo + 0, 0).texture(u2, v1).color(cr, cg, cb, a);
-					bb.vertex(mat, xo + 0, yo + 0, 0).texture(u1, v1).color(cr, cg, cb, a);
-				}
-				BufferUtils.draw(bb);
-			}
-
-			GLYPH_PAGE_CACHE.clear();
 		}
 		stack.pop();
 	}
@@ -341,17 +359,25 @@ public class FontRenderer implements Closeable {
 	 * @param g     Green color component
 	 * @param b     Blue color component
 	 * @param a     Alpha color component
+	 * @deprecated Use {@link #drawCenteredText(MatrixStack, Text, float, float, float)} instead
 	 */
+	@Deprecated
 	public void drawCenteredString(MatrixStack stack, String s, float x, float y, float r, float g, float b, float a) {
 		drawString(stack, s, x - getStringWidth(s) / 2f, y, r, g, b, a);
 	}
 
+	public void drawCenteredText(MatrixStack stack, Text s, float x, float y, float a) {
+		drawText(stack, s, x - getTextWidth(s) / 2f, y, a);
+	}
+
 	/**
-	 * Calculates the width of the string, if it were drawn on the screen
+	 * Calculates the width of the string, if it were drawn on the screen. Accounts for newlines, IGNORES STYLE CODES (§)
 	 *
 	 * @param text The text to simulate
 	 * @return The width of the string if it'd be drawn on the screen
+	 * @deprecated Use {@link #getTextHeight(Text)}
 	 */
+	@Deprecated
 	public float getStringWidth(String text) {
 		char[] c = stripControlCodes(text).toCharArray();
 		float currentLine = 0;
@@ -362,39 +388,71 @@ public class FontRenderer implements Closeable {
 				currentLine = 0;
 				continue;
 			}
-			Glyph glyph = locateGlyph0(c1);
-			currentLine += glyph.width() / (float) this.scaleMul;
+			Glyph glyph = locateGlyph0(c1, false, false);
+			currentLine += glyph.logicalWidth() / this.scaleMul;
 		}
 		return Math.max(currentLine, maxPreviousLines);
 	}
 
 	/**
-	 * Calculates the height of the string, if it were drawn on the screen. This is necessary, because the fonts in this FontRenderer might have a different height for each char.
+	 * Calculates the height of the string, if it were drawn on the screen. Accounts for newlines
 	 *
 	 * @param text The text to simulate
 	 * @return The height of the string if it'd be drawn on the screen
 	 */
 	public float getStringHeight(String text) {
-		char[] c = stripControlCodes(text).toCharArray();
-		if (c.length == 0) {
-			c = new char[]{' '};
-		}
-		float currentLine = 0;
-		float previous = 0;
-		for (char c1 : c) {
-			if (c1 == '\n') {
-				if (currentLine == 0) {
-					// empty line, assume space
-					currentLine = locateGlyph0(' ').height() / (float) this.scaleMul;
-				}
-				previous += currentLine;
-				currentLine = 0;
-				continue;
+		int heightOneLine = fontMetrics.getHeight();
+		long countNls = text.chars().filter(f -> f == '\n').count();
+		return (float) (heightOneLine * (countNls + 1)) / this.scaleMul;
+	}
+
+	/**
+	 * Gets the width of a Text in minecraft units, were it drawn on the screen. Accounts for newlines and style
+	 *
+	 * @param text Text to measure
+	 * @return Width in minecraft pixels
+	 */
+	public float getTextWidth(Text text) {
+		// visit as is done by the normal renderer
+		// {lineWidth, maxLineWidth}
+		float[] lineDims = new float[2];
+		text.asOrderedText().accept((index, style, codePoint) -> {
+			// TODO 22 Okt. 2024 08:45: (prereq. bold / bold italic pages) account for larger glyphs
+			char c = (char) codePoint;
+			if (c == '\n') {
+				lineDims[1] = Math.max(lineDims[1], lineDims[0]);
+				lineDims[0] = 0;
+				return true;
 			}
-			Glyph glyph = locateGlyph0(c1);
-			currentLine = Math.max(glyph.height() / (float) this.scaleMul, currentLine);
-		}
-		return currentLine + previous;
+			Glyph glyph = locateGlyph0(c, style.isBold(), style.isItalic());
+			lineDims[0] += (float) glyph.logicalWidth() / this.scaleMul;
+			return true;
+		});
+		return Math.max(lineDims[0], lineDims[1]);
+	}
+
+	/**
+	 * Gets the height of a Text in minecraft units, were it drawn on the screen. Accounts for newlines
+	 *
+	 * @param t Text to measure
+	 * @return Height in minecraft units
+	 */
+	public float getTextHeight(Text t) {
+		int[] nls = new int[]{1};
+		t.asOrderedText().accept((index, style, codePoint) -> {
+			if (codePoint == '\n') nls[0]++;
+			return true;
+		});
+		return (float) (fontMetrics.getHeight() * nls[0]) / scaleMul;
+	}
+
+	/**
+	 * Returns the height of one standard line of text, baseline to baseline (or top of a character to bottom).
+	 *
+	 * @return Height of one standard line of text in this font
+	 */
+	public float getFontHeight() {
+		return (float) fontMetrics.getHeight() / this.scaleMul;
 	}
 
 	/**
@@ -409,18 +467,16 @@ public class FontRenderer implements Closeable {
 			prebakeGlyphsFuture.get(); // should only ever throw interrupted, which is the parent's job to handle anyway
 			prebakeGlyphsFuture = null;
 		}
-		LOCK.writeLock().lock();
-		try {
-			for (GlyphMap map : maps) {
-				map.destroy();
-			}
-			maps.clear();
+		synchronized (this) {
+			pageNormal.close();
+			pageItalic.close();
+			pageBoldItalic.close();
+			pageBold.close();
 			initialized = false;
-		} finally {
-			LOCK.writeLock().unlock();
 		}
 	}
 
-	protected record DrawEntry(float atX, float atY, float r, float g, float b, Glyph toDraw) {
+	protected record DrawEntry(float atX, float atY, float r, float g, float b, boolean underline, boolean strike,
+							   Glyph toDraw) {
 	}
 }
