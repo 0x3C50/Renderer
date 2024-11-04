@@ -1,17 +1,23 @@
 package me.x150.renderer.render;
 
-import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.systems.RenderSystem;
+import me.x150.renderer.mixin.GameRendererAccessor;
+import me.x150.renderer.mixin.PostEffectProcessorMixin;
 import me.x150.renderer.shader.ShaderManager;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gl.Framebuffer;
-import org.lwjgl.opengl.GL30C;
+import net.minecraft.client.gl.PostEffectPass;
+import net.minecraft.client.gl.PostEffectProcessor;
+import net.minecraft.client.gl.ShaderProgram;
 
 import java.awt.*;
+import java.util.List;
 
 /**
  * A framebuffer that draws everything in it outlined. Rendered content within this framebuffer isn't rendered as usual, but rather used as a mask. The color of the elements do not matter, but the alpha must be {@code 1} to be counted into the mask.
+ * @deprecated Out of scope (too specific) for this library. You should probably copy and modify this to your needs.
  */
+@Deprecated(since = "1.2.4")
 public class OutlineFramebuffer extends Framebuffer {
 	private static OutlineFramebuffer instance;
 
@@ -43,13 +49,13 @@ public class OutlineFramebuffer extends Framebuffer {
 			buffer.resize(mainBuffer.textureWidth, mainBuffer.textureHeight);
 		}
 
-		GlStateManager._glBindFramebuffer(GL30C.GL_DRAW_FRAMEBUFFER, buffer.fbo);
+//		GlStateManager._glBindFramebuffer(GL30C.GL_DRAW_FRAMEBUFFER, buffer.fbo);
 
-		buffer.beginWrite(true);
+		buffer.beginWrite(false);
 		r.run();
 		buffer.endWrite();
 
-		GlStateManager._glBindFramebuffer(GL30C.GL_DRAW_FRAMEBUFFER, mainBuffer.fbo);
+//		GlStateManager._glBindFramebuffer(GL30C.GL_DRAW_FRAMEBUFFER, mainBuffer.fbo);
 
 		mainBuffer.beginWrite(false);
 	}
@@ -65,18 +71,27 @@ public class OutlineFramebuffer extends Framebuffer {
 		Framebuffer mainBuffer = MinecraftClient.getInstance().getFramebuffer();
 		OutlineFramebuffer buffer = obtain();
 
-		ShaderManager.OUTLINE_SHADER.setSamplerUniform("MaskSampler", buffer);
-		ShaderManager.OUTLINE_SHADER.setUniformValue("Radius", radius);
-		ShaderManager.OUTLINE_SHADER.setUniformValue("OutlineColor", outlineColor.getRed() / 255f,
+		PostEffectProcessor outlineShader = ShaderManager.getOutlineShader();
+		List<PostEffectPass> allPasses = ((PostEffectProcessorMixin) outlineShader).getPasses();
+		PostEffectPass firstPass = allPasses.getFirst();
+		ShaderProgram firstPassProgram = firstPass.getProgram();
+
+		firstPassProgram.addSamplerTexture("MaskSampler", buffer.colorAttachment);
+		firstPassProgram.getUniform("Radius").set(radius);
+		firstPassProgram.getUniform("OutlineColor").set(outlineColor.getRed() / 255f,
 				outlineColor.getGreen() / 255f, outlineColor.getBlue() / 255f, outlineColor.getAlpha() / 255f);
-		ShaderManager.OUTLINE_SHADER.setUniformValue("InnerColor", innerColor.getRed() / 255f,
+		firstPassProgram.getUniform("InnerColor").set(innerColor.getRed() / 255f,
 				innerColor.getGreen() / 255f, innerColor.getBlue() / 255f, innerColor.getAlpha() / 255f);
 
-		ShaderManager.OUTLINE_SHADER.render(MinecraftClient.getInstance().getRenderTickCounter().getTickDelta(false));
+		RenderSystem.depthMask(false); // DO NOT write to depth buffer, else the depth buffer gets fucked
+		outlineShader.render(
+				mainBuffer, ((GameRendererAccessor) MinecraftClient.getInstance().gameRenderer).getPool()
+		);
+		RenderSystem.depthMask(true);
 
 		buffer.clear();
 
-		mainBuffer.beginWrite(true);
+		mainBuffer.beginWrite(false);
 	}
 
 	/**

@@ -271,7 +271,7 @@ public class FontRenderer implements Closeable {
 						CURRENT_ALL_CHARS.add(entry);
 						GLYPH_PAGE_CACHE.computeIfAbsent(i1.getGlId(), integer -> new ObjectArrayList<>()).add(entry);
 					}
-					xOffset[0] += glyph.logicalWidth();
+					xOffset[0] += glyph.glyphRegion().layout().getAdvance();
 					return true;
 				});
 				for (int glId : GLYPH_PAGE_CACHE.keySet()) {

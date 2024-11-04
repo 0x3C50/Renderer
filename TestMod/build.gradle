@@ -6,15 +6,15 @@ configurations {
 }
 
 repositories {
-    maven {
-        name = 'Ladysnake Mods'
-        url = 'https://maven.ladysnake.org/releases'
-        content {
-            includeGroup 'io.github.ladysnake'
-            includeGroup 'org.ladysnake'
-            includeGroupByRegex 'dev\\.onyxstudios.*'
-        }
-    }
+//    maven {
+//        name = 'Ladysnake Mods'
+//        url = 'https://maven.ladysnake.org/releases'
+//        content {
+//            includeGroup 'io.github.ladysnake'
+//            includeGroup 'org.ladysnake'
+//            includeGroupByRegex 'dev\\.onyxstudios.*'
+//        }
+//    }
 }
 
 dependencies {
@@ -28,7 +28,7 @@ dependencies {
 
     implementation("com.github.weisj:jsvg:1.4.0")
     api(group: "de.javagl", name: "obj", version: "0.4.0")
-    modApi("org.ladysnake:satin:2.0.0") {
-        exclude module: "fabric-api"
-    }
+//    modApi("org.ladysnake:satin:2.0.0") {
+//        exclude module: "fabric-api"
+//    }
 }

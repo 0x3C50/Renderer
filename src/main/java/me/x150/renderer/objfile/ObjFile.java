@@ -150,7 +150,7 @@ public class ObjFile implements Closeable {
 				}
 			}
 			BuiltBuffer end = b.end();
-			buffers.put(objToDraw, BufferUtils.createVbo(end, GlUsage.STATIC_READ));
+			buffers.put(objToDraw, BufferUtils.createVbo(end, GlUsage.DYNAMIC_WRITE));
 		}
 		baked = true;
 	}
@@ -196,7 +196,7 @@ public class ObjFile implements Closeable {
 			}
 			if (material != null) {
 				if (hasTexture) {
-					RenderSystem.setShader(ShaderManager.POSITION_TEX_COLOR_NORMAL.getProgram());
+					RenderSystem.setShader(ShaderManager.SPK_POSITION_TEX_COLOR_NORMAL);
 				} else {
 					RenderSystem.setShader(ShaderProgramKeys.POSITION_COLOR);
 				}

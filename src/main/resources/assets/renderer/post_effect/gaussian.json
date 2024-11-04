@@ -7,8 +7,9 @@
 			"program": "renderer:program/gaussian",
 			"inputs": [
 				{
-					"sampler_name": "Diffuse",
-					"target": "minecraft:main"
+					"sampler_name": "In",
+					"target": "minecraft:main",
+					"bilinear": true
 				}
 			],
 			"output": "swap",
@@ -23,8 +24,9 @@
 			"program": "renderer:program/gaussian",
 			"inputs": [
 				{
-					"sampler_name": "Diffuse",
-					"target": "swap"
+					"sampler_name": "In",
+					"target": "swap",
+					"bilinear": true
 				}
 			],
 			"output": "minecraft:main",

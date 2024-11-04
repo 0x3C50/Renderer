@@ -37,5 +37,10 @@ public abstract class GameRendererMixin {
 		Renderer3d.renderFadingBlocks(matrix);
 
 		RenderProfiler.pop();
+
+		// restore state like the original world rendering code did
+		RenderSystem.depthMask(true);
+		RenderSystem.disableBlend();
+		RenderSystem.setShaderFog(Fog.DUMMY);
 	}
 }

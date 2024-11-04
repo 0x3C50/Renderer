@@ -1,17 +1,15 @@
 {
-  "blend": {
-    "func": "add",
-    "srcrgb": "srcalpha",
-    "dstrgb": "1-srcalpha"
-  },
-  "vertex": "sobel",
-  "fragment": "renderer:outline",
+
+  "vertex": "minecraft:post/sobel",
+  "fragment": "renderer:program/outline",
   "attributes": [
     "Position"
   ],
   "samplers": [
     {
-      "name": "DiffuseSampler"
+      "name": "InSampler"
+    },{
+      "name": "MaskSampler"
     }
   ],
   "uniforms": [

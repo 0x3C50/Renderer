@@ -1,6 +1,5 @@
 package me.x150.renderer;
 
-import me.x150.renderer.shader.ShaderManager;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
@@ -13,7 +12,6 @@ public class RendererMain implements ClientModInitializer {
 
 	@Override
 	public void onInitializeClient() {
-		ShaderManager.doInit();
 		LOGGER.info("Initialized renderer library");
 	}
 }

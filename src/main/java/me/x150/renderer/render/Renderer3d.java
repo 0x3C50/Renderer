@@ -69,6 +69,7 @@ public class Renderer3d {
 		}
 	}
 
+	@SuppressWarnings("removal")
 	static float transformColor(float f) {
 		return AlphaOverride.compute(f);
 	}

@@ -21,7 +21,7 @@ public class BufferUtils {
 	 * Creates a VBO for this buffer
 	 *
 	 * @param builder       The buffer
-	 * @param expectedUsage The expected usage of this vertex buffer. Setting the correct flag is <b>only a suggestion to the GL driver</b>, nothing will happen if you use the wrong flag. The optimizations for this flag are minuscule.
+	 * @param expectedUsage The expected usage of this vertex buffer
 	 * @return The VBO
 	 */
 	public static VertexBuffer createVbo(BuiltBuffer builder, GlUsage expectedUsage) {

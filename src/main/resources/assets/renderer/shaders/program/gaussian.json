@@ -1,17 +1,13 @@
 {
-	"blend": {
-		"func": "add",
-		"srcrgb": "srcalpha",
-		"dstrgb": "1-srcalpha"
-	},
-	"vertex": "sobel",
-	"fragment": "renderer:gaussian",
+
+	"vertex": "minecraft:post/sobel",
+	"fragment": "renderer:program/gaussian",
 	"attributes": [
 		"Position"
 	],
 	"samplers": [
 		{
-			"name": "DiffuseSampler"
+			"name": "InSampler"
 		},
 		{
 			"name": "MaskSampler"
@@ -49,7 +45,7 @@
 		},
 		{
 			"name": "width",
-			"type": "int",
+			"type": "float",
 			"count": 1,
 			"values": [ 1 ]
 		},

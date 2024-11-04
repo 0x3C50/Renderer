@@ -1,20 +1,33 @@
 {
-  "targets": [
-    "inp"
-  ],
+  "targets": {
+    "swap": {}
+  },
   "passes": [
     {
-      "name": "renderer:outline",
+      "program": "renderer:program/outline",
       "inputs": [
         {
-          "sampler_name": "Diffuse",
-          "target": "inp"
+          "sampler_name": "In",
+          "target": "minecraft:main",
+          "bilinear": true
         }
       ],
-      "output": "minecraft:main",
+      "output": "swap",
       "uniforms": [
 
       ]
+    },
+    {
+      "program": "minecraft:post/blit",
+      "inputs": [
+        {
+          "sampler_name": "In",
+          "target": "swap",
+          "bilinear": true
+        }
+      ] ,
+      "output":"minecraft:main",
+      "uniforms": []
     }
   ]
 }

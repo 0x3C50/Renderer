@@ -1,11 +1,16 @@
 package me.x150.renderer.render;
 
-import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.systems.RenderSystem;
+import me.x150.renderer.mixin.GameRendererAccessor;
+import me.x150.renderer.mixin.PostEffectProcessorMixin;
 import me.x150.renderer.shader.ShaderManager;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gl.Framebuffer;
-import org.lwjgl.opengl.GL30C;
+import net.minecraft.client.gl.PostEffectPass;
+import net.minecraft.client.gl.PostEffectProcessor;
+import net.minecraft.client.gl.ShaderProgram;
+
+import java.util.List;
 
 /**
  * A framebuffer representing the mask for a gaussian blur shader. Color is ignored, alpha is used as multiplicator for the kernel size.
@@ -41,13 +46,13 @@ public class MaskedBlurFramebuffer  extends Framebuffer {
 			buffer.resize(mainBuffer.textureWidth, mainBuffer.textureHeight);
 		}
 
-		GlStateManager._glBindFramebuffer(GL30C.GL_DRAW_FRAMEBUFFER, buffer.fbo);
+//		GlStateManager._glBindFramebuffer(GL30C.GL_DRAW_FRAMEBUFFER, buffer.fbo);
 
-		buffer.beginWrite(true);
+		buffer.beginWrite(false);
 		r.run();
 		buffer.endWrite();
 
-		GlStateManager._glBindFramebuffer(GL30C.GL_DRAW_FRAMEBUFFER, mainBuffer.fbo);
+//		GlStateManager._glBindFramebuffer(GL30C.GL_DRAW_FRAMEBUFFER, mainBuffer.fbo);
 
 		mainBuffer.beginWrite(false);
 	}
@@ -71,12 +76,19 @@ public class MaskedBlurFramebuffer  extends Framebuffer {
 		Framebuffer mainBuffer = MinecraftClient.getInstance().getFramebuffer();
 		MaskedBlurFramebuffer buffer = obtain();
 
-		ShaderManager.GAUSSIAN_BLUR.setUniformValue("sigma", sigma);
-		ShaderManager.GAUSSIAN_BLUR.setUniformValue("width", kernelSizePx);
+		PostEffectProcessor gaussianShader = ShaderManager.getGaussianShader();
+		List<PostEffectPass> allPasses = ((PostEffectProcessorMixin) gaussianShader).getPasses();
+		PostEffectPass firstPass = allPasses.getFirst();
+		ShaderProgram firstPassProgram = firstPass.getProgram();
 
-		ShaderManager.GAUSSIAN_BLUR.setSamplerUniform("MaskSampler", buffer);
+		firstPassProgram.getUniform("sigma").set(sigma);
+		firstPassProgram.getUniform("width").set(((float) kernelSizePx));
+		firstPassProgram.addSamplerTexture("MaskSampler", buffer.colorAttachment);
 
-		ShaderManager.GAUSSIAN_BLUR.render(MinecraftClient.getInstance().getRenderTickCounter().getTickDelta(true));
+
+		gaussianShader.render(
+				mainBuffer, ((GameRendererAccessor) MinecraftClient.getInstance().gameRenderer).getPool()
+		);
 
 		buffer.clear();
 
@@ -90,9 +102,17 @@ public class MaskedBlurFramebuffer  extends Framebuffer {
 	 * @param sigma Sigma value
 	 */
 	public static void drawNoMask(int kernelSizePx, float sigma) {
-		ShaderManager.GAUSSIAN_BLUR_NO_MASK.setUniformValue("sigma", sigma);
-		ShaderManager.GAUSSIAN_BLUR_NO_MASK.setUniformValue("width", kernelSizePx);
+		PostEffectProcessor gaussianNoMaskShader = ShaderManager.getGaussianNoMaskShader();
+		List<PostEffectPass> allPasses = ((PostEffectProcessorMixin) gaussianNoMaskShader).getPasses();
+		PostEffectPass firstPass = allPasses.getFirst();
+		ShaderProgram firstPassProgram = firstPass.getProgram();
 
-		ShaderManager.GAUSSIAN_BLUR_NO_MASK.render(MinecraftClient.getInstance().getRenderTickCounter().getTickDelta(true));
+		firstPassProgram.getUniform("sigma").set(sigma);
+		firstPassProgram.getUniform("width").set(((float) kernelSizePx));
+
+
+		gaussianNoMaskShader.render(
+				MinecraftClient.getInstance().getFramebuffer(), ((GameRendererAccessor) MinecraftClient.getInstance().gameRenderer).getPool()
+		);
 	}
 }

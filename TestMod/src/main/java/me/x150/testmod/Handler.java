@@ -1,35 +1,42 @@
 package me.x150.testmod;
 
-import com.mojang.blaze3d.systems.RenderSystem;
 import lombok.SneakyThrows;
 import me.x150.renderer.font.FontRenderer;
-import me.x150.renderer.render.Renderer2d;
+import me.x150.renderer.objfile.ObjFile;
+import me.x150.renderer.render.*;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.text.MutableText;
-import net.minecraft.text.Style;
 import net.minecraft.text.Text;
+import net.minecraft.util.math.Vec3d;
 
 import java.awt.*;
-import java.util.function.UnaryOperator;
+import java.nio.file.Path;
 
 public class Handler {
 	static FontRenderer fr;
 
 //	static Framebuffer fb;
-	//	private static ObjFile ob;
+		private static ObjFile ob;
 
 //	@SneakyThrows
+	@SneakyThrows
 	public static void world(MatrixStack stack) {
-//		if (ob == null) {
-//			ob = new ObjFile("untitled.obj",
-//					ObjFile.ResourceProvider.ofPath(Path.of("/home/x150")));
-//		}
+		if (ob == null) {
+			ob = new ObjFile("untitled.obj",
+					ObjFile.ResourceProvider.ofPath(Path.of("/home/x150/Downloads/vv")));
+		}
+
 //		ob.draw(stack, new Matrix4f(), new Vec3d(0, 200, 0));
-//		OutlineFramebuffer.useAndDraw(() -> Renderer3d.renderFilled(stack, Color.WHITE, new Vec3d(0, 300, 0), new Vec3d(5, 5, 5)), 1f, Color.GREEN, Color.BLACK);
+		OutlineFramebuffer.use(() -> Renderer3d.renderFilled(stack, Color.WHITE, new Vec3d(0, 300, 0), new Vec3d(5, 5, 5)));
+		Renderer3d.renderFilled(stack, Color.GREEN, new Vec3d(2, 222, 2), new Vec3d(1, 1, 1));
+//		System.out.printf("%d %d %d %d%n", GlStateManager.Viewport.getX(), GlStateManager.Viewport.getY(), GlStateManager.Viewport.getWidth(), GlStateManager.Viewport.getHeight());
+		OutlineFramebuffer.draw(1f, Color.GREEN, Color.BLACK);
+//		System.out.printf("%d %d %d %d%n", GlStateManager.Viewport.getX(), GlStateManager.Viewport.getY(), GlStateManager.Viewport.getWidth(), GlStateManager.Viewport.getHeight());
+//		Renderer3d.renderThroughWalls();
+		Renderer3d.renderFilled(stack, Color.RED, new Vec3d(0, 220, 0), new Vec3d(1, 1, 1));
+
 //
-//		Renderer3d.renderFilled(stack, Color.RED, new Vec3d(0, 200, 0), new Vec3d(1, 1, 1));
-//		Renderer3d.renderFilled(stack, Color.GREEN, new Vec3d(2, 202, 2), new Vec3d(1, 1, 1));
 //
 ////		stack.push();
 ////		stack.translate(System.currentTimeMillis() % 5000 / 5000d * 100, 0, 0);
@@ -66,8 +73,17 @@ public class Handler {
 //		mat.scale(6, 6, 0);
 		Renderer2d.renderQuad(mat, Color.RED, x, y, x+width, y+height);
 		fr.drawText(mat, theText, x, y, 1);
+		MaskedBlurFramebuffer.use(() -> {
+			Renderer2d.renderQuad(mat, Color.WHITE, x+10, y+10, x+width+50, y+height-10);
+		});
+		MaskedBlurFramebuffer.draw(8, 4f);
+//		fr.drawText(mat, theText, x, y+50, 1);
 		mat.pop();
-		RenderSystem.disableBlend();
+
+		MSAAFramebuffer.use(MSAAFramebuffer.MAX_SAMPLES, () -> {
+			Renderer2d.renderRoundedQuad(mat, Color.WHITE, x, y+height+5, x+100, y+height+5+100, 5f, 10f);
+		});
+
 //		sv.render(matrices.getMatrices(), 5, 5, 128, 128);
 //		LaggingMaskFramebuffer obtain = LaggingMaskFramebuffer.obtain();
 //		int depthAttachment = obtain.getDepthAttachment();

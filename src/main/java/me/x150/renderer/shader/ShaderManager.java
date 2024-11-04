@@ -1,22 +1,38 @@
 package me.x150.renderer.shader;
 
+import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.gl.Defines;
+import net.minecraft.client.gl.PostEffectProcessor;
+import net.minecraft.client.gl.ShaderProgramKey;
+import net.minecraft.client.render.DefaultFramebufferSet;
 import net.minecraft.client.render.VertexFormats;
 import net.minecraft.util.Identifier;
-import org.ladysnake.satin.api.managed.ManagedCoreShader;
-import org.ladysnake.satin.api.managed.ManagedShaderEffect;
-import org.ladysnake.satin.api.managed.ShaderEffectManager;
+import org.jetbrains.annotations.NotNull;
+
+import java.util.Objects;
 
 public class ShaderManager {
-	public static final ManagedShaderEffect OUTLINE_SHADER = ShaderEffectManager.getInstance()
-			.manage(Identifier.of("renderer", "shaders/post/outline.json"));
-	public static final ManagedCoreShader POSITION_TEX_COLOR_NORMAL = ShaderEffectManager.getInstance()
-			.manageCoreShader(Identifier.of("renderer", "position_tex_color_normal"), VertexFormats.POSITION_TEXTURE_COLOR_NORMAL);
-	public static final ManagedShaderEffect GAUSSIAN_BLUR = ShaderEffectManager.getInstance()
-			.manage(Identifier.of("renderer", "shaders/post/gaussian.json"));
-	public static final ManagedShaderEffect GAUSSIAN_BLUR_NO_MASK = ShaderEffectManager.getInstance()
-			.manage(Identifier.of("renderer", "shaders/post/gaussian_no_mask.json"));
+	public static final ShaderProgramKey SPK_POSITION_TEX_COLOR_NORMAL =
+			new ShaderProgramKey(Identifier.of("renderer", "core/position_tex_color_normal"),
+					VertexFormats.POSITION_TEXTURE_COLOR_NORMAL,
+					Defines.EMPTY);
 
-	public static void doInit() {
-		// NOOP to get class to load on demand
+	public static @NotNull PostEffectProcessor getGaussianNoMaskShader() {
+		return getShader("gaussian_no_mask");
+	}
+
+	public static @NotNull PostEffectProcessor getGaussianShader() {
+		return getShader("gaussian");
+	}
+
+	public static @NotNull PostEffectProcessor getOutlineShader() {
+		return getShader("outline");
+	}
+
+	public static @NotNull PostEffectProcessor getShader(String shaderName) {
+		return Objects.requireNonNull(MinecraftClient.getInstance().getShaderLoader().loadPostEffect(
+				Identifier.of("renderer", shaderName),
+				DefaultFramebufferSet.MAIN_ONLY
+		));
 	}
 }

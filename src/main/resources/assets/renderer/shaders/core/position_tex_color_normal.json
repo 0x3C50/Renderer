@@ -1,11 +1,6 @@
 {
-    "blend": {
-        "func": "add",
-        "srcrgb": "srcalpha",
-        "dstrgb": "1-srcalpha"
-    },
-    "vertex": "renderer:position_tex_color_normal",
-    "fragment": "renderer:position_tex_color_normal",
+    "vertex": "renderer:core/position_tex_color_normal",
+    "fragment": "renderer:core/position_tex_color_normal",
     "attributes": [
         "Position",
         "UV0",

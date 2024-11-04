@@ -1,6 +1,6 @@
 #version 330
 
-uniform sampler2D DiffuseSampler;
+uniform sampler2D InSampler;
 uniform sampler2D MaskSampler;
 
 in vec2 texCoord;
@@ -15,9 +15,10 @@ out vec4 fragColor;
 
 void main() {
     vec4 current = texture(MaskSampler, texCoord);
-    vec4 currentNormal = texture(DiffuseSampler, texCoord);
+    vec4 currentNormal = texture(InSampler, texCoord);
 
     if (current.a != 0) {
+        // mask pixel set
         fragColor = vec4(mix(currentNormal.rgb, InnerColor.rgb, InnerColor.a), 1);
         return;
     }

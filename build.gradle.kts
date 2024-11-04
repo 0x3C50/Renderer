@@ -10,7 +10,7 @@ allprojects {
     apply(plugin = "maven-publish")
     apply(plugin = "fabric-loom")
 
-    val targetJavaVersion = 17
+    val targetJavaVersion = 21
 
     java {
         withSourcesJar()
@@ -72,15 +72,15 @@ repositories {
     // Loom adds the essential maven repositories to download Minecraft and libraries from automatically.
     // See https://docs.gradle.org/current/userguide/declaring_repositories.html
     // for more information about repositories.
-    maven {
-        name = "Ladysnake Mods"
-        url = uri("https://maven.ladysnake.org/releases")
-        content {
-            includeGroup("io.github.ladysnake")
-            includeGroup("org.ladysnake")
-            includeGroupByRegex("dev\\.onyxstudios.*")
-        }
-    }
+//    maven {
+//        name = "Ladysnake Mods"
+//        url = uri("https://maven.ladysnake.org/releases")
+//        content {
+//            includeGroup("io.github.ladysnake")
+//            includeGroup("org.ladysnake")
+//            includeGroupByRegex("dev\\.onyxstudios.*")
+//        }
+//    }
 }
 
 dependencies {
@@ -96,9 +96,9 @@ dependencies {
 
     implementation("com.github.weisj:jsvg:1.4.0")
     implementation(group = "de.javagl", name = "obj", version = "0.4.0")
-    modApi("org.ladysnake:satin:${properties["satin_version"]}") {
-        exclude(module = "fabric-api")
-    }
+//    modApi("org.ladysnake:satin:${properties["satin_version"]}") {
+//        exclude(module = "fabric-api")
+//    }
 }
 
 tasks {

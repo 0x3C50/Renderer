@@ -1,12 +1,12 @@
 #version 330
 
-uniform sampler2D DiffuseSampler;
+uniform sampler2D InSampler;
 uniform sampler2D MaskSampler;
 
 in vec2 texCoord;
 in vec2 oneTexel;
 
-uniform int width;
+uniform float width;
 uniform float sigma;
 uniform vec2 direction;
 
@@ -20,7 +20,7 @@ void main() {
 //    float weights[width*2+1];
     float radiusMul = texture(MaskSampler, texCoord).a;
     if (radiusMul == 0) {
-        fragColor = texture(DiffuseSampler, texCoord);
+        fragColor = texture(InSampler, texCoord);
         return;
     }
     float fullRadius = (width * radiusMul);
@@ -33,7 +33,7 @@ void main() {
         // normalize weights so they sum up to 1
         float normalizedWeight = pdf(j, sigma) / sum;
         vec2 offset = oneTexel * j * direction;
-        vec4 current = texture(DiffuseSampler, texCoord + offset);
+        vec4 current = texture(InSampler, texCoord + offset);
         blurred += current * normalizedWeight;
     }
     fragColor = blurred;
