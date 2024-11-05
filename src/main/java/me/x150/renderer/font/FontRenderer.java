@@ -28,6 +28,7 @@ import org.joml.Matrix4f;
 
 import java.awt.*;
 import java.io.Closeable;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
@@ -59,7 +60,7 @@ good luck.
 public class FontRenderer implements Closeable {
 	protected static final ExecutorService ASYNC_WORKER = Executors.newCachedThreadPool();
 	protected final Int2ObjectMap<ObjectList<DrawEntry>> GLYPH_PAGE_CACHE = new Int2ObjectOpenHashMap<>();
-	protected final ObjectList<DrawEntry> CURRENT_ALL_CHARS = new ObjectArrayList<>();
+//	protected final ObjectList<DrawEntry> CURRENT_ALL_CHARS = new ObjectArrayList<>();
 	protected final float originalSize;
 	protected final int charsPerPage;
 	protected final String prebakeGlyphs;
@@ -246,13 +247,16 @@ public class FontRenderer implements Closeable {
 		final float[] yOffset = {0};
 		OrderedText orderedText = s.asOrderedText();
 		final boolean[] shouldDoLinePass = {false};
+		List<List<DrawEntry>> lines = new ArrayList<>();
+		lines.add(new ArrayList<>());
 		synchronized (GLYPH_PAGE_CACHE) {
-			synchronized (CURRENT_ALL_CHARS) {
+			 {
 				orderedText.accept((index, style, codePoint) -> {
 					char c = (char) codePoint;
 					if (c == '\n') {
 						yOffset[0] += fontMetrics.getHeight();
 						xOffset[0] = 0;
+						lines.add(new ArrayList<>());
 						return true;
 					}
 					TextColor textColor = style.getColor();
@@ -268,7 +272,7 @@ public class FontRenderer implements Closeable {
 						NativeImageBackedTexture i1 = glyph.owner().texture;
 						DrawEntry entry = new DrawEntry(xOffset[0], yOffset[0], r2, g2, b2, style.isUnderlined(), style.isStrikethrough(), glyph);
 						if (!shouldDoLinePass[0]) shouldDoLinePass[0] = style.isUnderlined() || style.isStrikethrough();
-						CURRENT_ALL_CHARS.add(entry);
+						lines.getLast().add(entry);
 						GLYPH_PAGE_CACHE.computeIfAbsent(i1.getGlId(), integer -> new ObjectArrayList<>()).add(entry);
 					}
 					xOffset[0] += glyph.glyphRegion().layout().getAdvance();
@@ -306,45 +310,64 @@ public class FontRenderer implements Closeable {
 				}
 
 				if (shouldDoLinePass[0]) {
+					final float strikeHeight = (originalSize / 16f) * scaleMul;
 					RenderSystem.setShader(ShaderProgramKeys.POSITION_COLOR);
 					BufferBuilder linesBuffer = Tessellator.getInstance().begin(DrawMode.QUADS, VertexFormats.POSITION_COLOR);
-					for (DrawEntry currentAllChar : CURRENT_ALL_CHARS) {
-						float tlX = currentAllChar.atX;
-						float tlY = currentAllChar.atY;
-						Glyph glyph = currentAllChar.toDraw;
-						float width = glyph.logicalWidth();
-						float hOf = (float) (fontMetrics.getAscent());
-						tlY += hOf;
-						// FIXME 23 Okt. 2024 10:27: this draws the line correctly through the character, but then it isn't continuous
-						//   we need a better solution for this shit
-//						tlX -= (float) glyph.glyphRegion().tlToBaselineX();
-						final float strikeHeight = (originalSize / 16f) * scaleMul;
-						float cr = currentAllChar.r;
-						float cg = currentAllChar.g;
-						float cb = currentAllChar.b;
-						if (currentAllChar.strike) {
-							float halfStrikeHeight = strikeHeight / 2f;
-							float center = tlY - fontMetrics.getAscent() * 0.2f;
-							linesBuffer.vertex(mat, tlX, center + halfStrikeHeight, 0).color(cr, cg, cb, a);
-							linesBuffer.vertex(mat, tlX + width, center + halfStrikeHeight, 0).color(cr, cg, cb, a);
-							linesBuffer.vertex(mat, tlX + width, center - halfStrikeHeight, 0).color(cr, cg, cb, a);
-							linesBuffer.vertex(mat, tlX, center - halfStrikeHeight, 0).color(cr, cg, cb, a);
+
+					boolean strikethroughEnabled = false, underlineEnabled = false;
+					float strikethroughStartX = 0, underlineStartX = 0;
+
+					for (List<DrawEntry> line : lines) {
+						for (int i = 0; i < line.size(); i++) {
+							DrawEntry currentAllChar = line.get(i);
+							boolean nextIsNewline = i == line.size()-1;
+							float tlX = currentAllChar.atX;
+							float tlY = currentAllChar.atY;
+							Glyph glyph = currentAllChar.toDraw;
+							float hOf = (float) (fontMetrics.getAscent());
+							tlY += hOf; // tlY is at baseline
+							tlX -= (float) glyph.glyphRegion().tlToBaselineX();
+
+							if (currentAllChar.strike && !strikethroughEnabled) {
+								// start strikethrough
+								strikethroughEnabled = true;
+								strikethroughStartX = tlX;
+							} else if ((!currentAllChar.strike || nextIsNewline) && strikethroughEnabled) {
+								// end strikethrough
+								strikethroughEnabled = false;
+								float endX = (float) (tlX + glyph.glyphRegion().width());
+								float halfStrikeHeight = strikeHeight / 2f;
+								float center = tlY - fontMetrics.getAscent() * 0.2f;
+								linesBuffer.vertex(mat, strikethroughStartX, center + halfStrikeHeight, 0).color(1f, 1f, 1f, a);
+								linesBuffer.vertex(mat, endX, center + halfStrikeHeight, 0).color(1, 1, 1, a);
+								linesBuffer.vertex(mat, endX, center - halfStrikeHeight, 0).color(1, 1, 1, a);
+								linesBuffer.vertex(mat, strikethroughStartX, center - halfStrikeHeight, 0).color(1, 1, 1, a);
+							}
+
+							if (currentAllChar.underline && !underlineEnabled) {
+								underlineEnabled = true;
+								underlineStartX = tlX;
+							} else if ((!currentAllChar.underline || nextIsNewline) && underlineEnabled) {
+								underlineEnabled = false;
+								float endX = (float) (tlX + glyph.glyphRegion().width());
+
+								float baseline = tlY + strikeHeight + 1f;
+								linesBuffer.vertex(mat, underlineStartX, baseline, 0).color(1, 1, 1, a);
+								linesBuffer.vertex(mat, endX, baseline, 0).color(1, 1, 1, a);
+								linesBuffer.vertex(mat, endX, baseline - strikeHeight, 0).color(1, 1, 1, a);
+								linesBuffer.vertex(mat, underlineStartX, baseline - strikeHeight, 0).color(1, 1, 1, a);
+							}
 						}
-						if (currentAllChar.underline) {
-							float baseline = tlY  + strikeHeight + 1f;
-							linesBuffer.vertex(mat, tlX, baseline, 0).color(cr, cg, cb, a);
-							linesBuffer.vertex(mat, tlX + width, baseline, 0).color(cr, cg, cb, a);
-							linesBuffer.vertex(mat, tlX + width, baseline - strikeHeight, 0).color(cr, cg, cb, a);
-							linesBuffer.vertex(mat, tlX, baseline - strikeHeight, 0).color(cr, cg, cb, a);
-						}
+
+						strikethroughEnabled = underlineEnabled = false;
 					}
 					BufferUtils.draw(linesBuffer);
 				}
 
 				GLYPH_PAGE_CACHE.clear();
-				CURRENT_ALL_CHARS.clear();
 			}
 		}
+		lines.clear();
 		stack.pop();
 	}
 

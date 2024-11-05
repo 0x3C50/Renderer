@@ -99,7 +99,7 @@ public class GlyphMap {
 		}
 		double optimalWidth = glyphRegions.stream().mapToDouble(it -> it.width+4).sum();
 		// find optimal width to balance width and height, for a near-1:1 texture
-		// max 10 attempts or until the delta between width and height is below 10
+		// max 10 attempts or until the delta between width and height is below 50 pixels
 		for (int i = 0; i < 10; i++) {
 			double heightWithThatWidth = 0;
 			double fx = 0;
