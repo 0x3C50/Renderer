@@ -20,10 +20,8 @@ public class FastMStack extends MatrixStack {
 	static {
 		try {
 			// reflection should be fine, we're not doing any string names here
-			MethodHandles.Lookup lookup = MethodHandles.privateLookupIn(MatrixStack.Entry.class,
-					MethodHandles.lookup());
-			MATRIXSTACK_ENTRY_CTOR = lookup.findConstructor(MatrixStack.Entry.class,
-					MethodType.methodType(void.class, Matrix4f.class, Matrix3f.class));
+			MethodHandles.Lookup lookup = MethodHandles.privateLookupIn(MatrixStack.Entry.class, MethodHandles.lookup());
+			MATRIXSTACK_ENTRY_CTOR = lookup.findConstructor(MatrixStack.Entry.class, MethodType.methodType(void.class, Matrix4f.class, Matrix3f.class));
 		} catch (IllegalAccessException | NoSuchMethodException e) {
 			throw new RuntimeException(e);
 		}

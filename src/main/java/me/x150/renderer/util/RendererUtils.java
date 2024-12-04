@@ -42,14 +42,11 @@ public class RendererUtils {
 	public static final Matrix4f lastModMat = new Matrix4f();
 	@ApiStatus.Internal
 	public static final Matrix4f lastWorldSpaceMatrix = new Matrix4f();
-    @ApiStatus.Internal
-    public static final int[] lastViewport = new int[4];
+	@ApiStatus.Internal
+	public static final int[] lastViewport = new int[4];
 
 	private static final FastMStack empty = new FastMStack();
 	private static final MinecraftClient client = MinecraftClient.getInstance();
-	private static final char RND_START = 'a';
-	private static final char RND_END = 'z';
-	private static final Random RND = new Random();
 
 	/**
 	 * Skips setting the rendering flags before drawing.
@@ -114,8 +111,7 @@ public class RendererUtils {
 	 */
 	@Contract(value = "_, _, _ -> new", pure = true)
 	public static Color lerp(@NonNull Color a, @NonNull Color b, double c) {
-		return new Color(lerp(a.getRed(), b.getRed(), c), lerp(a.getGreen(), b.getGreen(), c),
-				lerp(a.getBlue(), b.getBlue(), c), lerp(a.getAlpha(), b.getAlpha(), c));
+		return new Color(lerp(a.getRed(), b.getRed(), c), lerp(a.getGreen(), b.getGreen(), c), lerp(a.getBlue(), b.getBlue(), c), lerp(a.getAlpha(), b.getAlpha(), c));
 	}
 
 	/**
@@ -131,12 +127,7 @@ public class RendererUtils {
 	 */
 	@Contract(value = "_, _, _, _, _ -> new", pure = true)
 	public static Color modify(@NonNull Color original, int redOverwrite, int greenOverwrite, int blueOverwrite, int alphaOverwrite) {
-		return new Color(
-				redOverwrite == -1 ? original.getRed() : redOverwrite,
-				greenOverwrite == -1 ? original.getGreen() : greenOverwrite,
-				blueOverwrite == -1 ? original.getBlue() : blueOverwrite,
-				alphaOverwrite == -1 ? original.getAlpha() : alphaOverwrite
-		);
+		return new Color(redOverwrite == -1 ? original.getRed() : redOverwrite, greenOverwrite == -1 ? original.getGreen() : greenOverwrite, blueOverwrite == -1 ? original.getBlue() : blueOverwrite, alphaOverwrite == -1 ? original.getAlpha() : alphaOverwrite);
 	}
 
 	/**
@@ -193,8 +184,7 @@ public class RendererUtils {
 			case DataBuffer.TYPE_INT -> new int[nbands];
 			case DataBuffer.TYPE_FLOAT -> new float[nbands];
 			case DataBuffer.TYPE_DOUBLE -> new double[nbands];
-			default -> throw new IllegalArgumentException("Unknown data buffer type: " +
-					dataType);
+			default -> throw new IllegalArgumentException("Unknown data buffer type: " + dataType);
 		};
 
 		for (int y = 0; y < oh; y++) {
@@ -220,8 +210,7 @@ public class RendererUtils {
 	 */
 	public static MatrixStack getEmptyMatrixStack() {
 		if (!empty.isEmpty()) {
-			throw new IllegalStateException(
-					"Supposed \"empty\" stack is not actually empty; someone does not clean up after themselves.");
+			throw new IllegalStateException("Supposed \"empty\" stack is not actually empty; someone does not clean up after themselves.");
 		}
 		empty.loadIdentity(); // reset top to identity, in case someone modified it
 		return empty;
@@ -275,18 +264,14 @@ public class RendererUtils {
 		double deltaY = pos.y - camera.getPos().y;
 		double deltaZ = pos.z - camera.getPos().z;
 
-		Vector4f transformedCoordinates = new Vector4f((float) deltaX, (float) deltaY, (float) deltaZ, 1.f).mul(
-				lastWorldSpaceMatrix);
+		Vector4f transformedCoordinates = new Vector4f((float) deltaX, (float) deltaY, (float) deltaZ, 1.f).mul(lastWorldSpaceMatrix);
 
 		Matrix4f matrixProj = new Matrix4f(lastProjMat);
 		Matrix4f matrixModel = new Matrix4f(lastModMat);
 
-		matrixProj.mul(matrixModel)
-				.project(transformedCoordinates.x(), transformedCoordinates.y(), transformedCoordinates.z(), lastViewport,
-						target);
+		matrixProj.mul(matrixModel).project(transformedCoordinates.x(), transformedCoordinates.y(), transformedCoordinates.z(), lastViewport, target);
 
-		return new Vec3d(target.x / client.getWindow().getScaleFactor(),
-				(displayHeight - target.y) / client.getWindow().getScaleFactor(), target.z);
+		return new Vec3d(target.x / client.getWindow().getScaleFactor(), (displayHeight - target.y) / client.getWindow().getScaleFactor(), target.z);
 	}
 
 	/**
@@ -325,10 +310,7 @@ public class RendererUtils {
 		Matrix4f matrixProj = new Matrix4f(lastProjMat);
 		Matrix4f matrixModel = new Matrix4f(lastModMat);
 
-		matrixProj.mul(matrixModel)
-				.mul(lastWorldSpaceMatrix)
-				.unproject((float) x / displayWidth * lastViewport[2],
-						(float) (displayHeight - y) / displayHeight * lastViewport[3], (float) d, lastViewport, target);
+		matrixProj.mul(matrixModel).mul(lastWorldSpaceMatrix).unproject((float) x / displayWidth * lastViewport[2], (float) (displayHeight - y) / displayHeight * lastViewport[3], (float) d, lastViewport, target);
 
 		return new Vec3d(target.x, target.y, target.z).add(camera.getPos());
 	}
@@ -340,21 +322,5 @@ public class RendererUtils {
 	 */
 	public static int getGuiScale() {
 		return (int) MinecraftClient.getInstance().getWindow().getScaleFactor();
-	}
-
-	private static String randomString(int length) {
-		return IntStream.range(0, length)
-				.mapToObj(operand -> String.valueOf((char) RND.nextInt(RND_START, RND_END + 1)))
-				.collect(Collectors.joining());
-	}
-
-	/**
-	 * Returns an identifier in the renderer namespace, with a random id
-	 *
-	 * @return The identifier
-	 */
-	@Contract(value = "-> new", pure = true)
-	public static Identifier randomIdentifier() {
-		return Identifier.of("renderer", "temp/" + randomString(32));
 	}
 }

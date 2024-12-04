@@ -20,7 +20,7 @@ maven {
 Then add this to your dependencies block in `build.gradle`.
 <!-- CHANGE VERSION HERE!!!! -->
 ```groovy
-include modImplementation("io.github.0x3c50.renderer:renderer-fabric:1.2.4")
+include modImplementation("io.github.0x3c50.renderer:renderer-fabric:1.2.5")
 ``` 
 
 ## Caution

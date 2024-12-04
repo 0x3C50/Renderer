@@ -15,7 +15,7 @@ import java.util.List;
 /**
  * A framebuffer representing the mask for a gaussian blur shader. Color is ignored, alpha is used as multiplicator for the kernel size.
  */
-public class MaskedBlurFramebuffer  extends Framebuffer {
+public class MaskedBlurFramebuffer extends Framebuffer {
 	private static MaskedBlurFramebuffer instance;
 
 	private MaskedBlurFramebuffer(int width, int height) {
@@ -27,8 +27,7 @@ public class MaskedBlurFramebuffer  extends Framebuffer {
 
 	private static MaskedBlurFramebuffer obtain() {
 		if (instance == null) {
-			instance = new MaskedBlurFramebuffer(MinecraftClient.getInstance().getFramebuffer().textureWidth,
-					MinecraftClient.getInstance().getFramebuffer().textureHeight);
+			instance = new MaskedBlurFramebuffer(MinecraftClient.getInstance().getFramebuffer().textureWidth, MinecraftClient.getInstance().getFramebuffer().textureHeight);
 		}
 		return instance;
 	}
@@ -46,13 +45,13 @@ public class MaskedBlurFramebuffer  extends Framebuffer {
 			buffer.resize(mainBuffer.textureWidth, mainBuffer.textureHeight);
 		}
 
-//		GlStateManager._glBindFramebuffer(GL30C.GL_DRAW_FRAMEBUFFER, buffer.fbo);
+		//		GlStateManager._glBindFramebuffer(GL30C.GL_DRAW_FRAMEBUFFER, buffer.fbo);
 
 		buffer.beginWrite(false);
 		r.run();
 		buffer.endWrite();
 
-//		GlStateManager._glBindFramebuffer(GL30C.GL_DRAW_FRAMEBUFFER, mainBuffer.fbo);
+		//		GlStateManager._glBindFramebuffer(GL30C.GL_DRAW_FRAMEBUFFER, mainBuffer.fbo);
 
 		mainBuffer.beginWrite(false);
 	}
@@ -69,8 +68,9 @@ public class MaskedBlurFramebuffer  extends Framebuffer {
 	 * <h4>Tips</h4>
 	 * For a nice looking blur, try to configure the sigma such that the y value at the ends of the graph are close to 0.
 	 * Note that choosing a high sigma leads to a very even influence of all pixels, which makes the blur effect look similar to a box blur.
+	 *
 	 * @param kernelSizePx Kernel size of the gaussian blur shader
-	 * @param sigma Sigma of the gaussian blur shader
+	 * @param sigma        Sigma of the gaussian blur shader
 	 */
 	public static void draw(int kernelSizePx, float sigma) {
 		Framebuffer mainBuffer = MinecraftClient.getInstance().getFramebuffer();
@@ -86,9 +86,7 @@ public class MaskedBlurFramebuffer  extends Framebuffer {
 		firstPassProgram.addSamplerTexture("MaskSampler", buffer.colorAttachment);
 
 
-		gaussianShader.render(
-				mainBuffer, ((GameRendererAccessor) MinecraftClient.getInstance().gameRenderer).getPool()
-		);
+		gaussianShader.render(mainBuffer, ((GameRendererAccessor) MinecraftClient.getInstance().gameRenderer).getPool());
 
 		buffer.clear();
 
@@ -98,8 +96,9 @@ public class MaskedBlurFramebuffer  extends Framebuffer {
 	/**
 	 * Draws the blur effect without any sort of mask, which blurs the entire framebuffer.
 	 * For information for the arguments, see {@link #draw(int, float)}
+	 *
 	 * @param kernelSizePx Kernel size in pixels
-	 * @param sigma Sigma value
+	 * @param sigma        Sigma value
 	 */
 	public static void drawNoMask(int kernelSizePx, float sigma) {
 		PostEffectProcessor gaussianNoMaskShader = ShaderManager.getGaussianNoMaskShader();
@@ -111,8 +110,6 @@ public class MaskedBlurFramebuffer  extends Framebuffer {
 		firstPassProgram.getUniform("width").set(((float) kernelSizePx));
 
 
-		gaussianNoMaskShader.render(
-				MinecraftClient.getInstance().getFramebuffer(), ((GameRendererAccessor) MinecraftClient.getInstance().gameRenderer).getPool()
-		);
+		gaussianNoMaskShader.render(MinecraftClient.getInstance().getFramebuffer(), ((GameRendererAccessor) MinecraftClient.getInstance().gameRenderer).getPool());
 	}
 }

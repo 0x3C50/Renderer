@@ -25,9 +25,7 @@ public class DebugHudMixin {
 		float currentFrameTime = 1000f * 1e+6f / currentFps; // current frame time in ns
 		for (Entry allTickTime : RenderProfiler.getAllTickTimes()) {
 			long t = allTickTime.end() - allTickTime.start();
-			cir.getReturnValue()
-					.add(String.format("[Renderer bench] %s: %07d ns (%02.2f%% of frame)", allTickTime.name(), t,
-							t / currentFrameTime * 100f));
+			cir.getReturnValue().add(String.format("[Renderer bench] %s: %07d ns (%02.2f%% of frame)", allTickTime.name(), t, t / currentFrameTime * 100f));
 		}
 	}
 }

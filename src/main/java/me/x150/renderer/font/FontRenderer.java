@@ -60,14 +60,13 @@ good luck.
 public class FontRenderer implements Closeable {
 	protected static final ExecutorService ASYNC_WORKER = Executors.newCachedThreadPool();
 	protected final Int2ObjectMap<ObjectList<DrawEntry>> GLYPH_PAGE_CACHE = new Int2ObjectOpenHashMap<>();
-//	protected final ObjectList<DrawEntry> CURRENT_ALL_CHARS = new ObjectArrayList<>();
 	protected final float originalSize;
 	protected final int charsPerPage;
 	protected final String prebakeGlyphs;
-	protected GlyphMapPage pageNormal;
-	protected GlyphMapPage pageItalic;
-	protected GlyphMapPage pageBold;
-	protected GlyphMapPage pageBoldItalic;
+	protected GlyphPageManager pageNormal;
+	protected GlyphPageManager pageItalic;
+	protected GlyphPageManager pageBold;
+	protected GlyphPageManager pageBoldItalic;
 	protected float scaleMul = 0;
 	protected Font font;
 	protected int previousGameScale = -1;
@@ -89,7 +88,6 @@ public class FontRenderer implements Closeable {
 	public FontRenderer(@NonNull Font font, float sizePx, int charactersPerPage, @Nullable String prebakeCharacters) {
 		Preconditions.checkArgument(sizePx > 0, "sizePx <= 0");
 		Preconditions.checkArgument(charactersPerPage > 4, "Unreasonable charactersPerPage count (< 4)");
-//		Preconditions.checkArgument(paddingBetweenCharacters > 0, "paddingBetweenCharacters <= 0");
 		this.originalSize = sizePx;
 		this.charsPerPage = charactersPerPage;
 		this.prebakeGlyphs = prebakeCharacters;
@@ -154,10 +152,10 @@ public class FontRenderer implements Closeable {
 			float totalSize = sizePx * this.scaleMul;
 			this.font = fonts.deriveFont(totalSize);
 			this.fontMetrics = FontMetricsAccessor.getMetrics(this.font);
-			this.pageNormal = new GlyphMapPage(font, charsPerPage);
-			this.pageBold = new GlyphMapPage(font.deriveFont(Font.BOLD), charsPerPage);
-			this.pageItalic = new GlyphMapPage(font.deriveFont(Font.ITALIC), charsPerPage);
-			this.pageBoldItalic = new GlyphMapPage(font.deriveFont(Font.BOLD | Font.ITALIC), charsPerPage);
+			this.pageNormal = new GlyphPageManager(font, charsPerPage);
+			this.pageBold = new GlyphPageManager(font.deriveFont(Font.BOLD), charsPerPage);
+			this.pageItalic = new GlyphPageManager(font.deriveFont(Font.ITALIC), charsPerPage);
+			this.pageBoldItalic = new GlyphPageManager(font.deriveFont(Font.BOLD | Font.ITALIC), charsPerPage);
 			if (prebakeGlyphs != null && !prebakeGlyphs.isEmpty()) {
 				prebakeGlyphsFuture = this.prebake();
 			}
@@ -180,13 +178,22 @@ public class FontRenderer implements Closeable {
 		});
 	}
 
+	protected Glyph locateGlyphFailsafe(char glyph, boolean bold, boolean italic) {
+		Glyph original = locateGlyph0(glyph, bold, italic);
+		if (original != null) return original;
+		// uh oh, we have a null glyph. it wasn't found in the font
+		Glyph glyph1 = locateGlyph0('?', bold, italic);
+		if (glyph1 == null) throw new IllegalStateException("didn't find glyph "+glyph+" ("+((int) glyph)+"), then proceeded to ALSO not find ? ("+((int) '?')+"). something's wrong with the font");
+		return glyph1;
+	}
+
 	protected Glyph locateGlyph0(char glyph, boolean bold, boolean italic) {
-		GlyphMapPage page;
+		GlyphPageManager page;
 		if (bold && italic) page = this.pageBoldItalic;
 		else if (bold) page = this.pageBold;
 		else if (italic) page = this.pageItalic;
 		else page = this.pageNormal;
-		GlyphMap map = page.getOrCreateMap(glyph);
+		GlyphPage map = page.getOrCreateMap(glyph);
 		return map.getGlyph(glyph);
 	}
 
@@ -250,7 +257,6 @@ public class FontRenderer implements Closeable {
 		List<List<DrawEntry>> lines = new ArrayList<>();
 		lines.add(new ArrayList<>());
 		synchronized (GLYPH_PAGE_CACHE) {
-			 {
 				orderedText.accept((index, style, codePoint) -> {
 					char c = (char) codePoint;
 					if (c == '\n') {
@@ -267,7 +273,7 @@ public class FontRenderer implements Closeable {
 					float b2 = colorRGBA[2] / 255f;
 					boolean bold = style.isBold();
 					boolean ital = style.isItalic();
-					Glyph glyph = locateGlyph0(c, bold, ital);
+					Glyph glyph = locateGlyphFailsafe(c, bold, ital);
 					if (glyph.value() != ' ') { // we only need to really draw the glyph if it's not blank, otherwise we can just skip its width and that'll be it
 						NativeImageBackedTexture i1 = glyph.owner().texture;
 						DrawEntry entry = new DrawEntry(xOffset[0], yOffset[0], r2, g2, b2, style.isUnderlined(), style.isStrikethrough(), glyph);
@@ -291,20 +297,20 @@ public class FontRenderer implements Closeable {
 						float cg = object.g;
 						float cb = object.b;
 						Glyph glyph = object.toDraw;
-						GlyphMap owner = glyph.owner();
+						GlyphPage owner = glyph.owner();
 						float hOf = (float) (fontMetrics.getAscent() - object.toDraw.glyphRegion().tlToBaselineY());
 						float xOf = (float) -object.toDraw.glyphRegion().tlToBaselineX();
 						float w = (float) glyph.texW();
 						float h = (float) glyph.texH();
-						float u1 = (float) ((glyph.tlX()-2) / owner.width);
-						float v1 = (float) ((glyph.tlY()-2) / owner.height);
+						float u1 = (float) ((glyph.tlX() - 2) / owner.width);
+						float v1 = (float) ((glyph.tlY() - 2) / owner.height);
 						float u2 = (float) ((glyph.tlX() + glyph.texW() + 2) / owner.width);
 						float v2 = (float) ((glyph.tlY() + glyph.texH() + 2) / owner.height);
 
-						bb.vertex(mat, xo + 0-2+xOf, yo + h+2+hOf, 0).texture(u1, v2).color(cr, cg, cb, a);
-						bb.vertex(mat, xo + w+2+xOf, yo + h+2+hOf, 0).texture(u2, v2).color(cr, cg, cb, a);
-						bb.vertex(mat, xo + w+2+xOf, yo + 0-2+hOf, 0).texture(u2, v1).color(cr, cg, cb, a);
-						bb.vertex(mat, xo + 0-2+xOf, yo + 0-2+hOf, 0).texture(u1, v1).color(cr, cg, cb, a);
+						bb.vertex(mat, xo + 0 - 2 + xOf, yo + h + 2 + hOf, 0).texture(u1, v2).color(cr, cg, cb, a);
+						bb.vertex(mat, xo + w + 2 + xOf, yo + h + 2 + hOf, 0).texture(u2, v2).color(cr, cg, cb, a);
+						bb.vertex(mat, xo + w + 2 + xOf, yo + 0 - 2 + hOf, 0).texture(u2, v1).color(cr, cg, cb, a);
+						bb.vertex(mat, xo + 0 - 2 + xOf, yo + 0 - 2 + hOf, 0).texture(u1, v1).color(cr, cg, cb, a);
 					}
 					BufferUtils.draw(bb);
 				}
@@ -320,7 +326,7 @@ public class FontRenderer implements Closeable {
 					for (List<DrawEntry> line : lines) {
 						for (int i = 0; i < line.size(); i++) {
 							DrawEntry currentAllChar = line.get(i);
-							boolean nextIsNewline = i == line.size()-1;
+							boolean nextIsNewline = i == line.size() - 1;
 							float tlX = currentAllChar.atX;
 							float tlY = currentAllChar.atY;
 							Glyph glyph = currentAllChar.toDraw;
@@ -365,7 +371,6 @@ public class FontRenderer implements Closeable {
 				}
 
 				GLYPH_PAGE_CACHE.clear();
-			}
 		}
 		lines.clear();
 		stack.pop();
@@ -411,7 +416,7 @@ public class FontRenderer implements Closeable {
 				currentLine = 0;
 				continue;
 			}
-			Glyph glyph = locateGlyph0(c1, false, false);
+			Glyph glyph = locateGlyphFailsafe(c1, false, false);
 			currentLine += glyph.logicalWidth() / this.scaleMul;
 		}
 		return Math.max(currentLine, maxPreviousLines);
@@ -447,7 +452,7 @@ public class FontRenderer implements Closeable {
 				lineDims[0] = 0;
 				return true;
 			}
-			Glyph glyph = locateGlyph0(c, style.isBold(), style.isItalic());
+			Glyph glyph = locateGlyphFailsafe(c, style.isBold(), style.isItalic());
 			lineDims[0] += (float) glyph.logicalWidth() / this.scaleMul;
 			return true;
 		});

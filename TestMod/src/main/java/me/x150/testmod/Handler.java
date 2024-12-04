@@ -50,7 +50,7 @@ public class Handler {
 	@SneakyThrows
 	public static void hud(DrawContext context) {
 		if (fr == null) {
-			Font fn = Font.decode("MesloLGS NF");
+			Font fn = Font.decode("Cantarell");
 			fr = new FontRenderer(fn, 10);
 			fr.roundCoordinates(true);
 		}

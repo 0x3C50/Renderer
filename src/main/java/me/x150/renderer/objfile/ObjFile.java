@@ -6,10 +6,12 @@ import me.x150.renderer.shader.ShaderManager;
 import me.x150.renderer.util.BufferUtils;
 import me.x150.renderer.util.RendererUtils;
 import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.gl.*;
+import net.minecraft.client.gl.GlUsage;
+import net.minecraft.client.gl.ShaderProgramKeys;
+import net.minecraft.client.gl.VertexBuffer;
 import net.minecraft.client.render.*;
+import net.minecraft.client.texture.NativeImageBackedTexture;
 import net.minecraft.client.util.math.MatrixStack;
-import net.minecraft.util.Identifier;
 import net.minecraft.util.math.Vec3d;
 import org.joml.Matrix4f;
 import org.lwjgl.opengl.GL12;
@@ -45,7 +47,7 @@ import java.util.*;
  */
 public class ObjFile implements Closeable {
 	final Map<Obj, VertexBuffer> buffers = new HashMap<>();
-	final Map<String, Identifier> boundTextures = new HashMap<>();
+	final Map<String, NativeImageBackedTexture> boundTextures = new HashMap<>();
 	private final ResourceProvider provider;
 	private final String name;
 	Map<String, Obj> materialNameObjMap;
@@ -87,12 +89,10 @@ public class ObjFile implements Closeable {
 		}
 	}
 
-	private Identifier createTex0(String s) {
+	private NativeImageBackedTexture createTex0(String s) {
 		try (InputStream reader = this.provider.open(s)) {
-			Identifier identifier = RendererUtils.randomIdentifier();
 			BufferedImage read1 = ImageIO.read(reader);
-			RendererUtils.registerBufferedImageTexture(identifier, read1);
-			return identifier;
+			return RendererUtils.bufferedImageToNIBT(read1);
 		} catch (IOException e) {
 			throw new RuntimeException(e);
 		}
@@ -106,7 +106,7 @@ public class ObjFile implements Closeable {
 			boolean hasTexture = material != null && material.getMapKd() != null;
 			if (hasTexture) {
 				String mapKd = material.getMapKd();
-				boundTextures.computeIfAbsent(mapKd, this::createTex0);
+				if (!boundTextures.containsKey(mapKd)) boundTextures.put(mapKd, this.createTex0(mapKd));
 			}
 			VertexFormat vmf;
 			if (material != null) {
@@ -124,12 +124,10 @@ public class ObjFile implements Closeable {
 					VertexConsumer vertex = b.vertex(xyz.getX(), xyz.getY(), xyz.getZ());
 					if (vmf == VertexFormats.POSITION_TEXTURE_COLOR_NORMAL) {
 						if (!hasUV) {
-							throw new IllegalStateException(
-									"Diffuse texture present, vertex doesn't have UV coordinates. File corrupted?");
+							throw new IllegalStateException("Diffuse texture present, vertex doesn't have UV coordinates. File corrupted?");
 						}
 						if (!hasNormals) {
-							throw new IllegalStateException(
-									"Diffuse texture present, vertex doesn't have normal coordinates. File corrupted?");
+							throw new IllegalStateException("Diffuse texture present, vertex doesn't have normal coordinates. File corrupted?");
 						}
 						FloatTuple uvs = objToDraw.getTexCoord(face.getTexCoordIndex(i1));
 						vertex.texture(uvs.getX(), 1 - uvs.getY());
@@ -191,8 +189,8 @@ public class ObjFile implements Closeable {
 			boolean hasTexture = material != null && material.getMapKd() != null;
 			if (hasTexture) {
 				String mapKd = material.getMapKd();
-				Identifier identifier = boundTextures.get(mapKd);
-				RenderSystem.setShaderTexture(0, identifier);
+				NativeImageBackedTexture texture = boundTextures.get(mapKd);
+				RenderSystem.setShaderTexture(0, texture.getGlId());
 			}
 			if (material != null) {
 				if (hasTexture) {
@@ -222,8 +220,8 @@ public class ObjFile implements Closeable {
 			buffer.close();
 		}
 		buffers.clear();
-		for (Identifier value : boundTextures.values()) {
-			MinecraftClient.getInstance().getTextureManager().destroyTexture(value);
+		for (NativeImageBackedTexture value : boundTextures.values()) {
+			value.close();
 		}
 		boundTextures.clear();
 		allMaterials.clear();

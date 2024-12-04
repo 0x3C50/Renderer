@@ -12,10 +12,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.Objects;
 
 public class ShaderManager {
-	public static final ShaderProgramKey SPK_POSITION_TEX_COLOR_NORMAL =
-			new ShaderProgramKey(Identifier.of("renderer", "core/position_tex_color_normal"),
-					VertexFormats.POSITION_TEXTURE_COLOR_NORMAL,
-					Defines.EMPTY);
+	public static final ShaderProgramKey SPK_POSITION_TEX_COLOR_NORMAL = new ShaderProgramKey(Identifier.of("renderer", "core/position_tex_color_normal"), VertexFormats.POSITION_TEXTURE_COLOR_NORMAL, Defines.EMPTY);
 
 	public static @NotNull PostEffectProcessor getGaussianNoMaskShader() {
 		return getShader("gaussian_no_mask");
@@ -30,9 +27,6 @@ public class ShaderManager {
 	}
 
 	public static @NotNull PostEffectProcessor getShader(String shaderName) {
-		return Objects.requireNonNull(MinecraftClient.getInstance().getShaderLoader().loadPostEffect(
-				Identifier.of("renderer", shaderName),
-				DefaultFramebufferSet.MAIN_ONLY
-		));
+		return Objects.requireNonNull(MinecraftClient.getInstance().getShaderLoader().loadPostEffect(Identifier.of("renderer", shaderName), DefaultFramebufferSet.MAIN_ONLY));
 	}
 }

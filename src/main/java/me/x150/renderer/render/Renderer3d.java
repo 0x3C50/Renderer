@@ -84,8 +84,7 @@ public class Renderer3d {
 	 * @param lifeTimeMs   The lifetime of the block, in millis
 	 */
 	public static void renderFadingBlock(Color outlineColor, Color fillColor, Vec3d start, Vec3d dimensions, long lifeTimeMs) {
-		FadingBlock fb = new FadingBlock(outlineColor, fillColor, start, dimensions, System.currentTimeMillis(),
-				lifeTimeMs);
+		FadingBlock fb = new FadingBlock(outlineColor, fillColor, start, dimensions, System.currentTimeMillis(), lifeTimeMs);
 
 		fades.removeIf(fadingBlock -> fadingBlock.start.equals(start) && fadingBlock.dimensions.equals(dimensions));
 		fades.add(fb);
@@ -109,8 +108,7 @@ public class Renderer3d {
 			double ip = 1 - progress;
 			Color out = modifyColor(fade.outline, -1, -1, -1, (int) (fade.outline.getAlpha() * progress));
 			Color fill = modifyColor(fade.fill, -1, -1, -1, (int) (fade.fill.getAlpha() * progress));
-			renderEdged(stack, fill, out, fade.start.add(new Vec3d(0.2, 0.2, 0.2).multiply(ip)),
-					fade.dimensions.subtract(new Vec3d(.4, .4, .4).multiply(ip)));
+			renderEdged(stack, fill, out, fade.start.add(new Vec3d(0.2, 0.2, 0.2).multiply(ip)), fade.dimensions.subtract(new Vec3d(.4, .4, .4).multiply(ip)));
 		}
 	}
 
@@ -121,8 +119,7 @@ public class Renderer3d {
 	}
 
 	static float[] getColor(Color c) {
-		return new float[]{c.getRed() / 255f, c.getGreen() / 255f, c.getBlue() / 255f, transformColor(
-				c.getAlpha() / 255f)};
+		return new float[]{c.getRed() / 255f, c.getGreen() / 255f, c.getBlue() / 255f, transformColor(c.getAlpha() / 255f)};
 	}
 
 	private static void useBuffer(DrawMode mode, VertexFormat format, ShaderProgramKey shader, Consumer<BufferBuilder> runner) {
@@ -147,46 +144,37 @@ public class Renderer3d {
 	 */
 	public static void renderOutline(MatrixStack stack, Color color, Vec3d start, Vec3d dimensions) {
 		Matrix4f m = stack.peek().getPositionMatrix();
-		genericAABBRender(
-				DrawMode.DEBUG_LINES,
-				VertexFormats.POSITION_COLOR,
-				ShaderProgramKeys.POSITION_COLOR,
-				m,
-				start,
-				dimensions,
-				color,
-				(buffer, x1, y1, z1, x2, y2, z2, red, green, blue, alpha, matrix) -> {
-					buffer.vertex(matrix, x1, y1, z1).color(red, green, blue, alpha);
-					buffer.vertex(matrix, x1, y1, z2).color(red, green, blue, alpha);
-					buffer.vertex(matrix, x1, y1, z2).color(red, green, blue, alpha);
-					buffer.vertex(matrix, x2, y1, z2).color(red, green, blue, alpha);
-					buffer.vertex(matrix, x2, y1, z2).color(red, green, blue, alpha);
-					buffer.vertex(matrix, x2, y1, z1).color(red, green, blue, alpha);
-					buffer.vertex(matrix, x2, y1, z1).color(red, green, blue, alpha);
-					buffer.vertex(matrix, x1, y1, z1).color(red, green, blue, alpha);
+		genericAABBRender(DrawMode.DEBUG_LINES, VertexFormats.POSITION_COLOR, ShaderProgramKeys.POSITION_COLOR, m, start, dimensions, color, (buffer, x1, y1, z1, x2, y2, z2, red, green, blue, alpha, matrix) -> {
+			buffer.vertex(matrix, x1, y1, z1).color(red, green, blue, alpha);
+			buffer.vertex(matrix, x1, y1, z2).color(red, green, blue, alpha);
+			buffer.vertex(matrix, x1, y1, z2).color(red, green, blue, alpha);
+			buffer.vertex(matrix, x2, y1, z2).color(red, green, blue, alpha);
+			buffer.vertex(matrix, x2, y1, z2).color(red, green, blue, alpha);
+			buffer.vertex(matrix, x2, y1, z1).color(red, green, blue, alpha);
+			buffer.vertex(matrix, x2, y1, z1).color(red, green, blue, alpha);
+			buffer.vertex(matrix, x1, y1, z1).color(red, green, blue, alpha);
 
-					buffer.vertex(matrix, x1, y2, z1).color(red, green, blue, alpha);
-					buffer.vertex(matrix, x1, y2, z2).color(red, green, blue, alpha);
-					buffer.vertex(matrix, x1, y2, z2).color(red, green, blue, alpha);
-					buffer.vertex(matrix, x2, y2, z2).color(red, green, blue, alpha);
-					buffer.vertex(matrix, x2, y2, z2).color(red, green, blue, alpha);
-					buffer.vertex(matrix, x2, y2, z1).color(red, green, blue, alpha);
-					buffer.vertex(matrix, x2, y2, z1).color(red, green, blue, alpha);
-					buffer.vertex(matrix, x1, y2, z1).color(red, green, blue, alpha);
+			buffer.vertex(matrix, x1, y2, z1).color(red, green, blue, alpha);
+			buffer.vertex(matrix, x1, y2, z2).color(red, green, blue, alpha);
+			buffer.vertex(matrix, x1, y2, z2).color(red, green, blue, alpha);
+			buffer.vertex(matrix, x2, y2, z2).color(red, green, blue, alpha);
+			buffer.vertex(matrix, x2, y2, z2).color(red, green, blue, alpha);
+			buffer.vertex(matrix, x2, y2, z1).color(red, green, blue, alpha);
+			buffer.vertex(matrix, x2, y2, z1).color(red, green, blue, alpha);
+			buffer.vertex(matrix, x1, y2, z1).color(red, green, blue, alpha);
 
-					buffer.vertex(matrix, x1, y1, z1).color(red, green, blue, alpha);
-					buffer.vertex(matrix, x1, y2, z1).color(red, green, blue, alpha);
+			buffer.vertex(matrix, x1, y1, z1).color(red, green, blue, alpha);
+			buffer.vertex(matrix, x1, y2, z1).color(red, green, blue, alpha);
 
-					buffer.vertex(matrix, x2, y1, z1).color(red, green, blue, alpha);
-					buffer.vertex(matrix, x2, y2, z1).color(red, green, blue, alpha);
+			buffer.vertex(matrix, x2, y1, z1).color(red, green, blue, alpha);
+			buffer.vertex(matrix, x2, y2, z1).color(red, green, blue, alpha);
 
-					buffer.vertex(matrix, x2, y1, z2).color(red, green, blue, alpha);
-					buffer.vertex(matrix, x2, y2, z2).color(red, green, blue, alpha);
+			buffer.vertex(matrix, x2, y1, z2).color(red, green, blue, alpha);
+			buffer.vertex(matrix, x2, y2, z2).color(red, green, blue, alpha);
 
-					buffer.vertex(matrix, x1, y1, z2).color(red, green, blue, alpha);
-					buffer.vertex(matrix, x1, y2, z2).color(red, green, blue, alpha);
-				}
-		);
+			buffer.vertex(matrix, x1, y1, z2).color(red, green, blue, alpha);
+			buffer.vertex(matrix, x1, y2, z2).color(red, green, blue, alpha);
+		});
 	}
 
 
@@ -285,8 +273,7 @@ public class Renderer3d {
 		});
 	}
 
-	private static void genericAABBRender(DrawMode mode, VertexFormat format, ShaderProgramKey shader, Matrix4f stack, Vec3d start, Vec3d dimensions, Color color,
-										  RenderAction action) {
+	private static void genericAABBRender(DrawMode mode, VertexFormat format, ShaderProgramKey shader, Matrix4f stack, Vec3d start, Vec3d dimensions, Color color, RenderAction action) {
 		float red = color.getRed() / 255f;
 		float green = color.getGreen() / 255f;
 		float blue = color.getBlue() / 255f;
@@ -299,8 +286,7 @@ public class Renderer3d {
 		float x2 = (float) end.x;
 		float y2 = (float) end.y;
 		float z2 = (float) end.z;
-		useBuffer(mode, format, shader,
-				bufferBuilder -> action.run(bufferBuilder, x1, y1, z1, x2, y2, z2, red, green, blue, alpha, stack));
+		useBuffer(mode, format, shader, bufferBuilder -> action.run(bufferBuilder, x1, y1, z1, x2, y2, z2, red, green, blue, alpha, stack));
 	}
 
 	/**
@@ -313,46 +299,37 @@ public class Renderer3d {
 	 */
 	public static void renderFilled(MatrixStack stack, Color color, Vec3d start, Vec3d dimensions) {
 		Matrix4f s = stack.peek().getPositionMatrix();
-		genericAABBRender(
-				DrawMode.QUADS,
-				VertexFormats.POSITION_COLOR,
-				ShaderProgramKeys.POSITION_COLOR,
-				s,
-				start,
-				dimensions,
-				color,
-				(buffer, x1, y1, z1, x2, y2, z2, red, green, blue, alpha, matrix) -> {
-					buffer.vertex(matrix, x1, y2, z1).color(red, green, blue, alpha);
-					buffer.vertex(matrix, x1, y2, z2).color(red, green, blue, alpha);
-					buffer.vertex(matrix, x2, y2, z2).color(red, green, blue, alpha);
-					buffer.vertex(matrix, x2, y2, z1).color(red, green, blue, alpha);
+		genericAABBRender(DrawMode.QUADS, VertexFormats.POSITION_COLOR, ShaderProgramKeys.POSITION_COLOR, s, start, dimensions, color, (buffer, x1, y1, z1, x2, y2, z2, red, green, blue, alpha, matrix) -> {
+			buffer.vertex(matrix, x1, y2, z1).color(red, green, blue, alpha);
+			buffer.vertex(matrix, x1, y2, z2).color(red, green, blue, alpha);
+			buffer.vertex(matrix, x2, y2, z2).color(red, green, blue, alpha);
+			buffer.vertex(matrix, x2, y2, z1).color(red, green, blue, alpha);
 
-					buffer.vertex(matrix, x1, y1, z2).color(red, green, blue, alpha);
-					buffer.vertex(matrix, x2, y1, z2).color(red, green, blue, alpha);
-					buffer.vertex(matrix, x2, y2, z2).color(red, green, blue, alpha);
-					buffer.vertex(matrix, x1, y2, z2).color(red, green, blue, alpha);
+			buffer.vertex(matrix, x1, y1, z2).color(red, green, blue, alpha);
+			buffer.vertex(matrix, x2, y1, z2).color(red, green, blue, alpha);
+			buffer.vertex(matrix, x2, y2, z2).color(red, green, blue, alpha);
+			buffer.vertex(matrix, x1, y2, z2).color(red, green, blue, alpha);
 
-					buffer.vertex(matrix, x2, y2, z2).color(red, green, blue, alpha);
-					buffer.vertex(matrix, x2, y1, z2).color(red, green, blue, alpha);
-					buffer.vertex(matrix, x2, y1, z1).color(red, green, blue, alpha);
-					buffer.vertex(matrix, x2, y2, z1).color(red, green, blue, alpha);
+			buffer.vertex(matrix, x2, y2, z2).color(red, green, blue, alpha);
+			buffer.vertex(matrix, x2, y1, z2).color(red, green, blue, alpha);
+			buffer.vertex(matrix, x2, y1, z1).color(red, green, blue, alpha);
+			buffer.vertex(matrix, x2, y2, z1).color(red, green, blue, alpha);
 
-					buffer.vertex(matrix, x2, y2, z1).color(red, green, blue, alpha);
-					buffer.vertex(matrix, x2, y1, z1).color(red, green, blue, alpha);
-					buffer.vertex(matrix, x1, y1, z1).color(red, green, blue, alpha);
-					buffer.vertex(matrix, x1, y2, z1).color(red, green, blue, alpha);
+			buffer.vertex(matrix, x2, y2, z1).color(red, green, blue, alpha);
+			buffer.vertex(matrix, x2, y1, z1).color(red, green, blue, alpha);
+			buffer.vertex(matrix, x1, y1, z1).color(red, green, blue, alpha);
+			buffer.vertex(matrix, x1, y2, z1).color(red, green, blue, alpha);
 
-					buffer.vertex(matrix, x1, y2, z1).color(red, green, blue, alpha);
-					buffer.vertex(matrix, x1, y1, z1).color(red, green, blue, alpha);
-					buffer.vertex(matrix, x1, y1, z2).color(red, green, blue, alpha);
-					buffer.vertex(matrix, x1, y2, z2).color(red, green, blue, alpha);
+			buffer.vertex(matrix, x1, y2, z1).color(red, green, blue, alpha);
+			buffer.vertex(matrix, x1, y1, z1).color(red, green, blue, alpha);
+			buffer.vertex(matrix, x1, y1, z2).color(red, green, blue, alpha);
+			buffer.vertex(matrix, x1, y2, z2).color(red, green, blue, alpha);
 
-					buffer.vertex(matrix, x1, y1, z1).color(red, green, blue, alpha);
-					buffer.vertex(matrix, x2, y1, z1).color(red, green, blue, alpha);
-					buffer.vertex(matrix, x2, y1, z2).color(red, green, blue, alpha);
-					buffer.vertex(matrix, x1, y1, z2).color(red, green, blue, alpha);
-				}
-		);
+			buffer.vertex(matrix, x1, y1, z1).color(red, green, blue, alpha);
+			buffer.vertex(matrix, x2, y1, z1).color(red, green, blue, alpha);
+			buffer.vertex(matrix, x2, y1, z2).color(red, green, blue, alpha);
+			buffer.vertex(matrix, x1, y1, z2).color(red, green, blue, alpha);
+		});
 	}
 
 	/**
@@ -365,19 +342,10 @@ public class Renderer3d {
 	 */
 	public static void renderLine(MatrixStack matrices, Color color, Vec3d start, Vec3d end) {
 		Matrix4f s = matrices.peek().getPositionMatrix();
-		genericAABBRender(
-				DrawMode.DEBUG_LINES,
-				VertexFormats.POSITION_COLOR,
-				ShaderProgramKeys.POSITION_COLOR,
-				s,
-				start,
-				end.subtract(start),
-				color,
-				(buffer, x, y, z, x1, y1, z1, red, green, blue, alpha, matrix) -> {
-					buffer.vertex(matrix, x, y, z).color(red, green, blue, alpha);
-					buffer.vertex(matrix, x1, y1, z1).color(red, green, blue, alpha);
-				}
-		);
+		genericAABBRender(DrawMode.DEBUG_LINES, VertexFormats.POSITION_COLOR, ShaderProgramKeys.POSITION_COLOR, s, start, end.subtract(start), color, (buffer, x, y, z, x1, y1, z1, red, green, blue, alpha, matrix) -> {
+			buffer.vertex(matrix, x, y, z).color(red, green, blue, alpha);
+			buffer.vertex(matrix, x1, y1, z1).color(red, green, blue, alpha);
+		});
 	}
 
 	/**
@@ -389,12 +357,7 @@ public class Renderer3d {
 	 * @return the modified color
 	 */
 	public static Color modifyColor(Color original, int redOverwrite, int greenOverwrite, int blueOverwrite, int alphaOverwrite) {
-		return new Color(
-				redOverwrite == -1 ? original.getRed() : redOverwrite,
-				greenOverwrite == -1 ? original.getGreen() : greenOverwrite,
-				blueOverwrite == -1 ? original.getBlue() : blueOverwrite,
-				alphaOverwrite == -1 ? original.getAlpha() : alphaOverwrite
-		);
+		return new Color(redOverwrite == -1 ? original.getRed() : redOverwrite, greenOverwrite == -1 ? original.getGreen() : greenOverwrite, blueOverwrite == -1 ? original.getBlue() : blueOverwrite, alphaOverwrite == -1 ? original.getAlpha() : alphaOverwrite);
 	}
 
 	interface RenderAction {

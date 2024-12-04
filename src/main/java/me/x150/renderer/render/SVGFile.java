@@ -7,8 +7,9 @@ import com.mojang.blaze3d.systems.RenderSystem;
 import me.x150.renderer.RendererMain;
 import me.x150.renderer.util.RendererUtils;
 import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.texture.AbstractTexture;
+import net.minecraft.client.texture.MissingSprite;
 import net.minecraft.client.util.math.MatrixStack;
-import net.minecraft.util.Identifier;
 import org.intellij.lang.annotations.Language;
 
 import java.awt.*;
@@ -34,7 +35,8 @@ public class SVGFile implements Closeable {
 	final int originalWidth;
 	final int originalHeight;
 	int memoizedGuiScale = -1; // default of -1 means that the svg will get redrawn the first time when render() is called, no matter what
-	Identifier id;
+	AbstractTexture id;
+	boolean isMcTexture;
 
 	/**
 	 * Creates a new SVG file. The SVG is only parsed when {@link #render(MatrixStack, double, double, float, float)} is called.
@@ -53,8 +55,6 @@ public class SVGFile implements Closeable {
 		if (this.id != null) {
 			close(); // destroy texture
 		}
-		this.id = RendererUtils.randomIdentifier();
-		RendererMain.LOGGER.debug("Drawing SVG to identifier {}:{}, dimensions are {}x{}", this.id.getNamespace(), this.id.getPath(), width, height);
 
 		try {
 			SVGLoader loader = new SVGLoader();
@@ -70,11 +70,11 @@ public class SVGFile implements Closeable {
 
 			g.dispose();
 
-			RendererUtils.registerBufferedImageTexture(this.id, bi);
+			this.id = RendererUtils.bufferedImageToNIBT(bi);
 		} catch (Throwable t) {
 			RendererMain.LOGGER.error("Failed to render SVG", t);
-			//noinspection SpellCheckingInspection
-			this.id = Identifier.ofVanilla("missingno"); // yes, this is real. this points to the "missing" texture
+			this.isMcTexture = true;
+			this.id = MinecraftClient.getInstance().getTextureManager().getTexture(MissingSprite.getMissingSpriteId());
 		}
 	}
 
@@ -98,7 +98,8 @@ public class SVGFile implements Closeable {
 			RenderSystem.defaultBlendFunc();
 		}
 		// the actual image is ceil(dims), but is actually only drawn to the raw dims. use ceil(dims) for pixel perfect accuracy without overflowing the bounds
-		Renderer2d.renderTexture(stack, this.id, x, y, Math.ceil(renderWidth), Math.ceil(renderHeight));
+		RenderSystem.setShaderTexture(0, this.id.getGlId());
+		Renderer2d.renderTexture(stack, x, y, Math.ceil(renderWidth), Math.ceil(renderHeight));
 	}
 
 	/**
@@ -113,8 +114,9 @@ public class SVGFile implements Closeable {
 			throw new IllegalStateException("Already closed");
 		}
 		// this might be minecraft's "missingno" texture, we don't want to free that.
-		if (this.id.getNamespace().equals("renderer")) {
-			MinecraftClient.getInstance().getTextureManager().destroyTexture(this.id);
+
+		if (!this.isMcTexture) {
+			this.id.close();
 		}
 		this.id = null;
 	}

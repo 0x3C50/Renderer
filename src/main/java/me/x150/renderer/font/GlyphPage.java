@@ -19,8 +19,10 @@ import java.util.Arrays;
 import java.util.List;
 
 @Slf4j
-public class GlyphMap {
+public class GlyphPage {
 	private static final Path DUMP_PATH;
+	private static final int PADDING = 2;
+
 	static {
 		String property = System.getProperty("renderer.dumpGlyphMapsPath");
 		if (property != null) {
@@ -30,7 +32,7 @@ public class GlyphMap {
 			DUMP_PATH = null;
 		}
 	}
-	private static final int PADDING = 2;
+
 	final char fromIncl, toExcl;
 	final Font font;
 	private final Glyph[] glyphs;
@@ -39,7 +41,7 @@ public class GlyphMap {
 
 	boolean generated = false;
 
-	public GlyphMap(char fromIncl, char toExcl, Font font) {
+	public GlyphPage(char fromIncl, char toExcl, Font font) {
 		this.fromIncl = fromIncl;
 		this.toExcl = toExcl;
 		this.font = font;
@@ -75,8 +77,6 @@ public class GlyphMap {
 		}
 	}
 
-	record PreGlyphRegion(double width, double height, double tlToBaselineX, double tlToBaselineY, TextLayout layout, char c) {}
-
 	private void privateGenerate() {
 		if (generated) {
 			return;
@@ -89,15 +89,14 @@ public class GlyphMap {
 		FontRenderContext frc = new FontRenderContext(af, true, false);
 		FontMetrics fm = FontMetricsAccessor.getMetrics(font);
 		List<PreGlyphRegion> glyphRegions = new ArrayList<>();
-		for(char currentChar = fromIncl; currentChar < toExcl; currentChar++) {
+		for (char currentChar = fromIncl; currentChar < toExcl; currentChar++) {
 			if (!font.canDisplay(currentChar)) continue;
 			TextLayout layout = new TextLayout(String.valueOf(currentChar), font, frc);
 			Rectangle2D bounds = layout.getBounds();
-			PreGlyphRegion pgr = new PreGlyphRegion(bounds.getWidth(), bounds.getHeight(),
-					-bounds.getX(),-bounds.getY(),layout,currentChar);
+			PreGlyphRegion pgr = new PreGlyphRegion(bounds.getWidth(), bounds.getHeight(), -bounds.getX(), -bounds.getY(), layout, currentChar);
 			glyphRegions.add(pgr);
 		}
-		double optimalWidth = glyphRegions.stream().mapToDouble(it -> it.width+4).sum();
+		double optimalWidth = glyphRegions.stream().mapToDouble(it -> it.width + 4).sum();
 		// find optimal width to balance width and height, for a near-1:1 texture
 		// max 10 attempts or until the delta between width and height is below 50 pixels
 		for (int i = 0; i < 10; i++) {
@@ -111,7 +110,7 @@ public class GlyphMap {
 					fx = 0;
 				}
 				maxHeightHere = Math.max(maxHeightHere, glyphRegion.height);
-				fx += glyphRegion.width+PADDING*2+1;
+				fx += glyphRegion.width + PADDING * 2 + 1;
 			}
 			heightWithThatWidth += maxHeightHere; // account for last line
 			if (Math.abs(optimalWidth - heightWithThatWidth) < 50) break; // good enough
@@ -121,28 +120,26 @@ public class GlyphMap {
 			if (currentX >= optimalWidth) {
 				currentY += currentRowMaxY;
 				currentRowMaxY = 0;
-				maxX = Math.max(maxX,currentX);
+				maxX = Math.max(maxX, currentX);
 				currentX = 0;
 			}
 
-			double drawAtX = currentX+glyphRegion.tlToBaselineX+PADDING;
-			double drawAtY = currentY+glyphRegion.tlToBaselineY+PADDING;
+			double drawAtX = currentX + glyphRegion.tlToBaselineX + PADDING;
+			double drawAtY = currentY + glyphRegion.tlToBaselineY + PADDING;
 
 			float theCharAscent = glyphRegion.layout.getAscent();
 			int theNormalAscent = fm.getAscent();
 			float ascentAdd = theNormalAscent - theCharAscent;
 
-			Glyph gle = new Glyph(
-					currentX, currentY, glyphRegion.width, glyphRegion.height,
+			glyphs1.add(new Glyph(currentX, currentY,
+					glyphRegion.width, glyphRegion.height,
 					ascentAdd,
 					drawAtX, drawAtY, (int) Math.ceil(this.font.getStringBounds(String.valueOf(glyphRegion.c), frc).getWidth()),
-					glyphRegion.c, glyphRegion, this
-			);
-			glyphs1.add(gle);
+					glyphRegion.c, glyphRegion, this));
 
-			int height = (int) (Math.ceil(glyphRegion.height)+PADDING*2+1);
+			int height = (int) (Math.ceil(glyphRegion.height) + PADDING * 2 + 1);
 			currentRowMaxY = Math.max(currentRowMaxY, height);
-			currentX += (int) (Math.ceil(glyphRegion.width)+PADDING*2+1);
+			currentX += (int) (Math.ceil(glyphRegion.width) + PADDING * 2 + 1);
 		}
 
 		maxY = currentY + currentRowMaxY;
@@ -161,7 +158,7 @@ public class GlyphMap {
 		g2d.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
 
 		g2d.setFont(font);
-//		FontMetrics fontMetrics = g2d.getFontMetrics();
+		//		FontMetrics fontMetrics = g2d.getFontMetrics();
 		for (Glyph glyph : glyphs1) {
 			glyph.glyphRegion().layout.draw(g2d, (float) glyph.baselineX(), (float) glyph.baselineY());
 			glyphs[glyph.value() - fromIncl] = glyph;
@@ -178,5 +175,9 @@ public class GlyphMap {
 		}
 		this.texture = RendererUtils.bufferedImageToNIBT(bi);
 		generated = true;
+	}
+
+	record PreGlyphRegion(double width, double height, double tlToBaselineX, double tlToBaselineY, TextLayout layout,
+						  char c) {
 	}
 }

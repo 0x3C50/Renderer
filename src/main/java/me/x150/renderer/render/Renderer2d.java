@@ -63,23 +63,11 @@ public class Renderer2d {
 	 * @param textureWidth  The texture width (can be width)
 	 * @param textureHeight The texture height (can be height)
 	 */
-	public static void renderTexture(MatrixStack matrices, double x0, double y0, double width, double height, float u, float v, double regionWidth, double regionHeight, double textureWidth,
-									 double textureHeight) {
+	public static void renderTexture(MatrixStack matrices, double x0, double y0, double width, double height, float u, float v, double regionWidth, double regionHeight, double textureWidth, double textureHeight) {
 		double x1 = x0 + width;
 		double y1 = y0 + height;
 		double z = 0;
-		renderTexturedQuad(
-				matrices.peek().getPositionMatrix(),
-				x0,
-				x1,
-				y0,
-				y1,
-				z,
-				(u + 0.0F) / (float) textureWidth,
-				(u + (float) regionWidth) / (float) textureWidth,
-				(v + 0.0F) / (float) textureHeight,
-				(v + (float) regionHeight) / (float) textureHeight
-		);
+		renderTexturedQuad(matrices.peek().getPositionMatrix(), x0, x1, y0, y1, z, (u + 0.0F) / (float) textureWidth, (u + (float) regionWidth) / (float) textureWidth, (v + 0.0F) / (float) textureHeight, (v + (float) regionHeight) / (float) textureHeight);
 	}
 
 	private static void renderTexturedQuad(Matrix4f matrix, double x0, double x1, double y0, double y1, double z, float u0, float u1, float v0, float v1) {
@@ -142,14 +130,12 @@ public class Renderer2d {
 
 		float[] colorFloat = getColor(ellipseColor);
 
-		BufferBuilder buffer =Tessellator.getInstance().begin(DrawMode.TRIANGLE_FAN, VertexFormats.POSITION_COLOR);
+		BufferBuilder buffer = Tessellator.getInstance().begin(DrawMode.TRIANGLE_FAN, VertexFormats.POSITION_COLOR);
 		for (int i = 0; i < 360; i += (int) Math.min(360d / segments, 360 - i)) {
 			double radians = Math.toRadians(i);
 			double sin = Math.sin(radians) * radX;
 			double cos = Math.cos(radians) * radY;
-			buffer.vertex(matrix, (float) (originX + sin), (float) (originY + cos), 0)
-					.color(colorFloat[0], colorFloat[1], colorFloat[2], colorFloat[3])
-					;
+			buffer.vertex(matrix, (float) (originX + sin), (float) (originY + cos), 0).color(colorFloat[0], colorFloat[1], colorFloat[2], colorFloat[3]);
 		}
 		setupRender();
 		RenderSystem.setShader(ShaderProgramKeys.POSITION_COLOR);
@@ -195,19 +181,15 @@ public class Renderer2d {
 
 		float[] colorFloat = getColor(ellipseColor);
 
-		BufferBuilder buffer =Tessellator.getInstance().begin(DrawMode.TRIANGLE_STRIP, VertexFormats.POSITION_COLOR);
+		BufferBuilder buffer = Tessellator.getInstance().begin(DrawMode.TRIANGLE_STRIP, VertexFormats.POSITION_COLOR);
 		for (int i = 0; i <= segments; i++) {
 			double radians = Math.toRadians((double) i / segments * 360d);
 			double sin = Math.sin(radians) * (radX - width);
 			double cos = Math.cos(radians) * (radY - height);
 			double sin1 = Math.sin(radians) * radX;
 			double cos1 = Math.cos(radians) * radY;
-			buffer.vertex(matrix, (float) (originX + sin), (float) (originY + cos), 0)
-					.color(colorFloat[0], colorFloat[1], colorFloat[2], colorFloat[3])
-					;
-			buffer.vertex(matrix, (float) (originX + sin1), (float) (originY + cos1), 0)
-					.color(colorFloat[0], colorFloat[1], colorFloat[2], colorFloat[3])
-					;
+			buffer.vertex(matrix, (float) (originX + sin), (float) (originY + cos), 0).color(colorFloat[0], colorFloat[1], colorFloat[2], colorFloat[3]);
+			buffer.vertex(matrix, (float) (originX + sin1), (float) (originY + cos1), 0).color(colorFloat[0], colorFloat[1], colorFloat[2], colorFloat[3]);
 		}
 		setupRender();
 		RenderSystem.setShader(ShaderProgramKeys.POSITION_COLOR);
@@ -241,19 +223,11 @@ public class Renderer2d {
 		Matrix4f matrix = matrices.peek().getPositionMatrix();
 		float[] colorFloat = getColor(color);
 
-		BufferBuilder buffer =Tessellator.getInstance().begin(DrawMode.QUADS, VertexFormats.POSITION_COLOR);
-		buffer.vertex(matrix, (float) x1, (float) y2, 0.0F)
-				.color(colorFloat[0], colorFloat[1], colorFloat[2], colorFloat[3])
-				;
-		buffer.vertex(matrix, (float) x2, (float) y2, 0.0F)
-				.color(colorFloat[0], colorFloat[1], colorFloat[2], colorFloat[3])
-				;
-		buffer.vertex(matrix, (float) x2, (float) y1, 0.0F)
-				.color(colorFloat[0], colorFloat[1], colorFloat[2], colorFloat[3])
-				;
-		buffer.vertex(matrix, (float) x1, (float) y1, 0.0F)
-				.color(colorFloat[0], colorFloat[1], colorFloat[2], colorFloat[3])
-				;
+		BufferBuilder buffer = Tessellator.getInstance().begin(DrawMode.QUADS, VertexFormats.POSITION_COLOR);
+		buffer.vertex(matrix, (float) x1, (float) y2, 0.0F).color(colorFloat[0], colorFloat[1], colorFloat[2], colorFloat[3]);
+		buffer.vertex(matrix, (float) x2, (float) y2, 0.0F).color(colorFloat[0], colorFloat[1], colorFloat[2], colorFloat[3]);
+		buffer.vertex(matrix, (float) x2, (float) y1, 0.0F).color(colorFloat[0], colorFloat[1], colorFloat[2], colorFloat[3]);
+		buffer.vertex(matrix, (float) x1, (float) y1, 0.0F).color(colorFloat[0], colorFloat[1], colorFloat[2], colorFloat[3]);
 
 		setupRender();
 		RenderSystem.setShader(ShaderProgramKeys.POSITION_COLOR);
@@ -261,9 +235,8 @@ public class Renderer2d {
 		endRender();
 	}
 
-	private static void renderRoundedQuadInternal(Matrix4f matrix, float cr, float cg, float cb, float ca, float fromX, float fromY, float toX, float toY, float radC1, float radC2, float radC3,
-												  float radC4, float samples) {
-		BufferBuilder bufferBuilder =Tessellator.getInstance().begin(DrawMode.TRIANGLE_FAN, VertexFormats.POSITION_COLOR);
+	private static void renderRoundedQuadInternal(Matrix4f matrix, float cr, float cg, float cb, float ca, float fromX, float fromY, float toX, float toY, float radC1, float radC2, float radC3, float radC4, float samples) {
+		BufferBuilder bufferBuilder = Tessellator.getInstance().begin(DrawMode.TRIANGLE_FAN, VertexFormats.POSITION_COLOR);
 
 		setRc(toX - radC4, toY - radC4, radC4, 0);
 		setRc(toX - radC2, fromY + radC2, radC2, 1);
@@ -308,8 +281,7 @@ public class Renderer2d {
 		setupRender();
 		RenderSystem.setShader(ShaderProgramKeys.POSITION_COLOR);
 
-		renderRoundedQuadInternal(matrix, r, g, b, a, (float) fromX, (float) fromY, (float) toX, (float) toY, radTL,
-				radTR, radBL, radBR, samples);
+		renderRoundedQuadInternal(matrix, r, g, b, a, (float) fromX, (float) fromY, (float) toX, (float) toY, radTL, radTR, radBL, radBR, samples);
 		endRender();
 	}
 
@@ -335,9 +307,8 @@ public class Renderer2d {
 		roundedCache[i][2] = c;
 	}
 
-	private static void renderRoundedOutlineInternal(Matrix4f matrix, float cr, float cg, float cb, float ca, float fromX, float fromY, float toX, float toY, float radC1, float radC2, float radC3,
-													 float radC4, float width, float samples) {
-		BufferBuilder bufferBuilder =Tessellator.getInstance().begin(DrawMode.TRIANGLE_STRIP, VertexFormats.POSITION_COLOR);
+	private static void renderRoundedOutlineInternal(Matrix4f matrix, float cr, float cg, float cb, float ca, float fromX, float fromY, float toX, float toY, float radC1, float radC2, float radC3, float radC4, float width, float samples) {
+		BufferBuilder bufferBuilder = Tessellator.getInstance().begin(DrawMode.TRIANGLE_STRIP, VertexFormats.POSITION_COLOR);
 
 		setRc(toX - radC4, toY - radC4, radC4, 0);
 		setRc(toX - radC2, fromY + radC2, radC2, 1);
@@ -353,9 +324,7 @@ public class Renderer2d {
 				float cos1 = Math.cos(rad1);
 				float cos = cos1 * rad;
 				bufferBuilder.vertex(matrix, current[0] + sin, current[1] + cos, 0.0F).color(cr, cg, cb, ca);
-				bufferBuilder.vertex(matrix, current[0] + sin + sin1 * width, current[1] + cos + cos1 * width, 0.0F)
-						.color(cr, cg, cb, ca)
-						;
+				bufferBuilder.vertex(matrix, current[0] + sin + sin1 * width, current[1] + cos + cos1 * width, 0.0F).color(cr, cg, cb, ca);
 			}
 		}
 		// last vertex connecting back to start
@@ -382,8 +351,7 @@ public class Renderer2d {
 	 * @param outlineWidth Width of the outline
 	 * @param samples      Amount of samples to use per corner
 	 */
-	public static void renderRoundedOutline(MatrixStack matrices, Color c, double fromX, double fromY, double toX, double toY, float radTL, float radTR, float radBL, float radBR, float outlineWidth,
-											float samples) {
+	public static void renderRoundedOutline(MatrixStack matrices, Color c, double fromX, double fromY, double toX, double toY, float radTL, float radTR, float radBL, float radBR, float outlineWidth, float samples) {
 		Matrix4f matrix = matrices.peek().getPositionMatrix();
 		float[] color1 = getColor(c);
 		float r = color1[0];
@@ -393,8 +361,7 @@ public class Renderer2d {
 		setupRender();
 		RenderSystem.setShader(ShaderProgramKeys.POSITION_COLOR);
 
-		renderRoundedOutlineInternal(matrix, r, g, b, a, (float) fromX, (float) fromY, (float) toX, (float) toY, radTL,
-				radTR, radBL, radBR, outlineWidth, samples);
+		renderRoundedOutlineInternal(matrix, r, g, b, a, (float) fromX, (float) fromY, (float) toX, (float) toY, radTL, radTR, radBL, radBR, outlineWidth, samples);
 		endRender();
 	}
 
@@ -429,13 +396,9 @@ public class Renderer2d {
 		float[] colorFloat = Colors.intArrayToFloatArray(Colors.ARGBIntToRGBA(color.getRGB()));
 		Matrix4f m = stack.peek().getPositionMatrix();
 
-		BufferBuilder bufferBuilder =Tessellator.getInstance().begin(DrawMode.DEBUG_LINES, VertexFormats.POSITION_COLOR);
-		bufferBuilder.vertex(m, (float) x, (float) y, 0f)
-				.color(colorFloat[0], colorFloat[1], colorFloat[2], colorFloat[3])
-				;
-		bufferBuilder.vertex(m, (float) x1, (float) y1, 0f)
-				.color(colorFloat[0], colorFloat[1], colorFloat[2], colorFloat[3])
-				;
+		BufferBuilder bufferBuilder = Tessellator.getInstance().begin(DrawMode.DEBUG_LINES, VertexFormats.POSITION_COLOR);
+		bufferBuilder.vertex(m, (float) x, (float) y, 0f).color(colorFloat[0], colorFloat[1], colorFloat[2], colorFloat[3]);
+		bufferBuilder.vertex(m, (float) x1, (float) y1, 0f).color(colorFloat[0], colorFloat[1], colorFloat[2], colorFloat[3]);
 
 		setupRender();
 		RenderSystem.setShader(ShaderProgramKeys.POSITION_COLOR);

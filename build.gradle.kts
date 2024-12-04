@@ -1,5 +1,5 @@
 plugins {
-    id("fabric-loom") version ("1.8-SNAPSHOT")
+    id("fabric-loom") version ("1.9-SNAPSHOT")
     signing
     id("eu.kakde.gradle.sonatype-maven-central-publisher") version "1.0.6"
 }
