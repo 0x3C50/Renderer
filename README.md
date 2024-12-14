@@ -2,7 +2,7 @@
 An easy-to-use rendering library for modern fabric.
 
 # Installing
-You can install this library using [Jitpack](https://jitpack.io/)
+This library can be found on [Maven central](https://central.sonatype.com/artifact/io.github.0x3c50.renderer/renderer-fabric).
 
 To install this library, add the ladysnake repository (for gradle to find satin):
 ```groovy
