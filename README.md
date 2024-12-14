@@ -4,24 +4,14 @@ An easy-to-use rendering library for modern fabric.
 # Installing
 This library can be found on [Maven central](https://central.sonatype.com/artifact/io.github.0x3c50.renderer/renderer-fabric).
 
-To install this library, add the ladysnake repository (for gradle to find satin):
-```groovy
-maven {
-    name = 'Ladysnake Mods'
-    url = 'https://maven.ladysnake.org/releases'
-    content {
-        includeGroup 'io.github.ladysnake'
-        includeGroup 'org.ladysnake'
-        includeGroupByRegex 'dev\\.onyxstudios.*'
-    }
-}
-```
-
-Then add this to your dependencies block in `build.gradle`.
+To install it, simply add this snippet to the dependencies section of your `build.gradle`.
 <!-- CHANGE VERSION HERE!!!! -->
 ```groovy
 include modImplementation("io.github.0x3c50.renderer:renderer-fabric:1.2.5")
-``` 
+```
+
+This will include the library as a JIJ ("Jar in Jar") dependency, such that your users won't have to worry about installing it themselves.
+If you don't want to include the library in your mod, remove the `include`. (JUST THE `include`. Keep everything else intact. It should be `modImplementation(...)`)
 
 ## Caution
 It's important to use fabric's **`modImplementation`** instead of the regular `implementation`, since this is technically a mod that needs remapping. Using anything else except `modImplementation` will not remap the library, which causes invalid names to be present.
