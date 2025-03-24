@@ -4,14 +4,24 @@ An easy-to-use rendering library for modern fabric.
 # Installing
 This library can be found on [Maven central](https://central.sonatype.com/artifact/io.github.0x3c50.renderer/renderer-fabric).
 
-To install it, simply add this snippet to the dependencies section of your `build.gradle`.
+To install it, add this snippet to the dependencies section of your `build.gradle`:
 <!-- CHANGE VERSION HERE!!!! -->
 ```groovy
-include modImplementation("io.github.0x3c50.renderer:renderer-fabric:1.2.5")
+include modImplementation("io.github.0x3c50.renderer:renderer-fabric:1.2.6")
 ```
-
 This will include the library as a JIJ ("Jar in Jar") dependency, such that your users won't have to worry about installing it themselves.
 If you don't want to include the library in your mod, remove the `include`. (JUST THE `include`. Keep everything else intact. It should be `modImplementation(...)`)
+
+Then, to make sure the correct HarfBuzz version (for the font renderer) is included, also add:
+```groovy
+include implementation("org.lwjgl:lwjgl-harfbuzz:3.3.3:natives-(platform)")
+```
+and replace the (platform) with a lwjgl platform. As previously mentioned, you can omit the include if you dont want to JiJ this dependency.
+You can add multiple instances of this dependency with different platforms to target multiple platforms.
+
+Note that you don't *have* to include this dependency, lwjgl can use the system installation of the library as well. It might not work as expected tho, since versions may differ. If you want to make sure, include the dependency.
+
+The available platforms can be found here: https://repo1.maven.org/maven2/org/lwjgl/lwjgl-harfbuzz/3.3.3/ (lwjgl-harfbuzz-3.3.3-natives-(platform).jar)
 
 ## Caution
 It's important to use fabric's **`modImplementation`** instead of the regular `implementation`, since this is technically a mod that needs remapping. Using anything else except `modImplementation` will not remap the library, which causes invalid names to be present.
@@ -26,10 +36,7 @@ Since the build contains some secrets for deploying, which are filled in by a gr
 It doesn't have to contain anything, the secrets will just be blank by default.
 
 # Usage
-The api has an extensive javadoc, which explains almost anything. The wiki also has some more insights and examples.
-
-# The two renderers
-Renderer2d draws in 2 dimensions, on the hud. Renderer3d draws in 3 dimensions, in the world.
+The specific components have a javadoc, and the wiki also contains some information. Other than that, just try stuff until it works ;)
 
 # Events
 This library uses fabric's event system, the wiki has examples on how it works. Their wiki has more details.

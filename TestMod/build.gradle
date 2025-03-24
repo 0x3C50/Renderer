@@ -21,6 +21,8 @@ dependencies {
     // To change the versions see the gradle.properties file
     minecraft "com.mojang:minecraft:${project.minecraft_version}"
     mappings "net.fabricmc:yarn:${project.yarn_mappings}:v2"
+
+
     modApi "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
 
     compileOnly 'org.projectlombok:lombok:1.18.30'
@@ -28,7 +30,43 @@ dependencies {
 
     implementation("com.github.weisj:jsvg:1.4.0")
     api(group: "de.javagl", name: "obj", version: "0.4.0")
+
+    implementation("org.lwjgl:lwjgl-harfbuzz:3.3.3")
+
+    implementation("org.lwjgl:lwjgl-harfbuzz:3.3.3:natives-linux")
+
 //    modApi("org.ladysnake:satin:2.0.0") {
 //        exclude module: "fabric-api"
 //    }
 }
+
+//tasks.register("renderDoc", Exec) {
+//    doLast {
+//
+//    }
+//}
+//
+//register<Exec>("run + RenderDoc") {
+//    val javaHome = Jvm.current().javaHome
+//
+//    commandLine = listOf(
+//            "C:\\Program Files\\RenderDoc\\renderdoccmd.exe",
+//            "capture",
+//            "--opt-api-validation", // Remove if you don't want api validation
+//            "--opt-api-validation-unmute", // Remove if you don't want api validation
+//            "--opt-hook-children",
+//            "--wait-for-exit",
+//            "--working-dir",
+//            ".",
+//            "$javaHome/bin/java.exe",
+//            "-Xmx64m",
+//            "-Xms64m",
+//            //"-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=*:5005", // Uncomment for remote debug
+//            "-Dorg.gradle.appname=gradlew",
+//            "-Dorg.gradle.java.home=$javaHome",
+//            "-classpath",
+//            "C:\\Users\\******\\gradle\\wrapper\\gradle-wrapper.jar",
+//            "org.gradle.wrapper.GradleWrapperMain",
+//            ":fabric:runClient",
+//    )
+//}

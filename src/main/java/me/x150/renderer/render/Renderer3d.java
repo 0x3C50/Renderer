@@ -1,7 +1,6 @@
 package me.x150.renderer.render;
 
 import com.mojang.blaze3d.systems.RenderSystem;
-import me.x150.renderer.util.AlphaOverride;
 import me.x150.renderer.util.BufferUtils;
 import me.x150.renderer.util.RendererUtils;
 import net.minecraft.client.MinecraftClient;
@@ -69,11 +68,6 @@ public class Renderer3d {
 		}
 	}
 
-	@SuppressWarnings("removal")
-	static float transformColor(float f) {
-		return AlphaOverride.compute(f);
-	}
-
 	/**
 	 * Renders a fading block, that gets more transparent with time
 	 *
@@ -119,7 +113,7 @@ public class Renderer3d {
 	}
 
 	static float[] getColor(Color c) {
-		return new float[]{c.getRed() / 255f, c.getGreen() / 255f, c.getBlue() / 255f, transformColor(c.getAlpha() / 255f)};
+		return new float[]{c.getRed() / 255f, c.getGreen() / 255f, c.getBlue() / 255f, c.getAlpha() / 255f};
 	}
 
 	private static void useBuffer(DrawMode mode, VertexFormat format, ShaderProgramKey shader, Consumer<BufferBuilder> runner) {
@@ -277,7 +271,7 @@ public class Renderer3d {
 		float red = color.getRed() / 255f;
 		float green = color.getGreen() / 255f;
 		float blue = color.getBlue() / 255f;
-		float alpha = transformColor(color.getAlpha() / 255f);
+		float alpha = color.getAlpha() / 255f;
 		Vec3d vec3d = transformVec3d(start);
 		Vec3d end = vec3d.add(dimensions);
 		float x1 = (float) vec3d.x;

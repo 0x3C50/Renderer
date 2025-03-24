@@ -1,5 +1,5 @@
 plugins {
-    id("fabric-loom") version ("1.9-SNAPSHOT")
+    id("fabric-loom") version ("1.10-SNAPSHOT")
     signing
     id("eu.kakde.gradle.sonatype-maven-central-publisher") version "1.0.6"
 }
@@ -56,10 +56,10 @@ subprojects {
 
     dependencies {
         // include the root project because that's where our common code is
-        implementation(project(path = ":", configuration = "namedElements")) {
+        include(implementation(project(path = ":", configuration = "namedElements")) {
             // having 2 floaders from the sub project and root project causes issues so we get rid of one.
             exclude(group = "net.fabricmc", module = "fabric-loader")
-        }
+        })
     }
 }
 
@@ -94,8 +94,17 @@ dependencies {
     compileOnly("org.projectlombok:lombok:1.18.30")
     annotationProcessor("org.projectlombok:lombok:1.18.30")
 
-    implementation("com.github.weisj:jsvg:1.4.0")
-    implementation(group = "de.javagl", name = "obj", version = "0.4.0")
+    include(implementation("com.github.weisj:jsvg:1.4.0")!!)
+    include(implementation(group = "de.javagl", name = "obj", version = "0.4.0"))
+
+    // https://mvnrepository.com/artifact/org.lwjgl/lwjgl-harfbuzz
+    include(implementation("org.lwjgl:lwjgl-harfbuzz:3.3.3")!!)
+
+//    implementation("org.lwjgl:lwjgl-harfbuzz:3.3.3:natives-linux")
+
+
+
+
 //    modApi("org.ladysnake:satin:${properties["satin_version"]}") {
 //        exclude(module = "fabric-api")
 //    }

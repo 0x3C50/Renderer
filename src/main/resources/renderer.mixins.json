@@ -10,6 +10,7 @@
 		"GameRendererAccessor",
 		"GameRendererMixin",
 		"InGameHudMixin",
+		"MinecraftClientMixin",
 		"NativeImageAccessor",
 		"PostEffectProcessorMixin"
 	],

@@ -13,6 +13,7 @@ import java.util.Objects;
 
 public class ShaderManager {
 	public static final ShaderProgramKey SPK_POSITION_TEX_COLOR_NORMAL = new ShaderProgramKey(Identifier.of("renderer", "core/position_tex_color_normal"), VertexFormats.POSITION_TEXTURE_COLOR_NORMAL, Defines.EMPTY);
+	public static final ShaderProgramKey SPK_RENDERTYPE_TEXT_LUMI = new ShaderProgramKey(Identifier.of("renderer", "core/custom_text"), VertexFormats.POSITION_COLOR_TEXTURE_LIGHT, Defines.EMPTY);
 
 	public static @NotNull PostEffectProcessor getGaussianNoMaskShader() {
 		return getShader("gaussian_no_mask");
