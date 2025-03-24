@@ -4,6 +4,7 @@ import com.google.common.util.concurrent.AtomicDouble;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.render.RenderLayer;
 import net.minecraft.client.render.VertexConsumer;
 import net.minecraft.client.render.VertexConsumerProvider;
@@ -48,7 +49,7 @@ public class GlyphBuffer {
 	}
 
 	private final List<Glyph> glyphs = new ArrayList<>();
-	public int minX, minY, maxX, maxY;
+	public float minX, minY, maxX, maxY;
 
 	{
 		resetBounds();
@@ -67,7 +68,7 @@ public class GlyphBuffer {
 		maxX = maxY = Integer.MIN_VALUE;
 	}
 
-	int offsetX, offsetY = 0;
+	public float offsetX, offsetY = 0;
 
 	/**
 	 * Move the content such that a call to {@link #draw(VertexConsumerProvider, MatrixStack, float, float)} will position the (-minX, -minY) coordinate at the given render coordinates.
@@ -82,10 +83,47 @@ public class GlyphBuffer {
 	 */
 	public void offsetToCenter() {
 		offsetToTopLeft();
-		int width = maxX - minX;
-		int height = maxY - minY;
+		float width = maxX - minX;
+		float height = maxY - minY;
 		offsetX -= width / 2;
 		offsetY -= height / 2;
+	}
+
+	public void drawDebuggingInformation(DrawContext dc, float x, float y) {
+		if (glyphs.isEmpty()) return;
+
+		MatrixStack stack = dc.getMatrices();
+
+		stack.push();
+		stack.translate(x, y, 0);
+
+		dc.drawBorder((int) (minX + offsetX), (int) (minY + offsetY), (int) Math.ceil(maxX - minX), (int) Math.ceil(maxY - minY), 0xFFFF0000);
+
+		float sf = (float) MinecraftClient.getInstance().getWindow().getScaleFactor();
+		stack.scale(1f/sf, 1f/sf, 1);
+
+
+		for (Glyph glyph : glyphs) {
+			float glyphBaselineX = (glyph.x + offsetX) * sf;
+			float glyphBaselineY = (glyph.y + offsetY) * sf;
+
+			GlyphPage.Glyph theGlyph = glyph.font.getGlyph(glyph.glyphId);
+
+			// draw glyph
+			int bmpl = theGlyph.drawOffsetX();
+			int bmpt = theGlyph.drawOffsetY();
+			int wid = theGlyph.bitmapWidth();
+			int hei = theGlyph.bitmapHeight();
+			float topLeftX = glyphBaselineX + bmpl;
+			float topLeftY = glyphBaselineY - bmpt;
+
+			dc.drawBorder((int) topLeftX, (int) topLeftY, wid, hei, 0xFF00FF00);
+
+			dc.drawHorizontalLine((int) glyphBaselineX, (int) (glyphBaselineX+wid), ((int) glyphBaselineY), 0xFF0000FF);
+		}
+
+
+		stack.pop();
 	}
 
 	/**
@@ -104,7 +142,6 @@ public class GlyphBuffer {
 //		int offsetY = -minY;
 
 		float sf = (float) MinecraftClient.getInstance().getWindow().getScaleFactor();
-//		stack.push();
 		stack.scale(1f/sf, 1f/sf, 1);
 
 		Matrix4f posmat = stack.peek().getPositionMatrix();
@@ -328,21 +365,21 @@ public class GlyphBuffer {
 			float actualY = y + (yOffset / 64f);
 
 			GlyphPage.GlyphMetrics gMet = font.getGlyph(glyphIndex).metrics();
-
-			float left = (actualX + (gMet.hbX() / 64f));
-			float top = (actualY - (gMet.hbY() / 64f));
-			float right = (left + (gMet.width() / 64f));
-			float bottom = (top + (gMet.height() / 64f));
 			// add glyph
 
 			Glyph g = new Glyph(font, glyphIndex, actualX, actualY, style, thisRunId,
 					i);
 			glyphs.add(g);
 
-			this.minX = Math.min(this.minX, (int) left);
-			this.minY = Math.min(this.minY, (int) top);
-			this.maxX = Math.max(this.maxX, (int) Math.ceil(right));
-			this.maxY = Math.max(this.maxY, (int) Math.ceil(bottom));
+			float left = (actualX + (gMet.hbX() / 64f / font.lastScale));
+			float top = (actualY - (gMet.hbY() / 64f / font.lastScale));
+			float right = (left + (gMet.width() / 64f / font.lastScale));
+			float bottom = (top + (gMet.height() / 64f / font.lastScale));
+
+			this.minX = Math.min(this.minX, left);
+			this.minY = Math.min(this.minY, top);
+			this.maxX = Math.max(this.maxX, right);
+			this.maxY = Math.max(this.maxY, bottom);
 
 			x += xAdvance;
 			y += yAdvance;
