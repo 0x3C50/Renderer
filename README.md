@@ -1,6 +1,11 @@
 # Renderer
 An easy-to-use rendering library for modern fabric.
 
+# WARNING
+This library is currently in the progress of being rewritten from the ground up. A lot of mistakes have been made when first designing this library that now have to be fixed to support 1.21.5.
+
+Currently, this library supports version 1.21.4. Support for 1.21.5 will come with renderer 2.0.0.
+
 # Installing
 This library can be found on [Maven central](https://central.sonatype.com/artifact/io.github.0x3c50.renderer/renderer-fabric).
 
