@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "id": "testmod",
-  "version": "${version}",
+  "version": "1.0.0",
   "name": "TestMod",
   "description": "Test mod for the renderer library",
   "authors": [

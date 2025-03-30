@@ -1,0 +1,45 @@
+{
+	"targets": {
+		"swap": {}
+	},
+	"passes": [
+		{
+			"vertex_shader": "minecraft:post/sobel",
+			"fragment_shader": "renderer:program/gaussian_no_mask",
+			"inputs": [
+				{
+					"sampler_name": "In",
+					"target": "minecraft:main",
+					"bilinear": true
+				}
+			],
+			"output": "swap",
+			"uniforms": [
+				{
+					"name": "direction",
+					"values": [1, 0],
+					"type": "vec2"
+				}
+			]
+		},
+		{
+			"vertex_shader": "minecraft:post/sobel",
+			"fragment_shader": "renderer:program/gaussian_no_mask",
+			"inputs": [
+				{
+					"sampler_name": "In",
+					"target": "swap",
+					"bilinear": true
+				}
+			],
+			"output": "minecraft:main",
+			"uniforms": [
+				{
+					"name": "direction",
+					"values": [0, 1],
+					"type": "vec2"
+				}
+			]
+		}
+	]
+}

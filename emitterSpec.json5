@@ -1,0 +1,41 @@
+{
+	"quad": {
+		"elements": [
+			"position", "color"
+		],
+		"nFaces": 1,
+		"nVerticesInFace": 4,
+		"nInput": 4,
+		"indices": [
+			0, 1, 2, 3
+		]
+	},
+	"cube": {
+		"elements": [
+			"position", "color"
+		],
+		"nFaces": 6,
+		"nVerticesInFace": 4,
+		"nInput": 8,
+		"indices": [
+			3,0,1,2,
+			4,7,6,5,
+			
+			0,4,5,1,
+			1,5,6,2,
+			2,6,7,3,
+			3,7,4,0
+		]
+	},
+	"line": {
+		"elements": [
+			"position", "color", "normal"
+		],
+		"nFaces": 1,
+		"nVerticesInFace": 2,
+		"nInput": 2,
+		"indices": [
+			0, 1
+		]
+	}
+}
