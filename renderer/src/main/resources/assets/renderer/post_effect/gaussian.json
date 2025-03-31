@@ -11,6 +11,13 @@
 					"sampler_name": "In",
 					"target": "minecraft:main",
 					"bilinear": true
+				},
+				{
+					"sampler_name": "Mask",
+					"location": "renderer:placeholder",
+					"width": 1,
+					"height": 1,
+					"bilinear": false
 				}
 			],
 			"output": "swap",
@@ -30,6 +37,13 @@
 					"sampler_name": "In",
 					"target": "swap",
 					"bilinear": true
+				},
+				{
+					"sampler_name": "Mask",
+					"location": "renderer:placeholder",
+					"width": 1,
+					"height": 1,
+					"bilinear": false
 				}
 			],
 			"output": "minecraft:main",

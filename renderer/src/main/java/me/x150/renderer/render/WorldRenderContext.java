@@ -27,7 +27,13 @@ public record WorldRenderContext(Camera camera, VertexConsumerProvider vcp) {
 		float g = color.green();
 		float b = color.blue();
 		float a = color.alpha();
-		Emitter._emit_quad__4xposition_color(transform, buffer, x + 0, y + 0, z + 0, r, g, b, a, x + w, y + 0, z + 0, r, g, b, a, x + w, y + h, z + 0, r, g, b, a, x + 0, y + h, z + 0, r, g, b, a);
+		//@formatter:off
+		Emitter._emit_quad__4xposition_color(transform, buffer,
+				x + 0, y + 0, z + 0, r, g, b, a,
+				x + w, y + 0, z + 0, r, g, b, a,
+				x + w, y + h, z + 0, r, g, b, a,
+				x + 0, y + h, z + 0, r, g, b, a);
+		//@formatter:on
 	}
 
 	public void drawFilledCube(MatrixStack stack, RenderLayer layer, Vec3d position, float w, float h, float d, Color color) {
@@ -41,9 +47,17 @@ public record WorldRenderContext(Camera camera, VertexConsumerProvider vcp) {
 		float g = color.green();
 		float b = color.blue();
 		float a = color.alpha();
-		Emitter._emit_cube__8xposition_color(transform, buffer, x + 0, y + 0, z + 0, r, g, b, a, x + w, y + 0, z + 0, r, g, b, a, x + w, y + 0, z + d, r, g, b, a, x + 0, y + 0, z + d, r, g, b, a,
-
-				x + 0, y + h, z + 0, r, g, b, a, x + w, y + h, z + 0, r, g, b, a, x + w, y + h, z + d, r, g, b, a, x + 0, y + h, z + d, r, g, b, a);
+		//@formatter:off
+		Emitter._emit_cube__8xposition_color(transform, buffer,
+				x + 0, y + 0, z + 0, r, g, b, a,
+				x + w, y + 0, z + 0, r, g, b, a,
+				x + w, y + 0, z + d, r, g, b, a,
+				x + 0, y + 0, z + d, r, g, b, a,
+				x + 0, y + h, z + 0, r, g, b, a,
+				x + w, y + h, z + 0, r, g, b, a,
+				x + w, y + h, z + d, r, g, b, a,
+				x + 0, y + h, z + d, r, g, b, a);
+		//@formatter:on
 	}
 
 	public void drawLine(MatrixStack stack, RenderLayer layer, Vec3d start, Vec3d end, Color color) {
@@ -62,6 +76,10 @@ public record WorldRenderContext(Camera camera, VertexConsumerProvider vcp) {
 		float g = color.green();
 		float b = color.blue();
 		float a = color.alpha();
-		Emitter._emit_line__2xposition_color_normal(transform, buffer, x1, y1, z1, r, g, b, a, direction.x, direction.y, direction.z, x2, y2, z2, r, g, b, a, direction.x, direction.y, direction.z);
+		//@formatter:off
+		Emitter._emit_line__2xposition_color_normal(transform, buffer,
+				x1, y1, z1, r, g, b, a, direction.x, direction.y, direction.z,
+				x2, y2, z2, r, g, b, a, direction.x, direction.y, direction.z);
+		//@formatter:on
 	}
 }

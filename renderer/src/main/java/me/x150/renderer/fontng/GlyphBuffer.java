@@ -181,7 +181,13 @@ public class GlyphBuffer {
 				float h = page.getTexHeight();
 
 				// small insets to make sure we're always INSIDE this char's bounds
-				buffer.vertex(posmat, topLeftX, topLeftY, 0).color(actualColor).texture((glyphX + 0.01f) / w, (glyphY + 0.01f) / h).light(0xf000f0).vertex(posmat, topLeftX, topLeftY + (float) hei, 0).color(actualColor).texture((glyphX + 0.01f) / w, (glyphY + hei - 0.01f) / h).light(0xf000f0).vertex(posmat, topLeftX + (float) wid, topLeftY + (float) hei, 0).color(actualColor).texture((glyphX + wid - 0.01f) / w, (glyphY + hei - 0.01f) / h).light(0xf000f0).vertex(posmat, topLeftX + (float) wid, topLeftY, 0).color(actualColor).texture((glyphX + wid - 0.01f) / w, (glyphY + 0.01f) / h).light(0xf000f0);
+				//@formatter:off
+				buffer
+						.vertex(posmat, topLeftX, 	   topLeftY, 	  0).color(actualColor).texture((glyphX + 0.01f) / w, 	  (glyphY + 0.01f) / h)		.light(0xf000f0)
+						.vertex(posmat, topLeftX, 	   topLeftY + hei, 0).color(actualColor).texture((glyphX + 0.01f) / w, 	  (glyphY + hei - 0.01f) / h).light(0xf000f0)
+						.vertex(posmat, topLeftX + wid, topLeftY + hei, 0).color(actualColor).texture((glyphX + wid - 0.01f) / w, (glyphY + hei - 0.01f) / h).light(0xf000f0)
+						.vertex(posmat, topLeftX + wid, topLeftY, 	  0).color(actualColor).texture((glyphX + wid - 0.01f) / w, (glyphY + 0.01f) / h)		.light(0xf000f0);
+				//@formatter:on
 			}
 		}
 
@@ -244,14 +250,20 @@ public class GlyphBuffer {
 					default -> throw new IllegalStateException();
 				};
 				for (Rectangle rect : rcs) {
-					float left = rect.x;
-					float right = (float) rect.endX.get();
+					float le = rect.x;
+					float ri = (float) rect.endX.get();
 					float theY = rect.y;
 					float height = rect.height;
 					int actualColor = 0xFFFFFFFF;
 					if (rect.color != null) actualColor = (rect.color.getRgb()) | (0xFF << 24);
 
-					quadBuffer.vertex(posmat, left, theY, 0).color(actualColor).vertex(posmat, left, theY + height, 0).color(actualColor).vertex(posmat, right, theY + height, 0).color(actualColor).vertex(posmat, right, theY, 0).color(actualColor);
+					//@formatter:off
+					quadBuffer
+							.vertex(posmat, le, theY, 	   	 0).color(actualColor)
+							.vertex(posmat, le, theY + height, 0).color(actualColor)
+							.vertex(posmat, ri, theY + height, 0).color(actualColor)
+							.vertex(posmat, ri, theY, 		 0).color(actualColor);
+					//@formatter:on
 				}
 			}
 		}

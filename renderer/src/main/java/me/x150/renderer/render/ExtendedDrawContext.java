@@ -32,7 +32,7 @@ public class ExtendedDrawContext {
 		}
 	}
 
-	public static void drawRR(DrawContext instance, float x, float y, float width, float height, Vector4f roundness, Color color) {
+	public static void drawRoundedRect(DrawContext instance, float x, float y, float width, float height, Vector4f roundness, Color color) {
 		VertexConsumerProvider.Immediate vcp = ((DrawContextAccessor) instance).getVertexConsumers();
 		VertexConsumer ellipse = vcp.getBuffer(CustomRenderLayers.ROUNDED_RECT.apply(roundness));
 		MatrixStack.Entry transform = instance.getMatrices().peek();
@@ -68,6 +68,8 @@ public class ExtendedDrawContext {
 
 		Vector2f direction = new Vector2f(toX, toY).sub(x, y).normalize();
 
-		Emitter._emit_line__2xposition_color_normal(transform, ellipse, x, y, 0, r, g, b, a, direction.x, direction.y, 0, toX, toY, 0, r, g, b, a, direction.x, direction.y, 0);
+		Emitter._emit_line__2xposition_color_normal(transform, ellipse,
+				x, y, 0, r, g, b, a, direction.x, direction.y, 0,
+				toX, toY, 0, r, g, b, a, direction.x, direction.y, 0);
 	}
 }
