@@ -4,7 +4,7 @@ plugins {
     id("eu.kakde.gradle.sonatype-maven-central-publisher") version "1.0.6"
 }
 
-apply(from = rootProject.file("deploying/secrets.gradle.kts"))
+apply(from = file("deploying/secrets.gradle.kts"))
 
 version = rootProject.properties["mod_version"]!!
 group = rootProject.properties["maven_group"]!!
@@ -75,7 +75,7 @@ tasks {
 }
 
 base {
-    archivesName = properties["archivesBaseName"] as String
+    archivesName = "renderer-fabric"
 }
 
 publishing {
