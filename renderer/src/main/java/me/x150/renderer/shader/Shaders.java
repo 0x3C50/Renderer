@@ -11,11 +11,11 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.Objects;
 
-public class ShaderManager {
+public class Shaders {
 	private static final PostEffectProcessor gausNoMask = getShader("gaussian_no_mask");
 	private static final PostEffectProcessor gausWithMask = getShader("gaussian");
 
-	public static @NotNull PostEffectProcessor getShader(String shaderName) {
+	private static @NotNull PostEffectProcessor getShader(String shaderName) {
 		return Objects.requireNonNull(MinecraftClient.getInstance().getShaderLoader().loadPostEffect(Identifier.of("renderer", shaderName), DefaultFramebufferSet.MAIN_ONLY));
 	}
 

@@ -68,6 +68,10 @@ tasks {
     named("sourcesJar") {
         dependsOn("generateEmitter")
     }
+
+    withType<Javadoc> {
+        (options as StandardJavadocDocletOptions).addBooleanOption("Xdoclint:all,-missing", true)
+    }
 }
 
 base {

@@ -29,7 +29,7 @@ import java.nio.IntBuffer;
  * <p>Utils for rendering in minecraft</p>
  */
 @SuppressWarnings("unused")
-public class RendererUtils {
+public class RenderUtils {
 	@ApiStatus.Internal
 	public static final Matrix4f lastProjMat = new Matrix4f();
 	@ApiStatus.Internal

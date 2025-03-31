@@ -1,7 +1,6 @@
-package me.x150.renderer.render;
+package me.x150.renderer.util;
 
 import com.mojang.blaze3d.systems.RenderSystem;
-import me.x150.renderer.util.Rectangle;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.util.math.MathHelper;

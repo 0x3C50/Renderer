@@ -12,7 +12,20 @@ import net.minecraft.client.util.math.MatrixStack;
 import org.joml.Vector2f;
 import org.joml.Vector4f;
 
+/**
+ * More utilities for drawing on the hud
+ */
 public class ExtendedDrawContext {
+	/**
+	 * Draws an ellipse. The radius is dependent on width and height, the ellipse might be stretched depending on
+	 * width and height. Color is uniform.
+	 * @param instance DrawContext to draw with
+	 * @param x Top left X coordinate
+	 * @param y Top left Y coordinate
+	 * @param width Width
+	 * @param height Height
+	 * @param color Color
+	 */
 	public static void drawEllipse(DrawContext instance, float x, float y, float width, float height, Color color) {
 		VertexConsumerProvider.Immediate vcp = ((DrawContextAccessor) instance).getVertexConsumers();
 		VertexConsumer ellipse = vcp.getBuffer(CustomRenderLayers.ELLIPSE_QUADS);
@@ -32,6 +45,16 @@ public class ExtendedDrawContext {
 		}
 	}
 
+	/**
+	 * Draw a rounded rectangle. Color is uniform.
+	 * @param instance DrawContext to draw with
+	 * @param x Top left X coordinate
+	 * @param y Top left Y coordinate
+	 * @param width Width
+	 * @param height Height
+	 * @param roundness Vec4 describing roundness of each corner, in logical pixels. Order is {@code (TR, BR, TL, BL)}.
+	 * @param color Color
+	 */
 	public static void drawRoundedRect(DrawContext instance, float x, float y, float width, float height, Vector4f roundness, Color color) {
 		VertexConsumerProvider.Immediate vcp = ((DrawContextAccessor) instance).getVertexConsumers();
 		VertexConsumer ellipse = vcp.getBuffer(CustomRenderLayers.ROUNDED_RECT.apply(roundness));
@@ -56,6 +79,16 @@ public class ExtendedDrawContext {
 		}
 	}
 
+	/**
+	 * Draws a line. Color is uniform.
+	 * @param instance DrawContext to draw with
+	 * @param x Start X
+	 * @param y Start Y
+	 * @param toX End X
+	 * @param toY End Y
+	 * @param thickness Thickness of the line, or 0 for default
+	 * @param color Color
+	 */
 	public static void drawLine(DrawContext instance, float x, float y, float toX, float toY, float thickness, Color color) {
 		VertexConsumerProvider.Immediate vcp = ((DrawContextAccessor) instance).getVertexConsumers();
 		VertexConsumer ellipse = vcp.getBuffer(CustomRenderLayers.getLines(thickness, false));

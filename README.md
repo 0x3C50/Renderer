@@ -1,18 +1,13 @@
 # Renderer
 An easy-to-use rendering library for modern fabric.
 
-# WARNING
-This library is currently in the progress of being rewritten from the ground up. A lot of mistakes have been made when first designing this library that now have to be fixed to support 1.21.5.
-
-Currently, this library supports version 1.21.4. Support for 1.21.5 will come with renderer 2.0.0.
-
 # Installing
 This library can be found on [Maven central](https://central.sonatype.com/artifact/io.github.0x3c50.renderer/renderer-fabric).
 
 To install it, add this snippet to the dependencies section of your `build.gradle`:
 <!-- CHANGE VERSION HERE!!!! -->
 ```groovy
-include modImplementation("io.github.0x3c50.renderer:renderer-fabric:1.2.6.1")
+include modImplementation("io.github.0x3c50.renderer:renderer-fabric:2.0.0")
 ```
 This will include the library as a JIJ ("Jar in Jar") dependency, such that your users won't have to worry about installing it themselves.
 If you don't want to include the library in your mod, remove the `include`. (JUST THE `include`. Keep everything else intact. It should be `modImplementation(...)`)
@@ -41,6 +36,7 @@ Since the build contains some secrets for deploying, which are filled in by a gr
 It doesn't have to contain anything, the secrets will just be blank by default.
 
 # Usage
+Guides can be found in `guides/`.
 The specific components have a javadoc, and the wiki also contains some information. Other than that, just try stuff until it works ;)
 
 # Events

@@ -31,6 +31,6 @@ public class RenderEvents {
 
 	@FunctionalInterface
 	public interface RenderEvent<T> {
-		void rendered(T matrixStack);
+		void rendered(T context);
 	}
 }

@@ -7,7 +7,7 @@ import me.x150.renderer.mixin.GameRendererAccessor;
 import me.x150.renderer.render.CustomRenderLayers;
 import me.x150.renderer.render.ExtendedDrawContext;
 import me.x150.renderer.render.WorldRenderContext;
-import me.x150.renderer.shader.ShaderManager;
+import me.x150.renderer.shader.Shaders;
 import me.x150.renderer.util.Color;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.DrawContext;
@@ -38,7 +38,7 @@ public class Handler {
 		context.draw();
 		FrameGraphBuilder fgb = new FrameGraphBuilder();
 		AbstractTexture testmod = MinecraftClient.getInstance().getTextureManager().getTexture(Identifier.of("testmod", "untitled.png"));
-		ShaderManager.drawBlur(fgb, 12, 6.6f, testmod.getGlTexture());
+		Shaders.drawBlur(fgb, 12, 6.6f, testmod.getGlTexture());
 		fgb.run(((GameRendererAccessor)MinecraftClient.getInstance().gameRenderer).getPool());
 		//		mat.pop();
 		//		context.draw();

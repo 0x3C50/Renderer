@@ -6,7 +6,7 @@ import com.mojang.blaze3d.opengl.GlStateManager;
 import com.mojang.blaze3d.systems.RenderSystem;
 import me.x150.renderer.event.RenderEvents;
 import me.x150.renderer.util.RenderProfiler;
-import me.x150.renderer.util.RendererUtils;
+import me.x150.renderer.util.RenderUtils;
 import net.minecraft.client.render.*;
 import net.minecraft.client.util.ObjectAllocator;
 import net.minecraft.client.util.math.MatrixStack;
@@ -29,10 +29,10 @@ public abstract class GameRendererMixin {
 
 		RenderProfiler.begin("World");
 
-		RendererUtils.lastProjMat.set(RenderSystem.getProjectionMatrix());
-		RendererUtils.lastModMat.set(RenderSystem.getModelViewMatrix());
-		RendererUtils.lastWorldSpaceMatrix.set(matrix.peek().getPositionMatrix());
-		GL11.glGetIntegerv(GL11.GL_VIEWPORT, RendererUtils.lastViewport);
+		RenderUtils.lastProjMat.set(RenderSystem.getProjectionMatrix());
+		RenderUtils.lastModMat.set(RenderSystem.getModelViewMatrix());
+		RenderUtils.lastWorldSpaceMatrix.set(matrix.peek().getPositionMatrix());
+		GL11.glGetIntegerv(GL11.GL_VIEWPORT, RenderUtils.lastViewport);
 
 		RenderEvents.AFTER_WORLD.invoker().rendered(matrix);
 

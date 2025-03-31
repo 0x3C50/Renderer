@@ -16,7 +16,8 @@ import java.nio.ByteOrder;
  * Allows for direct writing of sequential data, bypassing the offsets BufferBuilder uses.
  * This is useful if you have a VertexFormat with duplicate or esoteric elements, that BufferBuilder doesn't know about.
  * <h2>A word of caution</h2>
- * This class grants immense power. With that power comes many abilities to shoot yourself in the foot.
+ * Vanilla BufferBuilder has guards against wrong ordering, underflowing, overflowing etc. This class does not care.
+ * <p>This class grants immense power. With that power comes many abilities to shoot yourself in the foot.
  * Here be common footguns, and what happens when they're fired:
  * <ul>
  *     <li>Writing too much data: buffer overflow exception is thrown from the ByteBuffer</li>
