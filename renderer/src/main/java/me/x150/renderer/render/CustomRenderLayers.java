@@ -286,8 +286,8 @@ public class CustomRenderLayers {
 	 * @return RenderLayer
 	 */
 	public static RenderLayer getLines(float width, boolean throughWalls) {
-		if (throughWalls) return LINES.apply((double) width);
-		else return LINES_NO_DEPTH_TEST.apply((double) width);
+		if (throughWalls) return LINES_NO_DEPTH_TEST.apply((double) width);
+		else return LINES.apply((double) width);
 	}
 
 }
