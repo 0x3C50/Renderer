@@ -11,7 +11,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 @Mixin(MinecraftClient.class)
 public class MinecraftClientMixin {
 	@Inject(method = "onResolutionChanged", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/util/Window;setScaleFactor(D)V"))
-	void preSetScaleFactor(CallbackInfo ci, @Local(name = "i") int i) {
+	void preSetScaleFactor(CallbackInfo ci, @Local(ordinal = 0) int i) {
 		FontScalingRegistry.resize(i);
 	}
 }

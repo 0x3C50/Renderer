@@ -36,7 +36,7 @@ public class RenderLayerMixin implements MoreRenderLayer {
 	}
 
 	@Inject(method = "draw", at = @At(value = "INVOKE", target = "Lcom/mojang/blaze3d/systems/RenderPass;drawIndexed(II)V"))
-	void beforeDraw(BuiltBuffer buffer, CallbackInfo ci, @Local(name = "renderPass") RenderPass pass) {
+	void beforeDraw(BuiltBuffer buffer, CallbackInfo ci, @Local(ordinal = 0) RenderPass pass) {
 		uniforms.forEach((k, v) -> {
 			switch (v) {
 				case float[] fa -> pass.setUniform(k, fa);

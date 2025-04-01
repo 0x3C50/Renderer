@@ -37,12 +37,21 @@ java {
 tasks {
     withType<ProcessResources> {
         inputs.property("version", project.version)
+        val fabApi = rootProject.properties["fabric_version"]
+        inputs.property("fapi_version", fabApi)
+        val loader = rootProject.properties["loader_version"]
+        inputs.property("loader_version", loader)
+        val mc = rootProject.properties["minecraft_version"]
+        inputs.property("minecraft_version", mc)
         filteringCharset = "UTF-8"
 
         filesMatching("fabric.mod.json") {
             expand(
                 mapOf(
-                    "version" to version
+                    "version" to version,
+                    "fapi_version" to fabApi,
+                    "loader_version" to loader,
+                    "minecraft_version" to mc
                 )
             )
         }
