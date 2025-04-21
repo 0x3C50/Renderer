@@ -26,7 +26,7 @@ import static net.minecraft.client.render.RenderPhase.*;
  * Custom or extended RenderLayers
  */
 public class CustomRenderLayers {
-	private static final RenderPipeline TEXT_CUSTOM_PIPELINE = RenderPipelines.register(
+	private static final RenderPipeline PIPELINE_TEXT_CUSTOM = RenderPipelines.register(
 			RenderPipeline.builder(RenderPipelines.TEXT_SNIPPET, RenderPipelines.FOG_SNIPPET)
 					.withLocation(Identifier.of("renderer", "pipeline/text_lumi"))
 					.withVertexShader(Identifier.of("renderer", "core/custom_text"))
@@ -48,7 +48,7 @@ public class CustomRenderLayers {
 	 *     <tr>
 	 *         <td>{@link VertexFormats#POSITION_COLOR_TEXTURE_LIGHT}</td>
 	 *         <td>{@link com.mojang.blaze3d.vertex.VertexFormat.DrawMode#QUADS}</td>
-	 *         <td>{@link #TEXT_CUSTOM_PIPELINE}</td>
+	 *         <td>{@link #PIPELINE_TEXT_CUSTOM}</td>
 	 *     </tr>
 	 * </table>
 	 */
@@ -56,7 +56,7 @@ public class CustomRenderLayers {
 			"renderer/text_intensity_custom",
 			1024,
 			false,
-			false, TEXT_CUSTOM_PIPELINE,
+			false, PIPELINE_TEXT_CUSTOM,
 			RenderLayer.MultiPhaseParameters.builder()
 					.texture(new GlIdTexturing(texture, false))
 					.lightmap(ENABLE_LIGHTMAP)
@@ -124,7 +124,7 @@ public class CustomRenderLayers {
 	);
 
 
-	private static final RenderPipeline NDT_LINES_NODEPTH = RenderPipelines.register(RenderPipeline.builder(RenderPipelines.RENDERTYPE_LINES_SNIPPET)
+	private static final RenderPipeline LINES_NODEPTH_PIPELINE = RenderPipelines.register(RenderPipeline.builder(RenderPipelines.RENDERTYPE_LINES_SNIPPET)
 			.withLocation(Identifier.of("renderer", "pipeline/lines_nodepth"))
 			.withDepthTestFunction(DepthTestFunction.NO_DEPTH_TEST)
 			.withDepthWrite(true)
@@ -144,20 +144,20 @@ public class CustomRenderLayers {
 	 *     <tr>
 	 *         <td>{@link VertexFormats#POSITION_COLOR_NORMAL}</td>
 	 *         <td>{@link com.mojang.blaze3d.vertex.VertexFormat.DrawMode#LINES}</td>
-	 *         <td>{@link #NDT_LINES_NODEPTH}</td>
+	 *         <td>{@link #LINES_NODEPTH_PIPELINE}</td>
 	 *     </tr>
 	 * </table>
 	 */
 	public static final Function<Double, RenderLayer> LINES_NO_DEPTH_TEST = Util.memoize(width -> RenderLayer.of(
 			"renderer/always_depth_lines",
 			1024,
-			false, true, NDT_LINES_NODEPTH,
+			false, true, LINES_NODEPTH_PIPELINE,
 			RenderLayer.MultiPhaseParameters.builder()
 					.lineWidth(new LineWidth(width == 0d ? OptionalDouble.empty() : OptionalDouble.of(width)))
 					.build(false)
 	));
 
-	private static final RenderPipeline NDT_LINES_DEPTH = RenderPipelines.register(RenderPipeline.builder(RenderPipelines.RENDERTYPE_LINES_SNIPPET)
+	private static final RenderPipeline LINES_DEPTH_PIPELINE = RenderPipelines.register(RenderPipeline.builder(RenderPipelines.RENDERTYPE_LINES_SNIPPET)
 			.withLocation(Identifier.of("renderer", "pipeline/lines_depth"))
 			.withVertexFormat(VertexFormats.POSITION_COLOR_NORMAL, VertexFormat.DrawMode.LINES)
 			.build()
@@ -174,14 +174,14 @@ public class CustomRenderLayers {
 	 *     <tr>
 	 *         <td>{@link VertexFormats#POSITION_COLOR_NORMAL}</td>
 	 *         <td>{@link com.mojang.blaze3d.vertex.VertexFormat.DrawMode#LINES}</td>
-	 *         <td>{@link #NDT_LINES_DEPTH}</td>
+	 *         <td>{@link #LINES_DEPTH_PIPELINE}</td>
 	 *     </tr>
 	 * </table>
 	 */
 	public static final Function<Double, RenderLayer> LINES = Util.memoize(width -> RenderLayer.of(
 			"renderer/lines",
 			1024,
-			false, true, NDT_LINES_DEPTH,
+			false, true, LINES_DEPTH_PIPELINE,
 			RenderLayer.MultiPhaseParameters.builder()
 					.lineWidth(new LineWidth(width == 0d ? OptionalDouble.empty() : OptionalDouble.of(width)))
 					.build(false)
@@ -221,12 +221,12 @@ public class CustomRenderLayers {
 			RenderLayer.MultiPhaseParameters.builder()
 					.build(false)
 	);
-	private static final RenderPipeline NDT_RR = RenderPipelines.register(RenderPipeline.builder(RenderPipelines.MATRICES_COLOR_SNIPPET)
+	private static final RenderPipeline RR_PIPELINE = RenderPipelines.register(RenderPipeline.builder(RenderPipelines.MATRICES_COLOR_SNIPPET)
 			.withBlend(BlendFunction.TRANSLUCENT)
 			.withVertexFormat(VertexFormat.builder()
 					.add("Position", VertexFormatElement.POSITION)
 					.add("UV0", VertexFormatElement.UV0)
-					.add("UV1", VertexFormatElement.register(6, 0, VertexFormatElement.Type.FLOAT, VertexFormatElement.Usage.UV, 2))
+					.add("UV1", VertexFormatElement.register(getNextVFId(), 0, VertexFormatElement.Type.FLOAT, VertexFormatElement.Usage.UV, 2))
 					.add("Color", VertexFormatElement.COLOR)
 					.build(), VertexFormat.DrawMode.QUADS)
 			.withCull(true)
@@ -234,6 +234,13 @@ public class CustomRenderLayers {
 			.withVertexShader(Identifier.of("renderer", "core/rendertype_rr"))
 			.withLocation(Identifier.of("renderer", "pipeline/2d/quad_ellipse"))
 			.build());
+
+	private static int getNextVFId() {
+		for(int i = 0; i < VertexFormatElement.MAX_COUNT; i++) {
+			if (VertexFormatElement.byId(i) == null) return i;
+		}
+		throw new IllegalStateException("No more free VertexFormatElement slots");
+	}
 	/**
 	 * Position, (texture, texture), color quads, with a shader producing rounded rects with a given "roundness" instead of quads.
 	 * The texture components are used by the shader to determine the position of the current vertex.
@@ -250,7 +257,7 @@ public class CustomRenderLayers {
 	 *     <tr>
 	 *         <td>POSITION_TEXTURE_TEXTURE_COLOR (inline definition)</td>
 	 *         <td>{@link com.mojang.blaze3d.vertex.VertexFormat.DrawMode#QUADS}</td>
-	 *         <td>{@link #NDT_RR}</td>
+	 *         <td>{@link #RR_PIPELINE}</td>
 	 *     </tr>
 	 * </table>
 	 */
@@ -260,8 +267,7 @@ public class CustomRenderLayers {
 				"renderer/2d/quad_rounded",
 				1024,
 				false,
-				false,
-				NDT_RR,
+				false, RR_PIPELINE,
 				RenderLayer.MultiPhaseParameters.builder()
 						.build(false)
 		);
