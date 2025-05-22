@@ -16,6 +16,15 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+* A Minecraft rendering mixin that extends RenderLayer.MultiPhase to dynamically configure shader uniforms 
+* and texture samplers during rendering. By intercepting the rendering draw method, this 
+* mixin provides enhanced shader customization capabilities, allowing flexible configuration of 
+* shader parameters like float arrays, integer arrays, and matrix transformations. It works in conjunction with the 
+* MoreRenderLayer interface to enable advanced, programmatic shader parameter management within the Minecraft rendering pipeline, 
+* giving developers fine-grained control over rendering processes and shader configurations.
+*/
+
 @Mixin(RenderLayer.MultiPhase.class)
 public class RenderLayerMixin implements MoreRenderLayer {
 	@Unique
