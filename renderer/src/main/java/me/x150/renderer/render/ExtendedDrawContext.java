@@ -4,11 +4,14 @@ import me.x150.renderer.generated.Emitter;
 import me.x150.renderer.mixin.DrawContextAccessor;
 import me.x150.renderer.util.Color;
 import me.x150.renderer.util.DirectVertexConsumer;
+import me.x150.renderer.fontng.Font;
+import me.x150.renderer.fontng.GlyphBuffer;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.render.BufferBuilder;
 import net.minecraft.client.render.VertexConsumer;
 import net.minecraft.client.render.VertexConsumerProvider;
 import net.minecraft.client.util.math.MatrixStack;
+import net.minecraft.text.Text;
 import org.joml.Vector2f;
 import org.joml.Vector4f;
 
@@ -16,6 +19,34 @@ import org.joml.Vector4f;
  * More utilities for drawing on the hud
  */
 public class ExtendedDrawContext {
+	/**
+	 * Simpel Text Drawer
+	 * Text, x, y, size and a font
+	 * @param instance DrawContext to draw with
+	 * @param x Top left X coordinate
+	 * @param y Top left Y coordinate
+	 * @param size Size of the text
+	 * @param font The Font of the text
+	 */
+	public static void drawText(DrawContext instance, Text text , float x, float y, int size, Font font) {
+        	VertexConsumerProvider.Immediate vcp = ((DrawContextAccessor) instance).getVertexConsumers();
+        	MatrixStack mat = instance.getMatrices();
+        	mat.push();
+        	if (font.getOriginalSize() != size) {
+            	if (font.getOriginalSize() < size) {
+                	font.setSourceSize(size);
+            	}
+        	}
+        	float newSize = (float) size / font.getOriginalSize();
+        	mat.translate(x, y, 0);
+        	mat.scale(newSize, newSize, 1);
+        	gb.clear();
+        	gb.addText(font, text, 0, 0);
+        	gb.offsetToTopLeft();
+        	gb.draw(vcp, mat, 0, 0);
+        	mat.pop();
+    	}
+	
 	/**
 	 * Draws an ellipse. The radius is dependent on width and height, the ellipse might be stretched depending on
 	 * width and height. Color is uniform.
