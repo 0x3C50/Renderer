@@ -1,12 +1,12 @@
 #version 150
 
-uniform sampler2D Sampler0;
+#moj_import <minecraft:dynamictransforms.glsl>
 
-uniform vec4 ColorModulator;
-uniform vec4 Roundness;
+uniform sampler2D Sampler0;
 
 in vec2 texCoord0;
 in vec2 widthHeight;
+in vec4 roundness;
 in vec4 vertexColor;
 
 out vec4 fragColor;
@@ -21,7 +21,7 @@ float sdRoundBox( vec2 p, vec2 b, vec4 r )
 
 
 void main() {
-    float distance = sdRoundBox(texCoord0 - widthHeight / 2, widthHeight / 2, Roundness);
+    float distance = sdRoundBox(texCoord0 - widthHeight / 2, widthHeight / 2, roundness);
     float fw = fwidth(distance);
     distance = smoothstep(0, fw, distance);
     float alpha = 1-distance;

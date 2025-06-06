@@ -14,20 +14,32 @@
 				},
 				{
 					"sampler_name": "Mask",
-					"location": "renderer:placeholder",
-					"width": 1,
-					"height": 1,
+					"target": "renderer:mask",
 					"bilinear": false
 				}
 			],
 			"output": "swap",
-			"uniforms": [
-				{
-					"name": "direction",
-					"values": [1, 0],
-					"type": "vec2"
-				}
-			]
+			"uniforms": {
+				"Predefined": [
+					{
+						"name": "direction",
+						"value": [1, 0],
+						"type": "vec2"
+					}
+				],
+				"BlurConfig": [
+					{
+						"name": "sigma",
+						"value": 0,
+						"type": "float"
+					},
+					{
+						"name": "kernelSizePx",
+						"value": 0,
+						"type": "float"
+					}
+				]
+			}
 		},
 		{
 			"vertex_shader": "minecraft:post/sobel",
@@ -40,20 +52,32 @@
 				},
 				{
 					"sampler_name": "Mask",
-					"location": "renderer:placeholder",
-					"width": 1,
-					"height": 1,
+					"target": "renderer:mask",
 					"bilinear": false
 				}
 			],
 			"output": "minecraft:main",
-			"uniforms": [
-				{
-					"name": "direction",
-					"values": [0, 1],
-					"type": "vec2"
-				}
-			]
+			"uniforms": {
+				"Predefined": [
+					{
+						"name": "direction",
+						"value": [1, 0],
+						"type": "vec2"
+					}
+				],
+				"BlurConfig": [
+					{
+						"name": "sigma",
+						"value": 0,
+						"type": "float"
+					},
+					{
+						"name": "kernelSizePx",
+						"value": 0,
+						"type": "float"
+					}
+				]
+			}
 		}
 	]
 }

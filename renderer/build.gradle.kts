@@ -34,6 +34,10 @@ java {
     withJavadocJar()
 }
 
+loom {
+    accessWidenerPath = file("src/main/resources/aw.accesswidener")
+}
+
 tasks {
     withType<ProcessResources> {
         inputs.property("version", project.version)

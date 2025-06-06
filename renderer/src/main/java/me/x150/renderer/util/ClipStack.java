@@ -1,6 +1,6 @@
 package me.x150.renderer.util;
 
-import com.mojang.blaze3d.systems.RenderSystem;
+import com.mojang.blaze3d.opengl.GlStateManager;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.util.math.MathHelper;
@@ -67,7 +67,8 @@ public class ClipStack {
 		height = Math.max(0, height);
 		float d = (float) client.getWindow().getScaleFactor();
 		int ay = (int) ((client.getWindow().getScaledHeight() - (y + height)) * d);
-		RenderSystem.enableScissor((int) (x * d), ay, (int) (width * d), (int) (height * d));
+		GlStateManager._enableScissorTest();
+		GlStateManager._scissorBox((int) (x * d), ay, (int) (width * d), (int) (height * d));
 	}
 
 	/**
@@ -90,7 +91,7 @@ public class ClipStack {
 	public static void popWindow() {
 		clipStack.pop();
 		if (clipStack.isEmpty()) {
-			RenderSystem.disableScissor();
+			GlStateManager._disableScissorTest();
 		} else {
 			Rectangle r = clipStack.peek();
 			beginScissor(r.getX(), r.getY(), r.getX1(), r.getY1());
@@ -106,7 +107,7 @@ public class ClipStack {
 		if (clipStack.isEmpty()) {
 			e.run();
 		} else {
-			RenderSystem.disableScissor();
+			GlStateManager._disableScissorTest();
 			e.run();
 			Rectangle r = clipStack.peek();
 			beginScissor(r.getX(), r.getY(), r.getX1(), r.getY1());

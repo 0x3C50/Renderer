@@ -11,9 +11,12 @@
 		"DrawContextAccessor",
 		"GameRendererAccessor",
 		"GameRendererMixin",
+		"GuiRendererMixin",
 		"InGameHudMixin",
 		"MinecraftClientMixin",
 		"NativeImageAccessor",
+		"PostEffectPassAccessor",
+		"PostEffectProcessorAccessor",
 		"RenderLayerMixin"
 	],
 	"injectors": {

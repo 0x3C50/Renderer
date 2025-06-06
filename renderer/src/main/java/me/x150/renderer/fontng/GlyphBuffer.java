@@ -1,20 +1,23 @@
 package me.x150.renderer.fontng;
 
 import com.google.common.util.concurrent.AtomicDouble;
-import com.mojang.blaze3d.textures.GpuTexture;
+import com.mojang.blaze3d.textures.GpuTextureView;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import me.x150.renderer.mixin.DrawContextAccessor;
 import me.x150.renderer.render.CustomRenderLayers;
+import me.x150.renderer.render.SimpleGuiRenderState;
 import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.gl.RenderPipelines;
 import net.minecraft.client.gui.DrawContext;
-import net.minecraft.client.render.RenderLayer;
-import net.minecraft.client.render.VertexConsumer;
-import net.minecraft.client.render.VertexConsumerProvider;
-import net.minecraft.client.util.math.MatrixStack;
+import net.minecraft.client.gui.ScreenRect;
+import net.minecraft.client.gui.render.state.SimpleGuiElementRenderState;
+import net.minecraft.client.texture.TextureSetup;
 import net.minecraft.text.Style;
 import net.minecraft.text.Text;
 import net.minecraft.text.TextColor;
-import org.joml.Matrix4f;
+import org.joml.Matrix3x2f;
+import org.joml.Matrix3x2fStack;
 import org.lwjgl.system.MemoryStack;
 import org.lwjgl.util.harfbuzz.hb_glyph_info_t;
 import org.lwjgl.util.harfbuzz.hb_glyph_position_t;
@@ -72,7 +75,7 @@ public class GlyphBuffer {
 	public float offsetX, offsetY = 0;
 
 	/**
-	 * Move the content such that a call to {@link #draw(VertexConsumerProvider, MatrixStack, float, float)} will position the (-minX, -minY) coordinate at the given render coordinates.
+	 * Move the content such that a call to {@link #draw(DrawContext, float, float)} will position the (-minX, -minY) coordinate at the given render coordinates.
 	 */
 	public void offsetToTopLeft() {
 		offsetX = -minX;
@@ -80,7 +83,7 @@ public class GlyphBuffer {
 	}
 
 	/**
-	 * Move the content such that a call to {@link #draw(VertexConsumerProvider, MatrixStack, float, float)} will position the center coordinate at the given render coordinates.
+	 * Move the content such that a call to {@link #draw(DrawContext, float, float)} will position the center coordinate at the given render coordinates.
 	 */
 	public void offsetToCenter() {
 		offsetToTopLeft();
@@ -93,15 +96,15 @@ public class GlyphBuffer {
 	public void drawDebuggingInformation(DrawContext dc, float x, float y) {
 		if (glyphs.isEmpty()) return;
 
-		MatrixStack stack = dc.getMatrices();
+		Matrix3x2fStack stack = dc.getMatrices();
 
-		stack.push();
-		stack.translate(x, y, 0);
+		stack.pushMatrix();
+		stack.translate(x, y);
 
 		dc.drawBorder((int) (minX + offsetX), (int) (minY + offsetY), (int) Math.ceil(maxX - minX), (int) Math.ceil(maxY - minY), 0xFFFF0000);
 
 		float sf = (float) MinecraftClient.getInstance().getWindow().getScaleFactor();
-		stack.scale(1f / sf, 1f / sf, 1);
+		stack.scale(1f / sf, 1f / sf);
 
 
 		for (Glyph glyph : glyphs) {
@@ -124,151 +127,171 @@ public class GlyphBuffer {
 		}
 
 
-		stack.pop();
+		stack.popMatrix();
+	}
+
+	private static ScreenRect createBounds(DrawContext c, float x, float y, float w, float h) {
+		Matrix3x2fStack mat = c.getMatrices();
+		DrawContext.ScissorStack ss = ((DrawContextAccessor) c).getScissorStack();
+		ScreenRect scissor = ss.peekLast();
+		ScreenRect screenRect = new ScreenRect((int) Math.floor(x), (int) Math.floor(y), (int) Math.ceil(w), (int) Math.ceil(h)).transformEachVertex(mat);
+		return scissor != null ? scissor.intersection(screenRect) : screenRect;
 	}
 
 	/**
-	 * Draw this GlyphBuffer to buffers given from {@code vc} at the given coordinates.
+	 * Draw this GlyphBuffer to a given DrawContext
 	 *
-	 * @param vc    VertexConsumerProvider supplying {@link CustomRenderLayers#TEXT_CUSTOM}, {@link RenderLayer#getGui()}
-	 * @param stack MatrixStack
+	 * @param context DrawContext to draw into
 	 * @param x     Render X coordinate
 	 * @param y     Render Y coordinate
 	 */
-	public void draw(VertexConsumerProvider vc, MatrixStack stack, float x, float y) {
+	public void draw(DrawContext context, float x, float y) {
 		if (glyphs.isEmpty()) return;
 
-		stack.push();
-		stack.translate(x, y, 0);
+		Matrix3x2fStack stack = context.getMatrices();
+
+		stack.pushMatrix();
+		stack.translate(x, y);
 		//		int offsetX = -minX;
 		//		int offsetY = -minY;
 
 		float sf = (float) MinecraftClient.getInstance().getWindow().getScaleFactor();
-		stack.scale(1f / sf, 1f / sf, 1);
+		stack.scale(1f / sf, 1f / sf);
 
-		Matrix4f posmat = stack.peek().getPositionMatrix();
+		Matrix3x2f posmat = new Matrix3x2f(stack);
 
 
 		Map<GlyphPage, List<Glyph>> pageToGlyphs = glyphs.stream().collect(Collectors.groupingBy(it -> it.font.getPage(it.glyphId)));
 
 		for (Map.Entry<GlyphPage, List<Glyph>> glyphPageListEntry : pageToGlyphs.entrySet()) {
 			GlyphPage page = glyphPageListEntry.getKey();
-			GpuTexture glId = page.tex.getGlTexture();
-			RenderLayer renderLayerForThisGlyph = CustomRenderLayers.TEXT_CUSTOM.apply(glId);
-			for (Glyph glyph : glyphPageListEntry.getValue()) {
-				VertexConsumer buffer = vc.getBuffer(renderLayerForThisGlyph);
-				float glyphBaselineX = (glyph.x + offsetX) * sf;
-				float glyphBaselineY = (glyph.y + offsetY) * sf;
-				int glyphIndex = glyph.glyphId;
-				Style style = glyph.style;
-				TextColor textCol = style.getColor();
-				int actualColor = (textCol == null ? 0xFFFFFF : textCol.getRgb()) | (0xFF << 24);
-				GlyphPage.Glyph theGlyph = page.getGlyph(glyphIndex);
+			GpuTextureView glId = page.tex.getGlTextureView();
+			SimpleGuiElementRenderState state = new SimpleGuiRenderState(
+					CustomRenderLayers.PIPELINE_TEXT_CUSTOM, TextureSetup.of(glId), context,
+					createBounds(context, x, y, maxX - minX, maxY - minY),
+					(buffer, aFloat) -> {
+						for (Glyph glyph : glyphPageListEntry.getValue()) {
+							float glyphBaselineX = (glyph.x + offsetX) * sf;
+							float glyphBaselineY = (glyph.y + offsetY) * sf;
+							int glyphIndex = glyph.glyphId;
+							Style style = glyph.style;
+							TextColor textCol = style.getColor();
+							int actualColor = (textCol == null ? 0xFFFFFF : textCol.getRgb()) | (0xFF << 24);
+							GlyphPage.Glyph theGlyph = page.getGlyph(glyphIndex);
 
 
-				// draw glyph
-				int bmpl = theGlyph.drawOffsetX();
-				int bmpt = theGlyph.drawOffsetY();
-				int wid = theGlyph.bitmapWidth();
-				int hei = theGlyph.bitmapHeight();
-				float topLeftX = glyphBaselineX + bmpl;
-				float topLeftY = glyphBaselineY - bmpt;
+							// draw glyph
+							int bmpl = theGlyph.drawOffsetX();
+							int bmpt = theGlyph.drawOffsetY();
+							int wid = theGlyph.bitmapWidth();
+							int hei = theGlyph.bitmapHeight();
+							float topLeftX = glyphBaselineX + bmpl;
+							float topLeftY = glyphBaselineY - bmpt;
 
-				int glyphY = theGlyph.y().get();
-				int glyphX = theGlyph.x().get();
+							int glyphY = theGlyph.y().get();
+							int glyphX = theGlyph.x().get();
 
-				float w = page.getTexWidth();
-				float h = page.getTexHeight();
+							float w = page.getTexWidth();
+							float h = page.getTexHeight();
 
-				// small insets to make sure we're always INSIDE this char's bounds
-				//@formatter:off
-				buffer
-						.vertex(posmat, topLeftX, 	   topLeftY, 	  0).color(actualColor).texture((glyphX + 0.01f) / w, 	  (glyphY + 0.01f) / h)		.light(0xf000f0)
-						.vertex(posmat, topLeftX, 	   topLeftY + hei, 0).color(actualColor).texture((glyphX + 0.01f) / w, 	  (glyphY + hei - 0.01f) / h).light(0xf000f0)
-						.vertex(posmat, topLeftX + wid, topLeftY + hei, 0).color(actualColor).texture((glyphX + wid - 0.01f) / w, (glyphY + hei - 0.01f) / h).light(0xf000f0)
-						.vertex(posmat, topLeftX + wid, topLeftY, 	  0).color(actualColor).texture((glyphX + wid - 0.01f) / w, (glyphY + 0.01f) / h)		.light(0xf000f0);
-				//@formatter:on
-			}
+							// small insets to make sure we're always INSIDE this char's bounds
+							//@formatter:off
+							buffer
+									.vertex(posmat, topLeftX, 	   topLeftY, 	  aFloat).color(actualColor).texture((glyphX + 0.01f) / w, 	  (glyphY + 0.01f) / h)		.light(0xf000f0)
+									.vertex(posmat, topLeftX, 	   topLeftY + hei, aFloat).color(actualColor).texture((glyphX + 0.01f) / w, 	  (glyphY + hei - 0.01f) / h).light(0xf000f0)
+									.vertex(posmat, topLeftX + wid, topLeftY + hei, aFloat).color(actualColor).texture((glyphX + wid - 0.01f) / w, (glyphY + hei - 0.01f) / h).light(0xf000f0)
+									.vertex(posmat, topLeftX + wid, topLeftY, 	  aFloat).color(actualColor).texture((glyphX + wid - 0.01f) / w, (glyphY + 0.01f) / h)		.light(0xf000f0);
+							//@formatter:on
+						}
+					}
+			);
+			((DrawContextAccessor) context).getState().addSimpleElement(state);
 		}
 
 		//		stack.pop();
 		//		posmat = stack.peek().getPositionMatrix();
 
-		Map<Integer, List<Glyph>> runs = glyphs.stream().collect(Collectors.groupingBy(it -> it.runId));
-		VertexConsumer quadBuffer = vc.getBuffer(RenderLayer.getGui());
-		for (Map.Entry<Integer, List<Glyph>> integerListEntry : runs.entrySet()) {
-			List<Glyph> glyphs = integerListEntry.getValue();
-			assert !glyphs.isEmpty();
-			List<Rectangle> rects = new ArrayList<>(Math.ceilDiv(glyphs.size(), 2));
-			List<Rectangle> rectsStrike = new ArrayList<>(Math.ceilDiv(glyphs.size(), 2));
 
-			Glyph firstGl = glyphs.getFirst();
+		SimpleGuiElementRenderState state = new SimpleGuiRenderState(RenderPipelines.GUI, TextureSetup.empty(), context,
+				createBounds(context, x, y, maxX - minX, maxY - minY),
+				(quadBuffer, aFloat) -> {
+					Map<Integer, List<Glyph>> runs = glyphs.stream().collect(Collectors.groupingBy(it -> it.runId));
+					for (Map.Entry<Integer, List<Glyph>> integerListEntry : runs.entrySet()) {
+						List<Glyph> glyphs = integerListEntry.getValue();
+						assert !glyphs.isEmpty();
+						List<Rectangle> rects = new ArrayList<>(Math.ceilDiv(glyphs.size(), 2));
+						List<Rectangle> rectsStrike = new ArrayList<>(Math.ceilDiv(glyphs.size(), 2));
 
-			Float origSYO, origSH;
-			boolean strikeoutSupported = (origSYO = firstGl.font.strikeoutCenterYOffset()) != null & (origSH = firstGl.font.strikeoutHeight()) != null;
+						Glyph firstGl = glyphs.getFirst();
 
-			for (int i = 0; i < glyphs.size(); i++) {
-				Glyph current = glyphs.get(i);
-				Glyph prev = null;
-				if (i > 0) prev = glyphs.get(i - 1);
-				Style currentStyle = current.style;
-				Style prevStyle = prev == null ? null : prev.style;
+						Float origSYO, origSH;
+						boolean strikeoutSupported = (origSYO = firstGl.font.strikeoutCenterYOffset()) != null & (origSH = firstGl.font.strikeoutHeight()) != null;
 
-				float underlineY = -current.font.underlineCenterYOffset();
-				float underlineHeight = current.font.underlineHeight();
+						for (int i = 0; i < glyphs.size(); i++) {
+							Glyph current = glyphs.get(i);
+							Glyph prev = null;
+							if (i > 0) prev = glyphs.get(i - 1);
+							Style currentStyle = current.style;
+							Style prevStyle = prev == null ? null : prev.style;
+
+							float underlineY = -current.font.underlineCenterYOffset();
+							float underlineHeight = current.font.underlineHeight();
 
 
-				GlyphPage.GlyphMetrics gMet = current.font.getGlyph(current.glyphId).metrics();
+							GlyphPage.GlyphMetrics gMet = current.font.getGlyph(current.glyphId).metrics();
 
-				float left = ((current.x + offsetX) * sf + (gMet.hbX() / 64f));
-				float right = (left + (gMet.width() / 64f));
+							float left = ((current.x + offsetX) * sf + (gMet.hbX() / 64f));
+							float right = (left + (gMet.width() / 64f));
 
-				if (currentStyle.isUnderlined()) {
-					if (prevStyle != null && prevStyle.isUnderlined() && Objects.equals(prevStyle.getColor(), currentStyle.getColor())) {
-						// we're not the first glyph and the previous one has the same style as we do; add us
-						rects.getLast().endX.set(right);
-					} else {
-						// for some reason we cant merge with the previous rect
-						rects.add(new Rectangle(left, (current.y + offsetY) * sf + underlineY - underlineHeight, underlineHeight, new AtomicDouble(right), currentStyle.getColor()));
+							if (currentStyle.isUnderlined()) {
+								if (prevStyle != null && prevStyle.isUnderlined() && Objects.equals(prevStyle.getColor(), currentStyle.getColor())) {
+									// we're not the first glyph and the previous one has the same style as we do; add us
+									rects.getLast().endX.set(right);
+								} else {
+									// for some reason we cant merge with the previous rect
+									rects.add(new Rectangle(left, (current.y + offsetY) * sf + underlineY - underlineHeight, underlineHeight, new AtomicDouble(right), currentStyle.getColor()));
+								}
+							}
+							if (strikeoutSupported && currentStyle.isStrikethrough()) {
+								float strikeY = -origSYO;
+								float strikeHeight = origSH;
+								if (prevStyle != null && prevStyle.isStrikethrough() && Objects.equals(prevStyle.getColor(), currentStyle.getColor())) {
+									rectsStrike.getLast().endX.set(right);
+								} else {
+									rectsStrike.add(new Rectangle(left, (current.y + offsetY) * sf + strikeY, strikeHeight, new AtomicDouble(right), currentStyle.getColor()));
+								}
+							}
+						}
+
+						for (int i = 0; i < 2; i++) {
+							List<Rectangle> rcs = switch (i) {
+								case 0 -> rects;
+								case 1 -> rectsStrike;
+								default -> throw new IllegalStateException();
+							};
+							for (Rectangle rect : rcs) {
+								float le = rect.x;
+								float ri = (float) rect.endX.get();
+								float theY = rect.y;
+								float height = rect.height;
+								int actualColor = 0xFFFFFFFF;
+								if (rect.color != null) actualColor = (rect.color.getRgb()) | (0xFF << 24);
+
+								//@formatter:off
+								quadBuffer
+										.vertex(posmat, le, theY, 	   	 aFloat).color(actualColor)
+										.vertex(posmat, le, theY + height, aFloat).color(actualColor)
+										.vertex(posmat, ri, theY + height, aFloat).color(actualColor)
+										.vertex(posmat, ri, theY, 		 aFloat).color(actualColor);
+								//@formatter:on
+							}
+						}
 					}
 				}
-				if (strikeoutSupported && currentStyle.isStrikethrough()) {
-					float strikeY = -origSYO;
-					float strikeHeight = origSH;
-					if (prevStyle != null && prevStyle.isStrikethrough() && Objects.equals(prevStyle.getColor(), currentStyle.getColor())) {
-						rectsStrike.getLast().endX.set(right);
-					} else {
-						rectsStrike.add(new Rectangle(left, (current.y + offsetY) * sf + strikeY, strikeHeight, new AtomicDouble(right), currentStyle.getColor()));
-					}
-				}
-			}
+		);
+		((DrawContextAccessor) context).getState().addSimpleElement(state);
 
-			for (int i = 0; i < 2; i++) {
-				List<Rectangle> rcs = switch (i) {
-					case 0 -> rects;
-					case 1 -> rectsStrike;
-					default -> throw new IllegalStateException();
-				};
-				for (Rectangle rect : rcs) {
-					float le = rect.x;
-					float ri = (float) rect.endX.get();
-					float theY = rect.y;
-					float height = rect.height;
-					int actualColor = 0xFFFFFFFF;
-					if (rect.color != null) actualColor = (rect.color.getRgb()) | (0xFF << 24);
-
-					//@formatter:off
-					quadBuffer
-							.vertex(posmat, le, theY, 	   	 0).color(actualColor)
-							.vertex(posmat, le, theY + height, 0).color(actualColor)
-							.vertex(posmat, ri, theY + height, 0).color(actualColor)
-							.vertex(posmat, ri, theY, 		 0).color(actualColor);
-					//@formatter:on
-				}
-			}
-		}
-
-		stack.pop();
+		stack.popMatrix();
 	}
 
 	record Rectangle(float x, float y, float height, AtomicDouble endX, TextColor color) {

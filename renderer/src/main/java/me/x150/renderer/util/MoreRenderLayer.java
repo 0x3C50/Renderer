@@ -1,6 +1,6 @@
 package me.x150.renderer.util;
 
-import com.mojang.blaze3d.textures.GpuTexture;
+import com.mojang.blaze3d.textures.GpuTextureView;
 import org.joml.Vector4f;
 
 /**
@@ -29,5 +29,5 @@ public interface MoreRenderLayer {
 	 * @param u Sampler name
 	 * @param v Texture
 	 */
-	void setSampler(String u, GpuTexture v);
+	void setSampler(String u, GpuTextureView v);
 }

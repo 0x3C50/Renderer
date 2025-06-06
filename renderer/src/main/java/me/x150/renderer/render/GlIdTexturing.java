@@ -2,7 +2,7 @@ package me.x150.renderer.render;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.textures.FilterMode;
-import com.mojang.blaze3d.textures.GpuTexture;
+import com.mojang.blaze3d.textures.GpuTextureView;
 import net.minecraft.client.render.RenderPhase;
 import net.minecraft.util.Identifier;
 
@@ -13,17 +13,17 @@ import java.util.Optional;
  */
 public class GlIdTexturing extends RenderPhase.TextureBase {
 
-	private final GpuTexture glTex;
+	private final GpuTextureView glTex;
 
 	/**
 	 * Constructor.
 	 * @param glId GpuTexture to bind to texture 0
 	 * @param linear Bilinear sampling? NEAREST otherwise
 	 */
-	public GlIdTexturing(GpuTexture glId, boolean linear) {
+	public GlIdTexturing(GpuTextureView glId, boolean linear) {
 		super(() -> {
 			FilterMode filter = linear ? FilterMode.LINEAR : FilterMode.NEAREST;
-			glId.setTextureFilter(filter, filter, false);
+			glId.texture().setTextureFilter(filter, filter, false);
 			RenderSystem.setShaderTexture(0, glId);
 		}, () -> {
 		});

@@ -15,7 +15,12 @@ import javax.lang.model.element.Modifier
 import kotlin.io.path.inputStream
 
 private val matrixStackEntry = ClassName.get("net.minecraft.client.util.math", "MatrixStack", "Entry")
+private val matrix4f = ClassName.get("org.joml", "Matrix4f")
+private val matrix3f = ClassName.get("org.joml", "Matrix3f")
+private val vector3f = ClassName.get("org.joml", "Vector3f")
 private val vertexConsumer = ClassName.get("net.minecraft.client.render", "VertexConsumer")
+
+private val vec3fLabels = arrayOf("x", "y", "z")
 
 enum class VertexType(val count: Int, val type: TypeName, val consName: String, val hasTransform: Boolean, vararg val labels: String) {
     position(3, TypeName.FLOAT, "vertex", true, "x", "y", "z"),
@@ -73,7 +78,8 @@ abstract class GeneratePrimitiveEmitterTask : DefaultTask() {
     private fun buildEmitMethod(name: String, spec: EmitterSpecification): MethodSpec {
         val builder = MethodSpec.methodBuilder("_emit_${name}__${spec.nInput}x${spec.elements.joinToString("_") { it.name }}")
             .addModifiers(Modifier.PUBLIC, Modifier.STATIC)
-            .addParameter(matrixStackEntry, "transform", Modifier.FINAL)
+            .addParameter(matrix4f, "positionTransform", Modifier.FINAL)
+            .addParameter(matrix3f, "normalTransform", Modifier.FINAL)
             .addParameter(vertexConsumer, "consumer", Modifier.FINAL)
         require(spec.nFaces * spec.nVerticesInFace == spec.indices.size) {"count of indices doesnt match nFaces * nVerticesInFace"}
         for(i in 0 until spec.nInput) {
@@ -85,6 +91,29 @@ abstract class GeneratePrimitiveEmitterTask : DefaultTask() {
             }
         }
 
+        builder.addCode("\$T transformed = new \$T();\n", vector3f, vector3f)
+        val transformingBuilder = CodeBlock.builder()
+        for(i in 0 until spec.nInput) {
+            for (it in spec.elements) {
+                if (!it.hasTransform) continue
+                when (it) {
+                    VertexType.position -> transformingBuilder.add("positionTransform.transformPosition(")
+                    VertexType.normal -> transformingBuilder.add("normalTransform.transform(")
+                    VertexType.color -> error("shouldnt happen")
+                }
+                for(j in 0 until it.count) {
+                    val argName = "v${i}_${it.name}_${it.labels[j]}"
+                    transformingBuilder.add("$argName, ")
+                }
+                transformingBuilder.add("transformed);\n")
+                for(j in 0 until it.count) {
+                    val argName = "v${i}_${it.name}_${it.labels[j]}"
+                    transformingBuilder.add("\$L = transformed.\$L;\n", argName, vec3fLabels[j])
+                }
+            }
+        }
+        builder.addCode(transformingBuilder.build())
+
         for (indices in spec.indices.windowed(spec.nVerticesInFace, spec.nVerticesInFace, false)) {
             val the = CodeBlock.builder()
             the.add("{\n").indent()
@@ -93,7 +122,6 @@ abstract class GeneratePrimitiveEmitterTask : DefaultTask() {
                 the.add("consumer")
                 for (it in spec.elements) {
                     the.add(".\$L(", it.consName)
-                    if (it.hasTransform) the.add("transform, ")
                     the.add((0 until it.count).joinToString(", ") { j -> "v${i}_${it.name}_${it.labels[j]}" })
                     the.add(")")
                 }

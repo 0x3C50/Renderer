@@ -3,7 +3,6 @@ package me.x150.renderer.render;
 import com.mojang.blaze3d.pipeline.BlendFunction;
 import com.mojang.blaze3d.pipeline.RenderPipeline;
 import com.mojang.blaze3d.platform.DepthTestFunction;
-import com.mojang.blaze3d.textures.GpuTexture;
 import com.mojang.blaze3d.vertex.VertexFormat;
 import com.mojang.blaze3d.vertex.VertexFormatElement;
 import me.x150.renderer.util.Color;
@@ -26,7 +25,10 @@ import static net.minecraft.client.render.RenderPhase.*;
  * Custom or extended RenderLayers
  */
 public class CustomRenderLayers {
-	private static final RenderPipeline PIPELINE_TEXT_CUSTOM = RenderPipelines.register(
+	/**
+	 * Pipeline rendering text, interpreting the red channel as alpha and applying fog
+	 */
+	public static final RenderPipeline PIPELINE_TEXT_CUSTOM = RenderPipelines.register(
 			RenderPipeline.builder(RenderPipelines.TEXT_SNIPPET, RenderPipelines.FOG_SNIPPET)
 					.withLocation(Identifier.of("renderer", "pipeline/text_lumi"))
 					.withVertexShader(Identifier.of("renderer", "core/custom_text"))
@@ -36,31 +38,6 @@ public class CustomRenderLayers {
 					.withDepthBias(-1.0F, -10.0F)
 					.build()
 	);
-	/**
-	 * Text drawing via luminosity, with more lenient alpha cutoff and proper transparency.
-	 * <table>
-	 *     <caption>Render layer settings</caption>
-	 *     <tr>
-	 *         <th>Vertex Format</th>
-	 *         <th>Draw Mode</th>
-	 *         <th>Pipeline</th>
-	 *     </tr>
-	 *     <tr>
-	 *         <td>{@link VertexFormats#POSITION_COLOR_TEXTURE_LIGHT}</td>
-	 *         <td>{@link com.mojang.blaze3d.vertex.VertexFormat.DrawMode#QUADS}</td>
-	 *         <td>{@link #PIPELINE_TEXT_CUSTOM}</td>
-	 *     </tr>
-	 * </table>
-	 */
-	public static final Function<GpuTexture, RenderLayer> TEXT_CUSTOM = Util.memoize(texture -> RenderLayer.of(
-			"renderer/text_intensity_custom",
-			1024,
-			false,
-			false, PIPELINE_TEXT_CUSTOM,
-			RenderLayer.MultiPhaseParameters.builder()
-					.texture(new GlIdTexturing(texture, false))
-					.lightmap(ENABLE_LIGHTMAP)
-					.build(false)));
 
 	/**
 	 * Position, color quads, with depth test set to ALWAYS
@@ -157,7 +134,10 @@ public class CustomRenderLayers {
 					.build(false)
 	));
 
-	private static final RenderPipeline LINES_DEPTH_PIPELINE = RenderPipelines.register(RenderPipeline.builder(RenderPipelines.RENDERTYPE_LINES_SNIPPET)
+	/**
+	 * Pipeline accepting lines, drawing with depth test
+	 */
+	public static final RenderPipeline LINES_DEPTH_PIPELINE = RenderPipelines.register(RenderPipeline.builder(RenderPipelines.RENDERTYPE_LINES_SNIPPET)
 			.withLocation(Identifier.of("renderer", "pipeline/lines_depth"))
 			.withVertexFormat(VertexFormats.POSITION_COLOR_NORMAL, VertexFormat.DrawMode.LINES)
 			.build()
@@ -188,51 +168,34 @@ public class CustomRenderLayers {
 	));
 
 	/**
-	 * Position, (texture), color quads, with a shader producing ellipses instead of quads.
-	 * The texture component is used by the shader to determine the position of the current vertex.
-	 * No texture is being sampled.
-	 * <table>
-	 *     <caption>Render layer settings</caption>
-	 *     <tr>
-	 *         <th>Vertex Format</th>
-	 *         <th>Draw Mode</th>
-	 *         <th>Pipeline</th>
-	 *     </tr>
-	 *     <tr>
-	 *         <td>{@link VertexFormats#POSITION_TEXTURE_COLOR}</td>
-	 *         <td>{@link com.mojang.blaze3d.vertex.VertexFormat.DrawMode#QUADS}</td>
-	 *         <td>(inline definition)</td>
-	 *     </tr>
-	 * </table>
+	 * Pipeline accepting quads, drawing a circle according to texture coordinates given
 	 */
-	public static final RenderLayer ELLIPSE_QUADS = RenderLayer.of(
-			"renderer/2d/quad_ellipse",
-			1024,
-			false,
-			false,
-			RenderPipelines.register(RenderPipeline.builder(RenderPipelines.MATRICES_COLOR_SNIPPET)
-					.withVertexShader("core/position_tex_color")
-					.withBlend(BlendFunction.TRANSLUCENT)
-					.withVertexFormat(VertexFormats.POSITION_TEXTURE_COLOR, VertexFormat.DrawMode.QUADS)
-					.withCull(true)
-					.withFragmentShader(Identifier.of("renderer", "core/rendertype_ellipse"))
-					.withLocation(Identifier.of("renderer", "pipeline/2d/quad_ellipse"))
-					.build()),
-			RenderLayer.MultiPhaseParameters.builder()
-					.build(false)
-	);
-	private static final RenderPipeline RR_PIPELINE = RenderPipelines.register(RenderPipeline.builder(RenderPipelines.MATRICES_COLOR_SNIPPET)
+	public static final RenderPipeline ELLIPSE_PIPELINE = RenderPipelines.register(RenderPipeline.builder(RenderPipelines.TRANSFORMS_AND_PROJECTION_SNIPPET)
+			.withBlend(BlendFunction.TRANSLUCENT)
+			.withVertexFormat(VertexFormats.POSITION_TEXTURE_COLOR, VertexFormat.DrawMode.QUADS)
+			.withCull(true)
+			.withFragmentShader(Identifier.of("renderer", "core/rendertype_ellipse"))
+			.withVertexShader("core/position_tex_color")
+			.withLocation(Identifier.of("renderer", "pipeline/2d/quad_ellipse"))
+			.build());
+
+	/**
+	 * Pipeline drawing the specified quads as rounded rect, this is very specific, don't use this manually if you dont know what you're doing!
+	 */
+	@ApiStatus.Internal
+	public static final RenderPipeline RR_PIPELINE = RenderPipelines.register(RenderPipeline.builder(RenderPipelines.TRANSFORMS_AND_PROJECTION_SNIPPET)
 			.withBlend(BlendFunction.TRANSLUCENT)
 			.withVertexFormat(VertexFormat.builder()
 					.add("Position", VertexFormatElement.POSITION)
 					.add("UV0", VertexFormatElement.UV0)
 					.add("UV1", VertexFormatElement.register(getNextVFId(), 0, VertexFormatElement.Type.FLOAT, VertexFormatElement.Usage.UV, 2))
+					.add("Roundness", VertexFormatElement.register(getNextVFId(), 0, VertexFormatElement.Type.FLOAT, VertexFormatElement.Usage.UV, 4))
 					.add("Color", VertexFormatElement.COLOR)
 					.build(), VertexFormat.DrawMode.QUADS)
 			.withCull(true)
 			.withFragmentShader(Identifier.of("renderer", "core/rendertype_rr"))
 			.withVertexShader(Identifier.of("renderer", "core/rendertype_rr"))
-			.withLocation(Identifier.of("renderer", "pipeline/2d/quad_ellipse"))
+			.withLocation(Identifier.of("renderer", "pipeline/2d/quad_rr"))
 			.build());
 
 	private static int getNextVFId() {

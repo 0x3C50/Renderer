@@ -47,7 +47,7 @@ public record WorldRenderContext(Camera camera, VertexConsumerProvider vcp) {
 		float b = color.blue();
 		float a = color.alpha();
 		//@formatter:off
-		Emitter._emit_quad__4xposition_color(transform, buffer,
+		Emitter._emit_quad__4xposition_color(transform.getPositionMatrix(), transform.getNormalMatrix(), buffer,
 				x + 0, y + 0, z + 0, r, g, b, a,
 				x + w, y + 0, z + 0, r, g, b, a,
 				x + w, y + h, z + 0, r, g, b, a,
@@ -77,7 +77,7 @@ public record WorldRenderContext(Camera camera, VertexConsumerProvider vcp) {
 		float b = color.blue();
 		float a = color.alpha();
 		//@formatter:off
-		Emitter._emit_cube__8xposition_color(transform, buffer,
+		Emitter._emit_cube__8xposition_color(transform.getPositionMatrix(), transform.getNormalMatrix(), buffer,
 				x + 0, y + 0, z + 0, r, g, b, a,
 				x + w, y + 0, z + 0, r, g, b, a,
 				x + w, y + 0, z + d, r, g, b, a,
@@ -114,7 +114,7 @@ public record WorldRenderContext(Camera camera, VertexConsumerProvider vcp) {
 		float b = color.blue();
 		float a = color.alpha();
 		//@formatter:off
-		Emitter._emit_line__2xposition_color_normal(transform, buffer,
+		Emitter._emit_line__2xposition_color_normal(transform.getPositionMatrix(), transform.getNormalMatrix(), buffer,
 				x1, y1, z1, r, g, b, a, direction.x, direction.y, direction.z,
 				x2, y2, z2, r, g, b, a, direction.x, direction.y, direction.z);
 		//@formatter:on
