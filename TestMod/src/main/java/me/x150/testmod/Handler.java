@@ -22,6 +22,7 @@ import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.resource.Resource;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.Vec3d;
+import org.joml.Vector4f;
 
 import java.io.InputStream;
 
@@ -105,8 +106,8 @@ public class Handler {
 //				immediate.draw();
 		RenderSystem.lineWidth(5f);
 		ExtendedDrawContext.drawLine(context, 5, 5, 100, 100, 5, new Color(0xFFFFFF00));
-//		ExtendedDrawContext.drawRoundedRect(context, 10, 10, 200, 200, new Vector4f(5, 10, 15, 20), new Color(0xFFAABBCC));
-//		ExtendedDrawContext.drawEllipse(context, 100, 10, 200, 200, new Color(0xFFAABBCC));
+		ExtendedDrawContext.drawRoundedRect(context, 10, 10, 200, 200, new Vector4f(5, 10, 15, 20), new Color(0xFFAABBCC));
+		ExtendedDrawContext.drawEllipse(context, 100, 10, 200, 200, new Color(0xFFAABBCC));
 	}
 
 	public static void world(MatrixStack worldRenderContext) {

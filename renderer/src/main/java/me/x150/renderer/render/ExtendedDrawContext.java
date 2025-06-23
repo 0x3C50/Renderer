@@ -104,21 +104,19 @@ dvc.vertex(matrices, x, y, aFloat)						.texture(0, height)	 .texture(width, hei
 	}
 
 	/**
-	 * Draws a line. Color is uniform.
+	 * Draws a line. Color is uniform. Thickness is ignored, but may be used in the future.
 	 * @param instance DrawContext to draw with
 	 * @param x Start X
 	 * @param y Start Y
 	 * @param toX End X
 	 * @param toY End Y
-	 * @param thickness Thickness of the line, or 0 for default
+	 * @param thickness Thickness of the line, or 0 for default. Unused for now
 	 * @param color Color
 	 */
 	public static void drawLine(DrawContext instance, float x, float y, float toX, float toY, float thickness, Color color) {
 		Matrix3x2f matrices = new Matrix3x2f(instance.getMatrices());
 		Matrix4f posTransform = new Matrix4f();
 		posTransform.mul(matrices);
-		Matrix3f normTransform = new Matrix3f();
-		posTransform.get3x3(normTransform);
 
 		float width = Math.abs(toX - x);
 		float height = Math.abs(toY - y);
@@ -133,9 +131,14 @@ dvc.vertex(matrices, x, y, aFloat)						.texture(0, height)	 .texture(width, hei
 					float b = color.blue();
 					float a = color.alpha();
 
-					Vector2f direction = new Vector2f(toX, toY).sub(x, y).normalize();
+					Vector3f transformedStart = new Vector3f(),
+							transformedEnd = new Vector3f();
+					posTransform.transformPosition(x, y, aFloat, transformedStart);
+					posTransform.transformPosition(toX, toY, aFloat, transformedEnd);
 
-					Emitter._emit_line__2xposition_color_normal(posTransform, normTransform, bruh,
+					Vector2f direction = new Vector2f(transformedStart).sub(new Vector2f(transformedEnd)).normalize();
+
+					Emitter._emit_line__2xposition_color_normal(posTransform, new Matrix3f(), bruh,
 							x, y, aFloat, r, g, b, a, direction.x, direction.y, 0,
 							toX, toY, aFloat, r, g, b, a, direction.x, direction.y, 0);
 				}
