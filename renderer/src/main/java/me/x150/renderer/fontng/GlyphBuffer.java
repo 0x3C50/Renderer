@@ -212,64 +212,65 @@ public class GlyphBuffer {
 		//		posmat = stack.peek().getPositionMatrix();
 
 
-		SimpleGuiElementRenderState state = new SimpleGuiRenderState(RenderPipelines.GUI, TextureSetup.empty(), context,
-				createBounds(context, x, y, maxX - minX, maxY - minY),
-				(quadBuffer, aFloat) -> {
-					Map<Integer, List<Glyph>> runs = glyphs.stream().collect(Collectors.groupingBy(it -> it.runId));
-					for (Map.Entry<Integer, List<Glyph>> integerListEntry : runs.entrySet()) {
-						List<Glyph> glyphs = integerListEntry.getValue();
-						assert !glyphs.isEmpty();
-						List<Rectangle> rects = new ArrayList<>(Math.ceilDiv(glyphs.size(), 2));
-						List<Rectangle> rectsStrike = new ArrayList<>(Math.ceilDiv(glyphs.size(), 2));
+		Map<Integer, List<Glyph>> runs = glyphs.stream().collect(Collectors.groupingBy(it -> it.runId));
+		List<List<Rectangle>> draws = new ArrayList<>(runs.size() * 2);
+		for (Map.Entry<Integer, List<Glyph>> integerListEntry : runs.entrySet()) {
+			List<Glyph> glyphs = integerListEntry.getValue();
+			assert !glyphs.isEmpty();
+			List<Rectangle> rects = new ArrayList<>(Math.ceilDiv(glyphs.size(), 2));
+			List<Rectangle> rectsStrike = new ArrayList<>(Math.ceilDiv(glyphs.size(), 2));
 
-						Glyph firstGl = glyphs.getFirst();
+			Glyph firstGl = glyphs.getFirst();
 
-						Float origSYO, origSH;
-						boolean strikeoutSupported = (origSYO = firstGl.font.strikeoutCenterYOffset()) != null & (origSH = firstGl.font.strikeoutHeight()) != null;
+			Float origSYO, origSH;
+			boolean strikeoutSupported = (origSYO = firstGl.font.strikeoutCenterYOffset()) != null & (origSH = firstGl.font.strikeoutHeight()) != null;
 
-						for (int i = 0; i < glyphs.size(); i++) {
-							Glyph current = glyphs.get(i);
-							Glyph prev = null;
-							if (i > 0) prev = glyphs.get(i - 1);
-							Style currentStyle = current.style;
-							Style prevStyle = prev == null ? null : prev.style;
+			for (int i = 0; i < glyphs.size(); i++) {
+				Glyph current = glyphs.get(i);
+				Glyph prev = null;
+				if (i > 0) prev = glyphs.get(i - 1);
+				Style currentStyle = current.style;
+				Style prevStyle = prev == null ? null : prev.style;
 
-							float underlineY = -current.font.underlineCenterYOffset();
-							float underlineHeight = current.font.underlineHeight();
+				float underlineY = -current.font.underlineCenterYOffset();
+				float underlineHeight = current.font.underlineHeight();
 
 
-							GlyphPage.GlyphMetrics gMet = current.font.getGlyph(current.glyphId).metrics();
+				GlyphPage.GlyphMetrics gMet = current.font.getGlyph(current.glyphId).metrics();
 
-							float left = ((current.x + offsetX) * sf + (gMet.hbX() / 64f));
-							float right = (left + (gMet.width() / 64f));
+				float left = ((current.x + offsetX) * sf + (gMet.hbX() / 64f));
+				float right = (left + (gMet.width() / 64f));
 
-							if (currentStyle.isUnderlined()) {
-								if (prevStyle != null && prevStyle.isUnderlined() && Objects.equals(prevStyle.getColor(), currentStyle.getColor())) {
-									// we're not the first glyph and the previous one has the same style as we do; add us
-									rects.getLast().endX.set(right);
-								} else {
-									// for some reason we cant merge with the previous rect
-									rects.add(new Rectangle(left, (current.y + offsetY) * sf + underlineY - underlineHeight, underlineHeight, new AtomicDouble(right), currentStyle.getColor()));
-								}
-							}
-							if (strikeoutSupported && currentStyle.isStrikethrough()) {
-								float strikeY = -origSYO;
-								float strikeHeight = origSH;
-								if (prevStyle != null && prevStyle.isStrikethrough() && Objects.equals(prevStyle.getColor(), currentStyle.getColor())) {
-									rectsStrike.getLast().endX.set(right);
-								} else {
-									rectsStrike.add(new Rectangle(left, (current.y + offsetY) * sf + strikeY, strikeHeight, new AtomicDouble(right), currentStyle.getColor()));
-								}
-							}
-						}
+				if (currentStyle.isUnderlined()) {
+					if (prevStyle != null && prevStyle.isUnderlined() && Objects.equals(prevStyle.getColor(), currentStyle.getColor())) {
+						// we're not the first glyph and the previous one has the same style as we do; add us
+						rects.getLast().endX.set(right);
+					} else {
+						// for some reason we cant merge with the previous rect
+						rects.add(new Rectangle(left, (current.y + offsetY) * sf + underlineY - underlineHeight, underlineHeight, new AtomicDouble(right), currentStyle.getColor()));
+					}
+				}
+				if (strikeoutSupported && currentStyle.isStrikethrough()) {
+					float strikeY = -origSYO;
+					float strikeHeight = origSH;
+					if (prevStyle != null && prevStyle.isStrikethrough() && Objects.equals(prevStyle.getColor(), currentStyle.getColor())) {
+						rectsStrike.getLast().endX.set(right);
+					} else {
+						rectsStrike.add(new Rectangle(left, (current.y + offsetY) * sf + strikeY, strikeHeight, new AtomicDouble(right), currentStyle.getColor()));
+					}
+				}
+			}
 
-						for (int i = 0; i < 2; i++) {
-							List<Rectangle> rcs = switch (i) {
-								case 0 -> rects;
-								case 1 -> rectsStrike;
-								default -> throw new IllegalStateException();
-							};
-							for (Rectangle rect : rcs) {
+			if (!rects.isEmpty()) draws.add(rects);
+			if (!rectsStrike.isEmpty()) draws.add(rectsStrike);
+		}
+
+		if (!draws.isEmpty()) {
+			SimpleGuiElementRenderState state = new SimpleGuiRenderState(RenderPipelines.GUI, TextureSetup.empty(), context,
+					createBounds(context, x, y, maxX - minX, maxY - minY),
+					(quadBuffer, aFloat) -> {
+						for (List<Rectangle> whatToDraw : draws) {
+							for (Rectangle rect : whatToDraw) {
 								float le = rect.x;
 								float ri = (float) rect.endX.get();
 								float theY = rect.y;
@@ -287,9 +288,9 @@ public class GlyphBuffer {
 							}
 						}
 					}
-				}
-		);
-		((DrawContextAccessor) context).getState().addSimpleElement(state);
+			);
+			((DrawContextAccessor) context).getState().addSimpleElement(state);
+		}
 
 		stack.popMatrix();
 	}
