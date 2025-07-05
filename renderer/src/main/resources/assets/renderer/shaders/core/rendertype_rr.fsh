@@ -2,8 +2,6 @@
 
 #moj_import <minecraft:dynamictransforms.glsl>
 
-uniform sampler2D Sampler0;
-
 in vec2 texCoord0;
 in vec2 widthHeight;
 in vec4 roundness;
