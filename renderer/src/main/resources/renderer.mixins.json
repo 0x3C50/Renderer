@@ -14,10 +14,10 @@
 		"GuiRendererMixin",
 		"InGameHudMixin",
 		"MinecraftClientMixin",
+		"MultiPhaseMixin",
 		"NativeImageAccessor",
 		"PostEffectPassAccessor",
-		"PostEffectProcessorAccessor",
-		"RenderLayerMixin"
+		"PostEffectProcessorAccessor"
 	],
 	"injectors": {
 		"defaultRequire": 1

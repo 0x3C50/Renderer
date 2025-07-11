@@ -12,8 +12,6 @@ import org.lwjgl.util.freetype.FT_Face;
 import org.lwjgl.util.freetype.FT_GlyphSlot;
 import org.lwjgl.util.freetype.FT_Glyph_Metrics;
 
-import java.io.File;
-import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.Comparator;
@@ -123,10 +121,10 @@ class GlyphPage implements AutoCloseable {
 			}
 		}
 		tex.upload();
-		try {
-			ni.writeTo(new File(String.format("%d-%d.png", glyphStart, glyphEnd)));
-		} catch (IOException e) {
-			throw new RuntimeException(e);
-		}
+//		try {
+//			ni.writeTo(new File(String.format("%d-%d.png", glyphStart, glyphEnd)));
+//		} catch (IOException e) {
+//			throw new RuntimeException(e);
+//		}
 	}
 }

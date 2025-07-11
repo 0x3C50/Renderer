@@ -5,16 +5,12 @@ import com.mojang.blaze3d.pipeline.RenderPipeline;
 import com.mojang.blaze3d.platform.DepthTestFunction;
 import com.mojang.blaze3d.vertex.VertexFormat;
 import com.mojang.blaze3d.vertex.VertexFormatElement;
-import me.x150.renderer.util.Color;
-import me.x150.renderer.util.MoreRenderLayer;
 import net.minecraft.client.gl.RenderPipelines;
-import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.render.RenderLayer;
 import net.minecraft.client.render.VertexFormats;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.Util;
 import org.jetbrains.annotations.ApiStatus;
-import org.joml.Vector4f;
 
 import java.util.OptionalDouble;
 import java.util.function.Function;
@@ -204,39 +200,6 @@ public class CustomRenderLayers {
 		}
 		throw new IllegalStateException("No more free VertexFormatElement slots");
 	}
-	/**
-	 * Position, (texture, texture), color quads, with a shader producing rounded rects with a given "roundness" instead of quads.
-	 * The texture components are used by the shader to determine the position of the current vertex.
-	 * No texture is being sampled.
-	 * This Render layer should ONLY be used by {@link ExtendedDrawContext#drawRoundedRect(DrawContext, float, float, float, float, Vector4f, Color)},
-	 * or by you if you know what you're doing.
-	 * <table>
-	 *     <caption>Render layer settings</caption>
-	 *     <tr>
-	 *         <th>Vertex Format</th>
-	 *         <th>Draw Mode</th>
-	 *         <th>Pipeline</th>
-	 *     </tr>
-	 *     <tr>
-	 *         <td>POSITION_TEXTURE_TEXTURE_COLOR (inline definition)</td>
-	 *         <td>{@link com.mojang.blaze3d.vertex.VertexFormat.DrawMode#QUADS}</td>
-	 *         <td>{@link #RR_PIPELINE}</td>
-	 *     </tr>
-	 * </table>
-	 */
-	@ApiStatus.Internal
-	public static final Function<Vector4f, RenderLayer> ROUNDED_RECT = Util.memoize(vector4f -> {
-		RenderLayer rl = RenderLayer.of(
-				"renderer/2d/quad_rounded",
-				1024,
-				false,
-				false, RR_PIPELINE,
-				RenderLayer.MultiPhaseParameters.builder()
-						.build(false)
-		);
-		((MoreRenderLayer) rl).setUniform("Roundness", vector4f);
-		return rl;
-	});
 
 	/**
 	 * Gets a RenderLayer accepting Position, Color in a Quad format.
@@ -258,5 +221,4 @@ public class CustomRenderLayers {
 		if (throughWalls) return LINES_NO_DEPTH_TEST.apply((double) width);
 		else return LINES.apply((double) width);
 	}
-
 }

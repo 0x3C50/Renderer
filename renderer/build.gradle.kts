@@ -35,7 +35,7 @@ java {
 }
 
 loom {
-    accessWidenerPath = file("src/main/resources/aw.accesswidener")
+//    accessWidenerPath = file("src/main/resources/aw.accesswidener")
 }
 
 tasks {

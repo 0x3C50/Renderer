@@ -88,8 +88,7 @@ public class Handler {
 				}
 
 				gb.clear();
-				gb.addString(emojiFont, "search", 0, 0)
-						.then(font, "search for some shit", 5, -3);
+				gb.addString(font, "search", 0, 0);
 
 				gb.offsetToTopLeft();
 
@@ -98,7 +97,7 @@ public class Handler {
 
 //				gb.drawDebuggingInformation(context, 100, 100);
 
-//				gb.draw(context, 100, 100);
+				gb.draw(context, 100, 100);
 
 //				VertexConsumerProvider.Immediate immediate = VertexConsumerProvider.immediate(new BufferAllocator(1536));
 //				MatrixStack emp = RendererUtils.getEmptyMatrixStack();
@@ -108,6 +107,7 @@ public class Handler {
 		ExtendedDrawContext.drawLine(context, 5, 5, 100, 100, 5, new Color(0xFFFFFF00));
 		ExtendedDrawContext.drawRoundedRect(context, 10, 10, 200, 200, new Vector4f(5, 10, 15, 20), new Color(0xFFAABBCC));
 		ExtendedDrawContext.drawEllipse(context, 100, 10, 200, 200, new Color(0xFFAABBCC));
+//		me.x150.testmod.render.ExtendedDrawContext.drawTexturedRoundedRect(context, 100, 100, 50, 50, new Vector4f(15), new Color(1f, 1f, 0f, 1f), Identifier.of("testmod", "test.png"));
 	}
 
 	public static void world(MatrixStack worldRenderContext) {
