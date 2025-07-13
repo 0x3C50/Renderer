@@ -6,14 +6,17 @@ import me.x150.renderer.fontng.FTLibrary;
 import me.x150.renderer.fontng.Font;
 import me.x150.renderer.fontng.FontScalingRegistry;
 import me.x150.renderer.fontng.GlyphBuffer;
+import me.x150.renderer.mixin.GameRendererAccessor;
 import me.x150.renderer.render.CustomRenderLayers;
 import me.x150.renderer.render.ExtendedDrawContext;
 import me.x150.renderer.render.WorldRenderContext;
+import me.x150.renderer.shader.Shaders;
 import me.x150.renderer.util.Color;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gl.Framebuffer;
 import net.minecraft.client.gl.SimpleFramebuffer;
 import net.minecraft.client.gui.DrawContext;
+import net.minecraft.client.render.FrameGraphBuilder;
 import net.minecraft.client.render.RenderLayer;
 import net.minecraft.client.render.VertexConsumerProvider;
 import net.minecraft.client.texture.NativeImage;
@@ -65,13 +68,14 @@ public class Handler {
 			inputStream.close();
 		}
 
-//		FrameGraphBuilder fgb = new FrameGraphBuilder();
+		FrameGraphBuilder fgb = new FrameGraphBuilder();
 //		Framebuffer fb = MinecraftClient.getInstance().getFramebuffer();
 		if (fb1 == null) fb1 = new SimpleFramebuffer("test", 1920, 1080, false);
 		RenderSystem.getDevice().createCommandEncoder().writeToTexture(fb1.getColorAttachment(), ni, 0, 0, 0, 0, 1920, 1080, 0, 0);
 
-//		Shaders.drawBlur(fgb, 12, 6.6f, fb1);
-//		fgb.run(((GameRendererAccessor)MinecraftClient.getInstance().gameRenderer).getPool());
+		Shaders.drawBlur(fgb, 12, 6.6f, fb1);
+		fgb.run(((GameRendererAccessor)MinecraftClient.getInstance().gameRenderer).getPool());
+
 		//		mat.pop();
 		//		context.draw();
 				if (!inited) {

@@ -7,7 +7,6 @@
 	],
 	"client": [
 		"BufferBuilderAccessor",
-		"DebugHudMixin",
 		"DrawContextAccessor",
 		"GameRendererAccessor",
 		"GameRendererMixin",

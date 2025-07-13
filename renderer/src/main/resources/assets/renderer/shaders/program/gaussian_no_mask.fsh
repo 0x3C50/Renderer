@@ -5,13 +5,13 @@ uniform sampler2D InSampler;
 in vec2 texCoord;
 in vec2 oneTexel;
 
+layout(std140) uniform Predefined {
+    vec2 direction;
+};
+
 layout(std140) uniform BlurConfig {
     float width;
     float sigma;
-};
-
-layout(std140) uniform Predefined {
-    vec2 direction;
 };
 
 out vec4 fragColor;

@@ -10,8 +10,8 @@ version = rootProject.properties["mod_version"]!!
 group = rootProject.properties["maven_group"]!!
 
 dependencies {
-    compileOnly("org.projectlombok:lombok:1.18.30")
-    annotationProcessor("org.projectlombok:lombok:1.18.30")
+    compileOnly("org.projectlombok:lombok:1.18.38")
+    annotationProcessor("org.projectlombok:lombok:1.18.38")
 
     // https://mvnrepository.com/artifact/org.lwjgl/lwjgl-harfbuzz
     include(implementation("org.lwjgl:lwjgl-harfbuzz:3.3.3")!!)

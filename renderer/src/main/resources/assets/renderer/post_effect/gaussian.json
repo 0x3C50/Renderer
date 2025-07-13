@@ -22,19 +22,16 @@
 			"uniforms": {
 				"Predefined": [
 					{
-						"name": "direction",
 						"value": [1, 0],
 						"type": "vec2"
 					}
 				],
 				"BlurConfig": [
 					{
-						"name": "sigma",
 						"value": 0,
 						"type": "float"
 					},
 					{
-						"name": "kernelSizePx",
 						"value": 0,
 						"type": "float"
 					}
@@ -60,19 +57,16 @@
 			"uniforms": {
 				"Predefined": [
 					{
-						"name": "direction",
-						"value": [1, 0],
+						"value": [0, 1],
 						"type": "vec2"
 					}
 				],
 				"BlurConfig": [
 					{
-						"name": "sigma",
 						"value": 0,
 						"type": "float"
 					},
 					{
-						"name": "kernelSizePx",
 						"value": 0,
 						"type": "float"
 					}

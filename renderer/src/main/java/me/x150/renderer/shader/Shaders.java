@@ -15,20 +15,33 @@ import net.minecraft.client.util.Handle;
 import net.minecraft.util.Identifier;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.lwjgl.system.MemoryStack;
 
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 
+// FIXME 13 Juli 2025 23:46: reloading
 public class Shaders {
+	private static final GpuBuffer uniformsBuffer = RenderSystem.getDevice().createBuffer(() -> "renderer blurconfig", GpuBuffer.USAGE_UNIFORM | GpuBuffer.USAGE_MAP_WRITE, 8);
+
 	private static final Identifier the = Identifier.of("renderer", "mask");
-	private static final PostEffectProcessor gausNoMask = getShader("gaussian_no_mask");
-	private static final PostEffectProcessor gausWithMask = getShader("gaussian");
+	private static final PostEffectProcessor gausNoMask = patchUniforms(getShader("gaussian_no_mask"));
+	private static final PostEffectProcessor gausWithMask = patchUniforms(getShader("gaussian"));
 
 	private static @NotNull PostEffectProcessor getShader(String shaderName) {
 		return Objects.requireNonNull(MinecraftClient.getInstance().getShaderLoader().loadPostEffect(Identifier.of("renderer", shaderName), Set.of(DefaultFramebufferSet.MAIN, the)));
+	}
+
+	private static PostEffectProcessor patchUniforms(PostEffectProcessor p) {
+		List<PostEffectPass> passes = ((PostEffectProcessorAccessor) p).getPasses();
+		for (PostEffectPass pass : passes) {
+			Map<String, GpuBuffer> uniforms = ((PostEffectPassAccessor) pass).getUniformBuffers();
+			GpuBuffer bc = uniforms.get("BlurConfig");
+			bc.close();
+			uniforms.put("BlurConfig", uniformsBuffer);
+		}
+		return p;
 	}
 
 	public static void drawBlur(FrameGraphBuilder fgb, int kernelSizePx, float sigma, Framebuffer maskOrNull) {
@@ -61,20 +74,11 @@ public class Shaders {
 			}
 		};
 
-		List<PostEffectPass> passes = ((PostEffectProcessorAccessor) p).getPasses();
-		for (PostEffectPass pass : passes) {
-			Map<String, GpuBuffer> uniforms = ((PostEffectPassAccessor) pass).getUniformBuffers();
-			GpuBuffer bc = uniforms.get("BlurConfig");
-			bc.close();
-
-			try (MemoryStack memoryStack = MemoryStack.stackPush()) {
-				Std140Builder std140Builder = Std140Builder.onStack(memoryStack, 8);
-
-				std140Builder.putFloat(sigma).putFloat(kernelSizePx);
-
-				uniforms.put("BlurConfig", RenderSystem.getDevice().createBuffer(() -> "renderer blurconfig", 128, std140Builder.get()));
-			}
+		try (GpuBuffer.MappedView mappedView = RenderSystem.getDevice().createCommandEncoder().mapBuffer(Shaders.uniformsBuffer, false, true)) {
+			Std140Builder std140Builder = Std140Builder.intoBuffer(mappedView.data());
+			std140Builder.putFloat(kernelSizePx).putFloat(sigma);
 		}
+
 		p.render(fgb, i, j, framebufferSet);
 	}
 }

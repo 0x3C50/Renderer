@@ -258,6 +258,6 @@ public class RenderUtils {
 	 * @return The GUI scale of the current window
 	 */
 	public static int getGuiScale() {
-		return (int) MinecraftClient.getInstance().getWindow().getScaleFactor();
+		return MinecraftClient.getInstance().getWindow().getScaleFactor();
 	}
 }
