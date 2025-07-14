@@ -31,12 +31,15 @@ after you're completely done using it, and are managing the VCP.
 9. OpenGL runs its normal pipeline through, running the data through the vertex and fragment shader, until it lands in the target given by the RenderLayer
 
 ## Specifying where to draw to
-Framebuffers are collections of color and depth textures, mimicing the OpenGL structure. They aren't a 1-1 mapping tho; they don't have their own OpenGL id.
+Framebuffers are collections of color and depth textures, mimicking the OpenGL structure. They aren't a 1-1 mapping tho; they don't have their own OpenGL id.
 
 Instead, the textures are 1-1 mappings to OpenGL textures, and the color texture can be used to make a new OpenGL FBO with a given depth texture.
 
 You can specify a target with RenderLayers, specifying a Framebuffer. For more low level control, the barebones system allows you to pass in
 both a color texture and depth texture, along with optional clear values, when you make a new pass. The data will be drawn to these textures.
 
-Modifying where to draw to on the fly is **not possible anymore** (without modifications). RenderLayers use their target texture when making the render pass,
-and other pass construction occurrences use MinecraftClient.getFramebuffer() as the target.
+Modifying where to draw to globally can be done with `RenderSystem.outputColorTextureOverride` and `RenderSystem.outputColorTextureOverride`.
+Setting those two fields will cause `RenderLayers` to draw to the given textures, even if the RenderLayer itself says otherwise.
+
+Getting other parts of the rendering code to adhere to your override is only possible via mixins. The hud system, for example, does not care
+about the RenderSystem fields.
