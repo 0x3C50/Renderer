@@ -6,6 +6,7 @@ import net.minecraft.client.texture.NativeImage;
 import net.minecraft.client.texture.NativeImageBackedTexture;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.jetbrains.annotations.ApiStatus;
 import org.lwjgl.system.MemoryUtil;
 import org.lwjgl.util.freetype.FT_Bitmap;
 import org.lwjgl.util.freetype.FT_Face;
@@ -20,7 +21,10 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.lwjgl.util.freetype.FreeType.*;
 
-class GlyphPage implements AutoCloseable {
+/**
+ * A page of glyphs drawn from a {@link Font}
+ */
+public class GlyphPage implements AutoCloseable {
 	private static final Logger log = LogManager.getLogger(GlyphPage.class);
 	private final Font font;
 	private final int glyphStart;
@@ -46,7 +50,7 @@ class GlyphPage implements AutoCloseable {
 		this.font = font;
 		this.glyphStart = glyphStart;
 		this.glyphEnd = glyphEnd;
-		log.info("init page: {} {}-{}", font.toString(), glyphStart, glyphEnd);
+		log.debug("Font {} ({}-{}) init page from glyph {} to {}", font.toString(), font.freetypeFont.family_nameString(), font.freetypeFont.style_nameString(), glyphStart, glyphEnd);
 		fill();
 	}
 
@@ -121,10 +125,5 @@ class GlyphPage implements AutoCloseable {
 			}
 		}
 		tex.upload();
-//		try {
-//			ni.writeTo(new File(String.format("%d-%d.png", glyphStart, glyphEnd)));
-//		} catch (IOException e) {
-//			throw new RuntimeException(e);
-//		}
 	}
 }

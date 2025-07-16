@@ -7,7 +7,7 @@ This library can be found on [Maven central](https://central.sonatype.com/artifa
 To install it, add this snippet to the dependencies section of your `build.gradle`:
 <!-- CHANGE VERSION HERE!!!! -->
 ```groovy
-include modImplementation("io.github.0x3c50.renderer:renderer-fabric:2.1.2")
+include modImplementation("io.github.0x3c50.renderer:renderer-fabric:2.1.3")
 ```
 This will include the library as a JIJ ("Jar in Jar") dependency, such that your users won't have to worry about installing it themselves.
 If you don't want to include the library in your mod, remove the `include`. (JUST THE `include`. Keep everything else intact. It should be `modImplementation(...)`)

@@ -20,6 +20,7 @@ import static org.lwjgl.util.harfbuzz.HarfBuzz.*;
  */
 public class Font extends RefWatcher {
 
+	public final String originalFile;
 	/**
 	 * The size that was requested by the user, set by {@link #setSourceSize(int)}
 	 */
@@ -64,6 +65,7 @@ public class Font extends RefWatcher {
 	 * @param size      Initial size of the font
 	 */
 	public Font(FTLibrary freetype, String file, int faceIndex, int size) {
+		originalFile = file;
 		try (MemoryStack memoryStack = MemoryStack.stackPush()) {
 			PointerBuffer ptr = memoryStack.mallocPointer(1);
 			handleFtErr(FT_New_Face(freetype.get(), file, faceIndex, ptr));

@@ -82,25 +82,29 @@ public class ExtendedDrawContext {
 				CustomRenderLayers.RR_PIPELINE, TextureSetup.empty(), instance,
 				createBounds(instance, x, y, width, height),
 				(bruh, aFloat) -> {
-					float r = color.red();
-					float g = color.green();
-					float b = color.blue();
-					float a = color.alpha();
-
-					DirectVertexConsumer dvc = new DirectVertexConsumer((BufferBuilder) bruh, false);
-
-					{
-						// Vertices: 0-1-2-3
-						//@formatter:off
-dvc.vertex(matrices, x, y + height, aFloat)			.texture(0, 0)		 .texture(width, height).texture(roundness.x, roundness.y).texture(roundness.z, roundness.w).color(r, g, b, a);
-dvc.vertex(matrices, x + width, y + height, aFloat).texture(width, 0)	 .texture(width, height).texture(roundness.x, roundness.y).texture(roundness.z, roundness.w).color(r, g, b, a);
-dvc.vertex(matrices, x + width, y, aFloat)			.texture(width, height).texture(width, height).texture(roundness.x, roundness.y).texture(roundness.z, roundness.w).color(r, g, b, a);
-dvc.vertex(matrices, x, y, aFloat)						.texture(0, height)	 .texture(width, height).texture(roundness.x, roundness.y).texture(roundness.z, roundness.w).color(r, g, b, a);
-						//@formatter:on
-					}
+					emitRoundedRect(x, y, aFloat, width, height, roundness, color, (BufferBuilder) bruh, new Matrix4f().mul(matrices));
 				}
 		);
 		((DrawContextAccessor) instance).getState().addSimpleElement(state);
+	}
+
+	private static void emitRoundedRect(float x, float y, float z, float width, float height, Vector4f roundness, Color color, BufferBuilder into, Matrix4f matrices) {
+		float r = color.red();
+		float g = color.green();
+		float b = color.blue();
+		float a = color.alpha();
+
+		DirectVertexConsumer dvc = new DirectVertexConsumer(into, false);
+
+		{
+			// Vertices: 0-1-2-3
+			//@formatter:off
+dvc.vertex(matrices, x, y + height, z)			.texture(0, 0)		 .texture(width, height).texture(roundness.x, roundness.y).texture(roundness.z, roundness.w).color(r, g, b, a);
+dvc.vertex(matrices, x + width, y + height, z).texture(width, 0)	 .texture(width, height).texture(roundness.x, roundness.y).texture(roundness.z, roundness.w).color(r, g, b, a);
+dvc.vertex(matrices, x + width, y, z)			.texture(width, height).texture(width, height).texture(roundness.x, roundness.y).texture(roundness.z, roundness.w).color(r, g, b, a);
+dvc.vertex(matrices, x, y, z)						.texture(0, height)	 .texture(width, height).texture(roundness.x, roundness.y).texture(roundness.z, roundness.w).color(r, g, b, a);
+			//@formatter:on
+		}
 	}
 
 	/**

@@ -25,6 +25,7 @@ import org.lwjgl.util.harfbuzz.hb_glyph_position_t;
 import java.nio.IntBuffer;
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 import static org.lwjgl.util.harfbuzz.HarfBuzz.*;
 
@@ -308,8 +309,7 @@ public class GlyphBuffer {
 	 * @return FollowUp to add more content
 	 */
 	public FollowUp addString(Font font, String s, float x, float y) {
-		long buffer = hb_buffer_create();
-		buffer = hb_buffer_reference(buffer);
+		long buffer = (hb_buffer_create());
 		try (MemoryStack memoryStack = MemoryStack.stackPush()) {
 			IntBuffer intBuffer = memoryStack.ints(s.codePoints().toArray());
 			hb_buffer_add_codepoints(buffer, intBuffer, 0, -1);
@@ -319,6 +319,25 @@ public class GlyphBuffer {
 		FollowUp fw = addShapedRun(font, buffer, null, x, y);
 		hb_buffer_destroy(buffer);
 		return fw;
+	}
+
+	/**
+	 * Copy the contents from the other buffer into this one, offset by x, y.
+	 * This function doesn't return a FollowUp, instead returning the run id directly.
+	 * All glyphs from the other buffer are combined into one run id.
+	 * @param buffer Buffer to add from
+	 * @param x X offset
+	 * @param y Y offset
+	 * @return Added run ID
+	 */
+	public int addOtherBuffer(GlyphBuffer buffer, float x, float y) {
+		int newRunId = this.glyphs.size();
+		this.glyphs.addAll(IntStream.range(0, buffer.glyphs.size())
+				.mapToObj(index -> {
+					Glyph it = buffer.glyphs.get(index);
+					return new Glyph(it.font, it.glyphId, it.x+x, it.y+y, it.style, newRunId, index);
+				}).toList());
+		return newRunId;
 	}
 
 	/**
@@ -337,7 +356,7 @@ public class GlyphBuffer {
 	 * @return FollowUp to add more content
 	 */
 	public FollowUp addText(Font font, Text t, float x, float y) {
-		long buffer = hb_buffer_reference(hb_buffer_create());
+		long buffer = (hb_buffer_create());
 		// HB_BUFFER_CLUSTER_LEVEL_CHARACTERS: do not group, do not remap, keep as is. if merge: first char determines cluster
 		hb_buffer_set_cluster_level(buffer, HB_BUFFER_CLUSTER_LEVEL_CHARACTERS);
 		List<Style> styles = new ArrayList<>();
