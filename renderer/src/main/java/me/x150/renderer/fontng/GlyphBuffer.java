@@ -16,8 +16,11 @@ import net.minecraft.client.texture.TextureSetup;
 import net.minecraft.text.Style;
 import net.minecraft.text.Text;
 import net.minecraft.text.TextColor;
+import net.minecraft.util.profiler.Profiler;
+import net.minecraft.util.profiler.Profilers;
 import org.joml.Matrix3x2f;
 import org.joml.Matrix3x2fStack;
+import org.joml.Vector2f;
 import org.lwjgl.system.MemoryStack;
 import org.lwjgl.util.harfbuzz.hb_glyph_info_t;
 import org.lwjgl.util.harfbuzz.hb_glyph_position_t;
@@ -143,8 +146,8 @@ public class GlyphBuffer {
 	 * Draw this GlyphBuffer to a given DrawContext
 	 *
 	 * @param context DrawContext to draw into
-	 * @param x     Render X coordinate
-	 * @param y     Render Y coordinate
+	 * @param x       Render X coordinate
+	 * @param y       Render Y coordinate
 	 */
 	public void draw(DrawContext context, float x, float y) {
 		if (glyphs.isEmpty()) return;
@@ -167,51 +170,52 @@ public class GlyphBuffer {
 		for (Map.Entry<GlyphPage, List<Glyph>> glyphPageListEntry : pageToGlyphs.entrySet()) {
 			GlyphPage page = glyphPageListEntry.getKey();
 			GpuTextureView glId = page.tex.getGlTextureView();
-			SimpleGuiElementRenderState state = new SimpleGuiRenderState(
-					CustomRenderLayers.PIPELINE_TEXT_CUSTOM, TextureSetup.of(glId), context,
-					createBounds(context, x, y, maxX - minX, maxY - minY),
-					(buffer, aFloat) -> {
-						for (Glyph glyph : glyphPageListEntry.getValue()) {
-							float glyphBaselineX = (glyph.x + offsetX) * sf;
-							float glyphBaselineY = (glyph.y + offsetY) * sf;
-							int glyphIndex = glyph.glyphId;
-							Style style = glyph.style;
-							TextColor textCol = style.getColor();
-							int actualColor = (textCol == null ? 0xFFFFFF : textCol.getRgb()) | (0xFF << 24);
-							GlyphPage.Glyph theGlyph = page.getGlyph(glyphIndex);
+			SimpleGuiElementRenderState state = new SimpleGuiRenderState(CustomRenderLayers.PIPELINE_TEXT_CUSTOM, TextureSetup.of(glId), context, createBounds(context, x, y, maxX - minX, maxY - minY), (buffer, z) -> {
+				for (Glyph glyph : glyphPageListEntry.getValue()) {
+					float glyphBaselineX = (glyph.x + offsetX) * sf;
+					float glyphBaselineY = (glyph.y + offsetY) * sf;
+					int glyphIndex = glyph.glyphId;
+					Style style = glyph.style;
+					TextColor textCol = style.getColor();
+					int actualColor = (textCol == null ? 0xFFFFFF : textCol.getRgb()) | (0xFF << 24);
+					GlyphPage.Glyph theGlyph = page.getGlyph(glyphIndex);
 
 
-							// draw glyph
-							int bmpl = theGlyph.drawOffsetX();
-							int bmpt = theGlyph.drawOffsetY();
-							int wid = theGlyph.bitmapWidth();
-							int hei = theGlyph.bitmapHeight();
-							float topLeftX = glyphBaselineX + bmpl;
-							float topLeftY = glyphBaselineY - bmpt;
+					// draw glyph
+					int bmpl = theGlyph.drawOffsetX();
+					int bmpt = theGlyph.drawOffsetY();
+					int wid = theGlyph.bitmapWidth();
+					int hei = theGlyph.bitmapHeight();
+					float topLeftX = glyphBaselineX + bmpl;
+					float topLeftY = glyphBaselineY - bmpt;
+					Vector2f tTL = posmat.transformPosition(topLeftX, topLeftY, new Vector2f());
+					Vector2f tBL = posmat.transformPosition(topLeftX, topLeftY + hei, new Vector2f());
+					Vector2f tBR = posmat.transformPosition(topLeftX + wid, topLeftY + hei, new Vector2f());
+					Vector2f tTR = posmat.transformPosition(topLeftX + wid, topLeftY, new Vector2f());
+					// round transformed coords
+					tTL.mul(sf); tBL.mul(sf); tBR.mul(sf); tTR.mul(sf);
+					tTL.floor(); tBL.floor(); tBR.floor(); tTR.floor();
+					tTL.div(sf); tBL.div(sf); tBR.div(sf); tTR.div(sf);
 
-							int glyphY = theGlyph.y().get();
-							int glyphX = theGlyph.x().get();
 
-							float w = page.getTexWidth();
-							float h = page.getTexHeight();
+					int glyphY = theGlyph.y().get();
+					int glyphX = theGlyph.x().get();
 
-							// small insets to make sure we're always INSIDE this char's bounds
-							//@formatter:off
-							buffer
-									.vertex(posmat, topLeftX, 	   topLeftY, 	  aFloat).color(actualColor).texture((glyphX + 0.01f) / w, 	  (glyphY + 0.01f) / h)		.light(0xf000f0)
-									.vertex(posmat, topLeftX, 	   topLeftY + hei, aFloat).color(actualColor).texture((glyphX + 0.01f) / w, 	  (glyphY + hei - 0.01f) / h).light(0xf000f0)
-									.vertex(posmat, topLeftX + wid, topLeftY + hei, aFloat).color(actualColor).texture((glyphX + wid - 0.01f) / w, (glyphY + hei - 0.01f) / h).light(0xf000f0)
-									.vertex(posmat, topLeftX + wid, topLeftY, 	  aFloat).color(actualColor).texture((glyphX + wid - 0.01f) / w, (glyphY + 0.01f) / h)		.light(0xf000f0);
-							//@formatter:on
-						}
-					}
-			);
+					float w = page.getTexWidth();
+					float h = page.getTexHeight();
+
+					// small insets to make sure we're always INSIDE this char's bounds
+					//@formatter:off
+					buffer
+							.vertex(tTL.x, tTL.y, z).color(actualColor).texture((glyphX + 0.01f) / w, 	     (glyphY + 0.01f) / h)		.light(0xf000f0)
+							.vertex(tBL.x, tBL.y, z).color(actualColor).texture((glyphX + 0.01f) / w, 	     (glyphY + hei - 0.01f) / h)	.light(0xf000f0)
+							.vertex(tBR.x, tBR.y, z).color(actualColor).texture((glyphX + wid - 0.01f) / w, (glyphY + hei - 0.01f) / h)	.light(0xf000f0)
+							.vertex(tTR.x, tTR.y, z).color(actualColor).texture((glyphX + wid - 0.01f) / w, (glyphY + 0.01f) / h)		.light(0xf000f0);
+					//@formatter:on
+				}
+			});
 			((DrawContextAccessor) context).getState().addSimpleElement(state);
 		}
-
-		//		stack.pop();
-		//		posmat = stack.peek().getPositionMatrix();
-
 
 		Map<Integer, List<Glyph>> runs = glyphs.stream().collect(Collectors.groupingBy(it -> it.runId));
 		List<List<Rectangle>> draws = new ArrayList<>(runs.size() * 2);
@@ -267,29 +271,26 @@ public class GlyphBuffer {
 		}
 
 		if (!draws.isEmpty()) {
-			SimpleGuiElementRenderState state = new SimpleGuiRenderState(RenderPipelines.GUI, TextureSetup.empty(), context,
-					createBounds(context, x, y, maxX - minX, maxY - minY),
-					(quadBuffer, aFloat) -> {
-						for (List<Rectangle> whatToDraw : draws) {
-							for (Rectangle rect : whatToDraw) {
-								float le = rect.x;
-								float ri = (float) rect.endX.get();
-								float theY = rect.y;
-								float height = rect.height;
-								int actualColor = 0xFFFFFFFF;
-								if (rect.color != null) actualColor = (rect.color.getRgb()) | (0xFF << 24);
+			SimpleGuiElementRenderState state = new SimpleGuiRenderState(RenderPipelines.GUI, TextureSetup.empty(), context, createBounds(context, x, y, maxX - minX, maxY - minY), (quadBuffer, aFloat) -> {
+				for (List<Rectangle> whatToDraw : draws) {
+					for (Rectangle rect : whatToDraw) {
+						float le = rect.x;
+						float ri = (float) rect.endX.get();
+						float theY = rect.y;
+						float height = rect.height;
+						int actualColor = 0xFFFFFFFF;
+						if (rect.color != null) actualColor = (rect.color.getRgb()) | (0xFF << 24);
 
-								//@formatter:off
-								quadBuffer
-										.vertex(posmat, le, theY, 	   	 aFloat).color(actualColor)
-										.vertex(posmat, le, theY + height, aFloat).color(actualColor)
-										.vertex(posmat, ri, theY + height, aFloat).color(actualColor)
-										.vertex(posmat, ri, theY, 		 aFloat).color(actualColor);
+						//@formatter:off
+						quadBuffer
+								.vertex(posmat, le, theY, 	   	 aFloat).color(actualColor)
+								.vertex(posmat, le, theY + height, aFloat).color(actualColor)
+								.vertex(posmat, ri, theY + height, aFloat).color(actualColor)
+								.vertex(posmat, ri, theY, 		 aFloat).color(actualColor);
 								//@formatter:on
-							}
-						}
 					}
-			);
+				}
+			});
 			((DrawContextAccessor) context).getState().addSimpleElement(state);
 		}
 
@@ -309,14 +310,19 @@ public class GlyphBuffer {
 	 * @return FollowUp to add more content
 	 */
 	public FollowUp addString(Font font, String s, float x, float y) {
+//		Profiler prof = Profilers.get();
 		long buffer = (hb_buffer_create());
+//		prof.push("prepare text");
 		try (MemoryStack memoryStack = MemoryStack.stackPush()) {
 			IntBuffer intBuffer = memoryStack.ints(s.codePoints().toArray());
 			hb_buffer_add_codepoints(buffer, intBuffer, 0, -1);
 		}
+//		prof.swap("shape text");
 		hb_buffer_guess_segment_properties(buffer);
 		hb_shape(font.hbFont, buffer, null);
+//		prof.swap("add shaped");
 		FollowUp fw = addShapedRun(font, buffer, null, x, y);
+//		prof.pop();
 		hb_buffer_destroy(buffer);
 		return fw;
 	}
@@ -325,18 +331,18 @@ public class GlyphBuffer {
 	 * Copy the contents from the other buffer into this one, offset by x, y.
 	 * This function doesn't return a FollowUp, instead returning the run id directly.
 	 * All glyphs from the other buffer are combined into one run id.
+	 *
 	 * @param buffer Buffer to add from
-	 * @param x X offset
-	 * @param y Y offset
+	 * @param x      X offset
+	 * @param y      Y offset
 	 * @return Added run ID
 	 */
 	public int addOtherBuffer(GlyphBuffer buffer, float x, float y) {
 		int newRunId = this.glyphs.size();
-		this.glyphs.addAll(IntStream.range(0, buffer.glyphs.size())
-				.mapToObj(index -> {
-					Glyph it = buffer.glyphs.get(index);
-					return new Glyph(it.font, it.glyphId, it.x+x, it.y+y, it.style, newRunId, index);
-				}).toList());
+		this.glyphs.addAll(IntStream.range(0, buffer.glyphs.size()).mapToObj(index -> {
+			Glyph it = buffer.glyphs.get(index);
+			return new Glyph(it.font, it.glyphId, it.x + buffer.offsetX + x, it.y + buffer.offsetY + y, it.style, newRunId, index);
+		}).toList());
 		return newRunId;
 	}
 
@@ -356,6 +362,8 @@ public class GlyphBuffer {
 	 * @return FollowUp to add more content
 	 */
 	public FollowUp addText(Font font, Text t, float x, float y) {
+//		Profiler prof = Profilers.get();
+//		prof.push("collect text");
 		long buffer = (hb_buffer_create());
 		// HB_BUFFER_CLUSTER_LEVEL_CHARACTERS: do not group, do not remap, keep as is. if merge: first char determines cluster
 		hb_buffer_set_cluster_level(buffer, HB_BUFFER_CLUSTER_LEVEL_CHARACTERS);
@@ -366,10 +374,13 @@ public class GlyphBuffer {
 			asString.codePoints().forEach(cp -> hb_buffer_add(buffer, cp, newIndex));
 			return Optional.empty();
 		}, Style.EMPTY);
+//		prof.swap("shape text");
 		hb_buffer_set_content_type(buffer, HB_BUFFER_CONTENT_TYPE_UNICODE);
 		hb_buffer_guess_segment_properties(buffer);
 		hb_shape(font.hbFont, buffer, null);
+//		prof.swap("add text");
 		FollowUp fw = addShapedRun(font, buffer, styles.toArray(Style[]::new), x, y);
+//		prof.pop();
 		hb_buffer_destroy(buffer);
 		return fw;
 	}
@@ -444,7 +455,7 @@ public class GlyphBuffer {
 		recalculateBounds();
 	}
 
-	public void recalculateBounds() {
+	private void recalculateBounds() {
 		resetBounds();
 		for (Glyph glyph : glyphs) {
 			float actualX = glyph.x;
