@@ -18,9 +18,9 @@ dependencies {
     compileOnly(kotlin("gradle-plugin", embeddedKotlinVersion))
 //    runtimeOnly(kotlin("gradle-plugin", "2.0.21"))
 
-    implementation(pluginDep("fabric-loom", "1.10-SNAPSHOT"))
+    implementation(pluginDep("fabric-loom", "1.11-SNAPSHOT"))
 
-    implementation("com.palantir.javapoet:javapoet:0.6.0")
+    implementation("com.squareup:javapoet:1.13.0")
 
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.8.0")
 }
