@@ -13,7 +13,6 @@ import net.minecraft.util.profiler.Profilers;
 public class RenderEvents {
 	/**
 	 * Triggers just AFTER the world is rendered, before the hand is rendered.
-	 * This is after {@link net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents#END}, but at the same logical position in the rendering pipeline.
 	 * The given MatrixStack contains the inverse camera rotation.
 	 */
 	public static final Event<RenderEvent<MatrixStack>> AFTER_WORLD = create();

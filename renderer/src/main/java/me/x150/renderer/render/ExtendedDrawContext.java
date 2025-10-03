@@ -42,7 +42,7 @@ public class ExtendedDrawContext {
 		SimpleGuiElementRenderState state = new SimpleGuiRenderState(
 				CustomRenderLayers.ELLIPSE_PIPELINE, TextureSetup.empty(), instance,
 				createBounds(instance, x, y, width, height),
-				(bruh, aFloat) -> {
+				(bruh) -> {
 					float r = color.red();
 					float g = color.green();
 					float b = color.blue();
@@ -53,10 +53,10 @@ public class ExtendedDrawContext {
 					{
 						// Vertices: 0-1-2-3
 						//@formatter:off
-						ellipse.vertex(matrices, x, y + height, aFloat).texture(0, 0).color(r, g, b, a);
-						ellipse.vertex(matrices, x + width, y + height, aFloat).texture(1, 0).color(r, g, b, a);
-						ellipse.vertex(matrices, x + width, y, aFloat).texture(1, 1).color(r, g, b, a);
-						ellipse.vertex(matrices, x, y, aFloat).texture(0, 1).color(r, g, b, a);
+						ellipse.vertex(matrices, x, y + height).texture(0, 0).color(r, g, b, a);
+						ellipse.vertex(matrices, x + width, y + height).texture(1, 0).color(r, g, b, a);
+						ellipse.vertex(matrices, x + width, y).texture(1, 1).color(r, g, b, a);
+						ellipse.vertex(matrices, x, y).texture(0, 1).color(r, g, b, a);
 						//@formatter:on
 					}
 				}
@@ -81,8 +81,8 @@ public class ExtendedDrawContext {
 		SimpleGuiElementRenderState state = new SimpleGuiRenderState(
 				CustomRenderLayers.RR_PIPELINE, TextureSetup.empty(), instance,
 				createBounds(instance, x, y, width, height),
-				(bruh, aFloat) -> {
-					emitRoundedRect(x, y, aFloat, width, height, roundness, color, (BufferBuilder) bruh, new Matrix4f().mul(matrices));
+				(bruh) -> {
+					emitRoundedRect(x, y, 0, width, height, roundness, color, (BufferBuilder) bruh, new Matrix4f().mul(matrices));
 				}
 		);
 		((DrawContextAccessor) instance).getState().addSimpleElement(state);
@@ -129,7 +129,7 @@ dvc.vertex(matrices, x, y, z)						.texture(0, height)	 .texture(width, height).
 		SimpleGuiElementRenderState state = new SimpleGuiRenderState(
 				CustomRenderLayers.LINES_DEPTH_PIPELINE, TextureSetup.empty(), instance,
 				createBounds(instance, startX, startY, width, height),
-				(bruh, aFloat) -> {
+				(bruh) -> {
 					float r = color.red();
 					float g = color.green();
 					float b = color.blue();
@@ -137,14 +137,14 @@ dvc.vertex(matrices, x, y, z)						.texture(0, height)	 .texture(width, height).
 
 					Vector3f transformedStart = new Vector3f(),
 							transformedEnd = new Vector3f();
-					posTransform.transformPosition(x, y, aFloat, transformedStart);
-					posTransform.transformPosition(toX, toY, aFloat, transformedEnd);
+					posTransform.transformPosition(x, y, 0, transformedStart);
+					posTransform.transformPosition(toX, toY, 0, transformedEnd);
 
 					Vector2f direction = new Vector2f(transformedStart).sub(new Vector2f(transformedEnd)).normalize();
 
 					Emitter._emit_line__2xposition_color_normal(posTransform, new Matrix3f(), bruh,
-							x, y, aFloat, r, g, b, a, direction.x, direction.y, 0,
-							toX, toY, aFloat, r, g, b, a, direction.x, direction.y, 0);
+							x, y, 0, r, g, b, a, direction.x, direction.y, 0,
+							toX, toY, 0, r, g, b, a, direction.x, direction.y, 0);
 				}
 		);
 		((DrawContextAccessor) instance).getState().addSimpleElement(state);

@@ -27,7 +27,7 @@ public class TestScreen extends BaseOwoScreen<FlowLayout> {
 	protected void build(FlowLayout flowLayout) {
 		flowLayout
 				.gap(10)
-				.surface(Surface.flat(0))
+				.surface(Surface.flat(0xFF000000))
 				.sizing(Sizing.fill(), Sizing.fill())
 		;
 		FlowLayout selector = Containers.verticalFlow(Sizing.content(), Sizing.content()).gap(5);

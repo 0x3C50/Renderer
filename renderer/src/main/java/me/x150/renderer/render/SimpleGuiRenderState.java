@@ -8,20 +8,20 @@ import net.minecraft.client.gui.render.state.SimpleGuiElementRenderState;
 import net.minecraft.client.render.VertexConsumer;
 import net.minecraft.client.texture.TextureSetup;
 
-import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 
 public record SimpleGuiRenderState(
 		RenderPipeline pipeline,
 		TextureSetup textureSetup,
 		ScreenRect scissorArea,
 		ScreenRect bounds,
-		BiConsumer<VertexConsumer, Float> vertices
+		Consumer<VertexConsumer> vertices
 ) implements SimpleGuiElementRenderState {
-	public SimpleGuiRenderState(RenderPipeline pipeline, TextureSetup ts, DrawContext context, ScreenRect bounds, BiConsumer<VertexConsumer, Float> vertices) {
+	public SimpleGuiRenderState(RenderPipeline pipeline, TextureSetup ts, DrawContext context, ScreenRect bounds, Consumer<VertexConsumer> vertices) {
 		this(pipeline, ts, ((DrawContextAccessor) context).getScissorStack().peekLast(), bounds, vertices);
 	}
 	@Override
-	public void setupVertices(VertexConsumer vertices, float depth) {
-		this.vertices.accept(vertices, depth);
+	public void setupVertices(VertexConsumer vertices) {
+		this.vertices.accept(vertices);
 	}
 }

@@ -16,8 +16,7 @@
 		"MultiPhaseMixin",
 		"NativeImageAccessor",
 		"PostEffectPassAccessor",
-		"PostEffectProcessorAccessor",
-		"SpecialGuiElementRegistryImplMixin"
+		"PostEffectProcessorAccessor"
 	],
 	"injectors": {
 		"defaultRequire": 1

@@ -16,8 +16,6 @@ import net.minecraft.client.texture.TextureSetup;
 import net.minecraft.text.Style;
 import net.minecraft.text.Text;
 import net.minecraft.text.TextColor;
-import net.minecraft.util.profiler.Profiler;
-import net.minecraft.util.profiler.Profilers;
 import org.joml.Matrix3x2f;
 import org.joml.Matrix3x2fStack;
 import org.joml.Vector2f;
@@ -105,7 +103,7 @@ public class GlyphBuffer {
 		stack.pushMatrix();
 		stack.translate(x, y);
 
-		dc.drawBorder((int) (minX + offsetX), (int) (minY + offsetY), (int) Math.ceil(maxX - minX), (int) Math.ceil(maxY - minY), 0xFFFF0000);
+		dc.drawStrokedRectangle((int) (minX + offsetX), (int) (minY + offsetY), (int) Math.ceil(maxX - minX), (int) Math.ceil(maxY - minY), 0xFFFF0000);
 
 		float sf = (float) MinecraftClient.getInstance().getWindow().getScaleFactor();
 		stack.scale(1f / sf, 1f / sf);
@@ -125,7 +123,7 @@ public class GlyphBuffer {
 			float topLeftX = glyphBaselineX + bmpl;
 			float topLeftY = glyphBaselineY - bmpt;
 
-			dc.drawBorder((int) topLeftX, (int) topLeftY, wid, hei, 0xFF00FF00);
+			dc.drawStrokedRectangle((int) topLeftX, (int) topLeftY, wid, hei, 0xFF00FF00);
 
 			dc.drawHorizontalLine((int) glyphBaselineX, (int) (glyphBaselineX + wid), ((int) glyphBaselineY), 0xFF0000FF);
 		}
@@ -170,7 +168,7 @@ public class GlyphBuffer {
 		for (Map.Entry<GlyphPage, List<Glyph>> glyphPageListEntry : pageToGlyphs.entrySet()) {
 			GlyphPage page = glyphPageListEntry.getKey();
 			GpuTextureView glId = page.tex.getGlTextureView();
-			SimpleGuiElementRenderState state = new SimpleGuiRenderState(CustomRenderLayers.PIPELINE_TEXT_CUSTOM, TextureSetup.of(glId), context, createBounds(context, x, y, maxX - minX, maxY - minY), (buffer, z) -> {
+			SimpleGuiElementRenderState state = new SimpleGuiRenderState(CustomRenderLayers.PIPELINE_TEXT_CUSTOM, TextureSetup.of(glId), context, createBounds(context, x, y, maxX - minX, maxY - minY), (buffer) -> {
 				for (Glyph glyph : glyphPageListEntry.getValue()) {
 					float glyphBaselineX = (glyph.x + offsetX) * sf;
 					float glyphBaselineY = (glyph.y + offsetY) * sf;
@@ -207,10 +205,10 @@ public class GlyphBuffer {
 					// small insets to make sure we're always INSIDE this char's bounds
 					//@formatter:off
 					buffer
-							.vertex(tTL.x, tTL.y, z).color(actualColor).texture((glyphX + 0.01f) / w, 	     (glyphY + 0.01f) / h)		.light(0xf000f0)
-							.vertex(tBL.x, tBL.y, z).color(actualColor).texture((glyphX + 0.01f) / w, 	     (glyphY + hei - 0.01f) / h)	.light(0xf000f0)
-							.vertex(tBR.x, tBR.y, z).color(actualColor).texture((glyphX + wid - 0.01f) / w, (glyphY + hei - 0.01f) / h)	.light(0xf000f0)
-							.vertex(tTR.x, tTR.y, z).color(actualColor).texture((glyphX + wid - 0.01f) / w, (glyphY + 0.01f) / h)		.light(0xf000f0);
+							.vertex(tTL.x, tTL.y, 0).color(actualColor).texture((glyphX + 0.01f) / w, 	     (glyphY + 0.01f) / h)		.light(0xf000f0)
+							.vertex(tBL.x, tBL.y,0).color(actualColor).texture((glyphX + 0.01f) / w, 	     (glyphY + hei - 0.01f) / h)	.light(0xf000f0)
+							.vertex(tBR.x, tBR.y,0).color(actualColor).texture((glyphX + wid - 0.01f) / w, (glyphY + hei - 0.01f) / h)	.light(0xf000f0)
+							.vertex(tTR.x, tTR.y,0).color(actualColor).texture((glyphX + wid - 0.01f) / w, (glyphY + 0.01f) / h)		.light(0xf000f0);
 					//@formatter:on
 				}
 			});
@@ -271,7 +269,7 @@ public class GlyphBuffer {
 		}
 
 		if (!draws.isEmpty()) {
-			SimpleGuiElementRenderState state = new SimpleGuiRenderState(RenderPipelines.GUI, TextureSetup.empty(), context, createBounds(context, x, y, maxX - minX, maxY - minY), (quadBuffer, aFloat) -> {
+			SimpleGuiElementRenderState state = new SimpleGuiRenderState(RenderPipelines.GUI, TextureSetup.empty(), context, createBounds(context, x, y, maxX - minX, maxY - minY), (quadBuffer) -> {
 				for (List<Rectangle> whatToDraw : draws) {
 					for (Rectangle rect : whatToDraw) {
 						float le = rect.x;
@@ -283,10 +281,10 @@ public class GlyphBuffer {
 
 						//@formatter:off
 						quadBuffer
-								.vertex(posmat, le, theY, 	   	 aFloat).color(actualColor)
-								.vertex(posmat, le, theY + height, aFloat).color(actualColor)
-								.vertex(posmat, ri, theY + height, aFloat).color(actualColor)
-								.vertex(posmat, ri, theY, 		 aFloat).color(actualColor);
+								.vertex(posmat, le, theY).color(actualColor)
+								.vertex(posmat, le, theY + height).color(actualColor)
+								.vertex(posmat, ri, theY + height).color(actualColor)
+								.vertex(posmat, ri, theY).color(actualColor);
 								//@formatter:on
 					}
 				}

@@ -9,8 +9,8 @@ repositories {
 }
 
 dependencies {
-    compileOnly("org.projectlombok:lombok:1.18.30")
-    annotationProcessor("org.projectlombok:lombok:1.18.30")
+    compileOnly("org.projectlombok:lombok:1.18.38")
+    annotationProcessor("org.projectlombok:lombok:1.18.38")
 
     implementation(project(path=":renderer", configuration = "namedElements"))!!
 
@@ -18,5 +18,5 @@ dependencies {
 
     include(implementation("org.lwjgl:lwjgl-harfbuzz:3.3.3")!!)
 
-    modImplementation("io.wispforest:owo-lib:0.12.21+1.21.6")
+    modImplementation("io.wispforest:owo-lib:0.12.22+1.21.9")
 }

@@ -1,4 +1,4 @@
-import com.palantir.javapoet.*
+import com.squareup.javapoet.*
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
@@ -14,7 +14,7 @@ import java.nio.file.Path
 import javax.lang.model.element.Modifier
 import kotlin.io.path.inputStream
 
-private val matrixStackEntry = ClassName.get("net.minecraft.client.util.math", "MatrixStack", "Entry")
+//private val matrixStackEntry = ClassName.get("net.minecraft.client.util.math", "MatrixStack", "Entry")
 private val matrix4f = ClassName.get("org.joml", "Matrix4f")
 private val matrix3f = ClassName.get("org.joml", "Matrix3f")
 private val vector3f = ClassName.get("org.joml", "Vector3f")
