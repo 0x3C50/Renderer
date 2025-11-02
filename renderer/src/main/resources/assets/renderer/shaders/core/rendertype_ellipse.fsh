@@ -12,8 +12,10 @@ void main() {
     float distance = length(distanceToCenter) * 2;
     distance = smoothstep(1.0 - fwidth(distance), 1.0, distance);
     float alpha = 1-distance;
-//    distance *= 2;
-    vec4 color = ColorModulator * vec4(1, 1, 1, alpha);
-    if (color.a == 0) discard;
+    vec4 color = vertexColor * ColorModulator;
+    color.a *= alpha;
+    if(color.a == 0) {
+        discard;
+    }
     fragColor = color;
 }
