@@ -18,7 +18,7 @@ dependencies {
     compileOnly(kotlin("gradle-plugin", embeddedKotlinVersion))
 //    runtimeOnly(kotlin("gradle-plugin", "2.0.21"))
 
-    implementation(pluginDep("fabric-loom", "1.11-SNAPSHOT"))
+    implementation(pluginDep("fabric-loom", "1.13-SNAPSHOT"))
 
     implementation("com.squareup:javapoet:1.13.0")
 

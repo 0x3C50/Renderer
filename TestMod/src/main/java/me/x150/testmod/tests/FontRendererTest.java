@@ -15,7 +15,9 @@ public class FontRendererTest extends BaseComponent {
 	@Override
 	public void draw(OwoUIDrawContext context, int mouseX, int mouseY, float partialTicks, float delta) {
 		if (dirty) init();
-		gb.draw(context, x, y);
+//		gb.offsetToTopLeft();
+		gb.draw(context, x + 10, y + 10);
+		context.fill(x, y, (int) (x+(gb.maxX-gb.minX))+20, (int) (y+(gb.maxY-gb.minY))+20, 0xFF0000FF);
 	}
 
 	private void init() {

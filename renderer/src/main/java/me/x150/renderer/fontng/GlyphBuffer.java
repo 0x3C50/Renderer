@@ -165,10 +165,13 @@ public class GlyphBuffer {
 
 		Map<GlyphPage, List<Glyph>> pageToGlyphs = glyphs.stream().collect(Collectors.groupingBy(it -> it.font.getPage(it.glyphId)));
 
+		ScreenRect theBounds = createBounds(context, minX + offsetX, minY + offsetY, (maxX - minX) * sf, (maxY - minY) * sf);
+
 		for (Map.Entry<GlyphPage, List<Glyph>> glyphPageListEntry : pageToGlyphs.entrySet()) {
 			GlyphPage page = glyphPageListEntry.getKey();
 			GpuTextureView glId = page.tex.getGlTextureView();
-			SimpleGuiElementRenderState state = new SimpleGuiRenderState(CustomRenderLayers.PIPELINE_TEXT_CUSTOM, TextureSetup.of(glId), context, createBounds(context, x, y, maxX - minX, maxY - minY), (buffer) -> {
+//			context.fill((int) ((minX + offsetX) * sf), (int) ((minY + offsetY) * sf), (int) (((minX + offsetX) * sf) + (maxX - minX) * sf), (int) (((minY + offsetY) * sf) + (maxY - minY) * sf), 0xFFFF00FF);
+			SimpleGuiElementRenderState state = new SimpleGuiRenderState(CustomRenderLayers.PIPELINE_TEXT_CUSTOM, TextureSetup.of(glId), context, theBounds, (buffer) -> {
 				for (Glyph glyph : glyphPageListEntry.getValue()) {
 					float glyphBaselineX = (glyph.x + offsetX) * sf;
 					float glyphBaselineY = (glyph.y + offsetY) * sf;
@@ -269,7 +272,7 @@ public class GlyphBuffer {
 		}
 
 		if (!draws.isEmpty()) {
-			SimpleGuiElementRenderState state = new SimpleGuiRenderState(RenderPipelines.GUI, TextureSetup.empty(), context, createBounds(context, x, y, maxX - minX, maxY - minY), (quadBuffer) -> {
+			SimpleGuiElementRenderState state = new SimpleGuiRenderState(RenderPipelines.GUI, TextureSetup.empty(), context, theBounds, (quadBuffer) -> {
 				for (List<Rectangle> whatToDraw : draws) {
 					for (Rectangle rect : whatToDraw) {
 						float le = rect.x;
