@@ -12,7 +12,7 @@ void main() {
     float distance = length(distanceToCenter) * 2;
     distance = smoothstep(1.0 - fwidth(distance), 1.0, distance);
     float alpha = 1-distance;
-    vec4 color = vertexColor * ColorModulator * vec4(1, 1, 1, alpha)
+    vec4 color = vertexColor * ColorModulator * vec4(1, 1, 1, alpha);
     if(color.a == 0) {
         discard;
     }
