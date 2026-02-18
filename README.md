@@ -1,6 +1,13 @@
 # Renderer
 An easy-to-use rendering library for modern fabric.
 
+# Deprecation
+After like 3-4 years of this existing, I still don't know what the original purpose was, or what this project even aimed to solve. I just threw together something that rendered stuff and called it good.
+
+With the frequent rendering system changes (see https://www.minecraft.net/en-us/article/another-step-towards-vibrant-visuals-for-java-edition), I see an opportunity to kill the old stuff and figure out what I want this to do.
+
+If you depend on this library, forking and maintaining it yourself won't be difficult, but use the opportunity to reconsider your rendering infra itself. Most of the things here are easily reimplemented.
+
 # Installing
 This library can be found on [Maven central](https://central.sonatype.com/artifact/io.github.0x3c50.renderer/renderer-fabric).
 
